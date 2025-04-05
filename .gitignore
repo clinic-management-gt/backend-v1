@@ -1,0 +1,22 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+.vs/
+*.db
+
+# Docker
+*.tar
+*.pid
+docker-compose.yml
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
