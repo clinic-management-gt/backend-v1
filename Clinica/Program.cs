@@ -3,6 +3,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Agrega soporte para controladores
 builder.Services.AddControllers();
 
+// Habilita CORS para el frontend en localhost:5173
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -23,6 +34,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+
+app.UseCors("AllowFrontend");
 
 // Mapea controladores como /pacientes, /testdb
 app.MapControllers();
