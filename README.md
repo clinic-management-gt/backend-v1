@@ -47,6 +47,28 @@ networks:
 
 ---
 
+### ⚙️ appsettings.example.json
+
+You must create your `appsettings.json` based on the included `appsettings.example.json`, and set your database credentials:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=db;Port=5432;Database=YOUR_DB;Username=YOUR_USER;Password=YOUR_PASS"
+  }
+}
+```
+
+> 🛑 **Note:** The original `appsettings.json` is ignored via `.gitignore` to protect sensitive data.
+
+---
 ## ✅ How to Run the Environment
 
 1. Open a terminal in the backend project root folder.
