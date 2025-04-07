@@ -17,17 +17,21 @@ namespace Clinica.Controllers
       [HttpGet]
       public IActionResult Get()
       {
+         Console.WriteLine("➡️ Entró al endpoint /testdb");
+
          string? connectionString = _config.GetConnectionString("DefaultConnection");
 
          try
          {
-               using var conn = new NpgsqlConnection(connectionString);
-               conn.Open();
-               return Ok("✅ Conexión exitosa a PostgreSQL");
+            using var conn = new NpgsqlConnection(connectionString);
+            conn.Open();
+            Console.WriteLine("✅ Conexión a PostgreSQL abierta correctamente");
+            return Ok("✅ Conexión exitosa a PostgreSQL");
          }
          catch (Exception ex)
          {
-               return StatusCode(500, $"❌ Error de conexión: {ex.Message}");
+            Console.WriteLine($"❌ Error al conectar: {ex.Message}");
+            return StatusCode(500, $"❌ Error de conexión: {ex.Message}");
          }
       }
    }
