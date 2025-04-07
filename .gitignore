@@ -20,3 +20,7 @@ docker-compose.yml
 # Sistema
 .DS_Store
 Thumbs.db
+
+**/appsettings.json
+
+
