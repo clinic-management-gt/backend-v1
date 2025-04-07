@@ -1,53 +1,54 @@
-# Backend - Clínica
+# Backend - Clinic
 
-Este es el backend del sistema de gestión para una clínica. Está desarrollado en .NET y expone una API REST con endpoints como:
+This is the backend for the clinic management system. It is developed in .NET and exposes a REST API with endpoints such as:
 
 - `GET /pacientes`
 - `GET /testdb`
 
-Este backend está preparado para ejecutarse en un contenedor Docker y conectarse con una base de datos PostgreSQL.  
-Esta primera fase busca verificar que todos los servicios estén incluidos y funcionando correctamente.
+The backend is designed to run inside a Docker container and connect to a PostgreSQL database.  
+This first phase aims to verify that all services are included and working correctly.
 
-Se ha configurado una carpeta llamada `Clinica`, que permite organizar el código, revisar logs del sistema y acceder a los datos almacenados en PostgreSQL.
+A folder named `Clinica` has been set up to organize the code, inspect system logs, and access the data stored in PostgreSQL.
 
 ---
 
-## 📁 Archivos de Configuración
+## 📁 Configuration Files
 
 ### 🐳 Dockerfile
 
-El archivo `Dockerfile` contiene las instrucciones necesarias para construir la imagen del backend, incluyendo:
+The `Dockerfile` contains the necessary instructions to build the backend image, including:
 
-- Selección de imagen base de .NET
-- Instalación de dependencias
-- Restauración y compilación del proyecto
-- Exposición del puerto de la aplicación
-
-### 🛠️ docker-compose.yml
-
-El archivo `docker-compose.yml` permite orquestar tres servicios:
-
-1. **Backend en .NET (ASPNET)**
-2. **Base de datos PostgreSQL**
-3. **Adminer** (interfaz visual para la base de datos)
-
-Además, se ha creado una red llamada `clinica-network` para que el backend pueda comunicarse fácilmente con el frontend y los demás servicios.
+- Selecting a base .NET image
+- Installing dependencies
+- Restoring and compiling the project
+- Exposing the application port
 
 ---
 
-## ✅ Pasos para levantar el entorno
+### 🛠️ docker-compose.yml
+
+The `docker-compose.yml` file orchestrates three services:
+
+1. **Backend in .NET (ASPNET)**
+2. **PostgreSQL database**
+3. **Adminer** (a visual database manager)
+
+Additionally, a network called `clinica-network` has been created to allow seamless communication between the backend, frontend, and other services.
+
+---
+
+## ✅ How to Run the Environment
 
 ```bash
 docker-compose up --build
 ```
 
-Una vez levantado:
+Once running:
 
-🔹 Backend disponible en: http://localhost:9000
+🔹 Backend available at: `http://localhost:9000`  
 Endpoints:
 
-GET /pacientes
+- `GET /pacientes`
+- `GET /testdb`
 
-GET /testdb
-
-🔹 Adminer (gestor de base de datos): http://localhost:9001
+🔹 Adminer (database manager): `http://localhost:9001`
