@@ -22,6 +22,5 @@ docker-compose.yml
 .DS_Store
 Thumbs.db
 
-**/appsettings.json
 
 
