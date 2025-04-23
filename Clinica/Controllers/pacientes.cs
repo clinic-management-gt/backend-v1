@@ -28,7 +28,8 @@ namespace Clinica.Controllers
 
                var pacientes = new List<object>();
 
-               using var cmd = new NpgsqlCommand("SELECT id, nombre FROM pacientes", conn);
+               // Actualizamos la consulta para usar "name" en lugar de "nombre"
+               using var cmd = new NpgsqlCommand("SELECT id, name FROM patients", conn);
                using var reader = cmd.ExecuteReader();
 
                while (reader.Read())
@@ -36,7 +37,7 @@ namespace Clinica.Controllers
                   pacientes.Add(new
                   {
                      id = reader.GetInt32(0),
-                     nombre = reader.GetString(1)
+                     name = reader.GetString(1) // Cambiamos "nombre" a "name"
                   });
                }
 
@@ -50,27 +51,3 @@ namespace Clinica.Controllers
       }
    }
 }
-
-
-
-// using Microsoft.AspNetCore.Mvc;
-
-// namespace Clinica.Controllers
-// {
-//    [ApiController]
-//    [Route("[controller]")]
-//    public class PacientesController : ControllerBase
-//    {
-//       [HttpGet]
-//       public IActionResult Get()
-//       {
-//          Console.WriteLine("➡️ Endpoint /pacientes alcanzado");
-//          return Ok(new[]
-//          {
-//                new { id = 1, nombre = "Juan Pérez" },
-//                new { id = 2, nombre = "María López" },
-//                new { id = 3, nombre = "Carlos Gómez" }
-//          });
-//       }
-//    }
-// }
