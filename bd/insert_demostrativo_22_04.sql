@@ -20,15 +20,78 @@ VALUES (1, 'Juan', 'Pérez', 'juan.perez@example.com', 1);
 
 -- 6) Patient Types
 INSERT INTO patient_types (id, name, description)
-VALUES (1, 'Regular', 'Paciente pediátrico general');
+VALUES
+(1, 'Regular', 'Paciente pediátrico general'),
+(2, 'Emergencia', 'Paciente pediátrico en situación de emergencia'),
+(3, 'Crónico', 'Paciente pediátrico con enfermedades crónicas'),
+(4, 'Control de Crecimiento', 'Paciente en seguimiento de desarrollo y crecimiento'),
+(5, 'Vacunación', 'Paciente en programa de vacunación pediátrica'),
+(6, 'Neonatal', 'Paciente recién nacido en control'),
+(7, 'Adolescente', 'Paciente adolescente en transición a medicina de adultos'),
+(8, 'Especialidad', 'Paciente pediátrico atendido en especialidades (cardiología, neurología, etc.)');
+
 
 -- 7) Blood Types
 INSERT INTO blood_types (id, type, description)
-VALUES (1, 'A+', 'Tipo A positivo');
+VALUES
+(1, 'A+', 'Tipo A positivo'),
+(2, 'A-', 'Tipo A negativo'),
+(3, 'B+', 'Tipo B positivo'),
+(4, 'B-', 'Tipo B negativo'),
+(5, 'AB+', 'Tipo AB positivo'),
+(6, 'AB-', 'Tipo AB negativo'),
+(7, 'O+', 'Tipo O positivo'),
+(8, 'O-', 'Tipo O negativo');
 
 -- 8) Patients
+-- 1
 INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
 VALUES (1, 'María', 'Gómez', '2015-06-01', 'Calle Falsa 123', 'Female', 1, 1);
+
+-- 2
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (2, 'Juan', 'Pérez', '1990-04-15', 'Av. Central 456', 'Male', 2, 2);
+
+-- 3
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (12, 'Juan', 'González', '1992-03-24', 'Av. Flores 454', 'Male', 3, 1);
+
+-- 4
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (3, 'Lucía', 'Fernández', '1985-11-23', 'Calle del Sol 789', 'Female', 3, 1);
+
+-- 5
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (4, 'Carlos', 'Ramírez', '2000-02-10', 'Boulevard Norte 321', 'Male', 4, 2);
+
+-- 6
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (5, 'Ana', 'Martínez', '2012-07-30', 'Callejón Luna 12', 'Female', 1, 1);
+
+-- 7
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (6, 'Diego', 'López', '1978-09-12', 'Av. Las Rosas 555', 'Male', 5, 2);
+
+-- 8
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (7, 'Sofía', 'Torres', '1995-01-05', 'Calle Primavera 77', 'Female', 6, 1);
+
+-- 9
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (8, 'Miguel', 'Castro', '2003-12-22', 'Camino Real 888', 'Male', 7, 2);
+
+-- 10
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (9, 'Valentina', 'Mendoza', '2018-03-18', 'Calle Sauce 303', 'Female', 2, 1);
+
+-- 11
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (10, 'Andrés', 'Morales', '1980-06-29', 'Pasaje del Río 47', 'Male', 3, 2);
+
+-- 12
+INSERT INTO patients (id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id)
+VALUES (11, 'Camila', 'Silva', '1999-10-09', 'Av. Libertad 910', 'Female', 4, 1);
+
 
 -- 9) Alergias
 INSERT INTO alergies (id, alergy_code, alergy_description)
