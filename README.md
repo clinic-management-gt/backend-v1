@@ -3,7 +3,7 @@
 This is the backend for the clinic management system. Developed in .NET, it exposes a REST API with endpoints like:
 
 - `GET /pacientes`
-- `GET /testdb` (optional, used for database connection testing)
+- `GET /ping` (optional, used for test the connection)
 
 This backend runs inside a Docker container and connects to a PostgreSQL database.  
 The initial phase is intended to verify that all services are correctly included and running.
@@ -45,7 +45,6 @@ networks:
       name: clinica-network
 ```
 
-
 ## ✅ How to Run the Environment
 
 1. Open a terminal in the backend project root folder.
@@ -58,7 +57,7 @@ docker network create clinica-network  # only if not exists
 ```
 
 > [!IMPORTANT]  
-> *.example files, such as .env and docker-compose, you must duplicate and add your own credentials and ports.
+> \*.example files, such as .env and docker-compose, you must duplicate and add your own credentials and ports.
 
 4. Run the backend container:
 
@@ -67,6 +66,7 @@ docker compose up --build -d
 ```
 
 > 💡 You should start:
+>
 > 1. The Docker network
 > 2. The backend
 > 3. The frontend (from its own folder)
@@ -75,8 +75,9 @@ Once running:
 
 - Backend is available at: `http://localhost:9000`
 - Example endpoints:
+
   - `GET /pacientes` – returns dummy patient data or real DB data depending on controller setup
-  - `GET /testdb` – checks database connection (optional)
+  - `GET /ping` – checks database connection (optional)
 
 - Adminer interface (for DB inspection) at: `http://localhost:9001`
 
