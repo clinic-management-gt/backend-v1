@@ -79,5 +79,65 @@ namespace Clinica.Controllers
          return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
         }
       }
+
+
+      [HttpPost]
+      public IActionResult CreatePaciente([FromBody] Paciente paciente){
+        Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        //normalizamos en género
+        string? gender = paciente.Gender?.Trim().ToLower();
+        if (gender == "male"){
+          gender = "Male";
+        }
+        else if (gender == "female")
+        {
+            gender = "Female";  
+        }else{
+          gender = "No specified";
+        }
+
+        
+        try{
+          
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+          
+          var sql = "INSERT INTO patients (name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at) " +
+                    "VALUES (@name, @lastName, @birthdate, @address, @gender, @bloodTypeId, @patientTypeId, NOW(), NULL) RETURNING id";
+          
+          
+          using var cmd = new NpgsqlCommand(sql, conn);
+
+          cmd.Parameters.AddWithValue("name", paciente.Name);
+          cmd.Parameters.AddWithValue("lastName", paciente.LastName);
+          cmd.Parameters.AddWithValue("birthdate", paciente.Birthdate);
+          cmd.Parameters.AddWithValue("address", paciente.Address);
+          cmd.Parameters.AddWithValue("gender",gender);
+          cmd.Parameters.AddWithValue("bloodTypeId", paciente.BloodTypeId);
+          cmd.Parameters.AddWithValue("patientTypeId", paciente.PatientTypeId);
+
+          // Ejecutar la consulta y obtener el ID del nuevo paciente
+          var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
+
+          // Aquí actualizamos el ID del paciente con el valor retornado por la base de datos.
+          paciente.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
+          paciente.CreatedAt = DateTime.Now;
+
+          return CreatedAtAction(nameof(GetAll), new { id = paciente.Id }, paciente);
+
+
+        }catch(Exception ex){
+          Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
+          return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+
+        }
+
+
+      }
+
+
    }
 }
