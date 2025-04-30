@@ -77,7 +77,7 @@ CREATE TABLE patients (
   last_name        VARCHAR(50)    NOT NULL,
   birthdate        DATE           NOT NULL,
   address          TEXT           NOT NULL,
-  gender           VARCHAR(10)    NOT NULL,
+  gender           VARCHAR(50)    NOT NULL,
   blood_type_id    INT            NOT NULL REFERENCES blood_types(id),
   patient_type_id  INT            NOT NULL REFERENCES patient_types(id),
   created_at       TIMESTAMP      DEFAULT now(),
