@@ -14,9 +14,10 @@ namespace Clinica.Controllers
       {
          _config = config;
       }
-
+      
+      // GET: api/pacientes
       [HttpGet]
-      public IActionResult GetAll([FromQuery] string? name, [FromQuery] string? lastName)
+      public IActionResult GetAll()
       {
         Console.WriteLine("➡️ Endpoint /pacientes alcanzado (desde DB)");
 
@@ -31,30 +32,9 @@ namespace Clinica.Controllers
 
 
           var sql = "SELECT id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at FROM patients";
-          var filters = new List<string>();
 
-          var cmd = new NpgsqlCommand();
-            
-          if (!string.IsNullOrEmpty(name))
-          {
-              filters.Add("name ILIKE @name");
-              cmd.Parameters.AddWithValue("name", $"%{name}%");
-          }
+          var cmd = new NpgsqlCommand(sql, conn);
 
-          if (!string.IsNullOrEmpty(lastName))
-          {
-              filters.Add("unaccent(last_name) ILIKE unaccent(@lastName)");
-              cmd.Parameters.AddWithValue("lastName", $"%{lastName}%");
-          }
-
-          if (filters.Any())
-          {
-              sql += " WHERE " + string.Join(" AND ", filters);
-          }
-
-          cmd.CommandText = sql;
-          cmd.Connection = conn;
-            
           using var reader = cmd.ExecuteReader();
           while (reader.Read()){
             pacientes.Add(new Paciente{
@@ -81,6 +61,59 @@ namespace Clinica.Controllers
       }
 
 
+      //GetById
+      [HttpGet("{id}")]
+      public IActionResult GetPacienteById(int id){
+        Console.WriteLine($"➡️ Endpoint GET /pacientes/{id} alcanzado (para obtener un paciente)");
+        
+        string ? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try{
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+
+
+          var sql = "SELECT id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at FROM patients WHERE id = @id";
+
+          var cmd = new NpgsqlCommand(sql, conn);
+
+          cmd.Parameters.AddWithValue("id", id);
+  
+          using var reader = cmd.ExecuteReader();
+
+          if (reader.Read())  // Si encuentra el paciente
+          {
+            var paciente = new Paciente  {
+              Id = reader.GetInt32(0),
+              Name = reader.GetString(1),
+              LastName = reader.GetString(2),
+              Birthdate = reader.GetDateTime(3),
+              Address = reader.GetString(4),
+              Gender = reader.GetString(5),
+              BloodTypeId = reader.GetInt32(6),
+              PatientTypeId = reader.GetInt32(7),
+              CreatedAt = reader.GetDateTime(8),
+              UpdatedAt = reader.IsDBNull(9) ? null : reader.GetDateTime(9)
+            };
+
+
+
+
+            return Ok(paciente);
+        
+
+          }else{
+            return NotFound($"Paciente con ID {id} no encontrado.");
+          }
+
+        }catch(Exception ex){
+          Console.WriteLine($"❌ Error al consultar paciente: {ex.Message}");
+          return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+        }
+
+
+      }
+      // POST: api/pacientes
       [HttpPost]
       public IActionResult CreatePaciente([FromBody] Paciente paciente){
         Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
@@ -135,9 +168,91 @@ namespace Clinica.Controllers
 
         }
 
-
+      
       }
 
+
+
+
+      [HttpPatch("{id}")]
+      public IActionResult UpdatePaciente(int id, [FromBody] Paciente paciente)
+      {
+          Console.WriteLine($"➡️ Endpoint PATCH /pacientes/{id} alcanzado (para actualizar paciente)");
+
+          string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+          // Limpiar y normalizar el campo "gender"
+          string? gender = paciente.Gender?.Trim().ToLower();
+          if (gender == "male")
+          {
+              gender = "Male";
+          }
+          else if (gender == "female")
+          {
+              gender = "Female";  
+          }
+          else
+          {
+              gender = "No specified";  // Si no es ni male ni female
+          }
+
+          try
+          {
+              using var conn = new NpgsqlConnection(connectionString);
+              conn.Open();
+
+              // Crear un diccionario para almacenar las actualizaciones
+              var updateFields = new Dictionary<string, object>();
+
+              // Agregar campos al diccionario solo si están presentes en el objeto 'paciente'
+              if (!string.IsNullOrEmpty(paciente.Name)) updateFields.Add("name", paciente.Name);
+              if (!string.IsNullOrEmpty(paciente.LastName)) updateFields.Add("last_name", paciente.LastName);
+              if (paciente.Birthdate != null) updateFields.Add("birthdate", paciente.Birthdate);
+              if (!string.IsNullOrEmpty(paciente.Address)) updateFields.Add("address", paciente.Address);
+              if (!string.IsNullOrEmpty(gender)) updateFields.Add("gender", gender);
+              if (paciente.BloodTypeId != 0) updateFields.Add("blood_type_id", paciente.BloodTypeId);
+              if (paciente.PatientTypeId != 0) updateFields.Add("patient_type_id", paciente.PatientTypeId);
+              updateFields.Add("updated_at", DateTime.Now);
+
+              // Si el diccionario está vacío, retornar BadRequest
+              if (!updateFields.Any())
+              {
+                  return BadRequest("No hay campos para actualizar.");
+              }
+
+              // Construir dinámicamente la consulta SQL
+              var setClause = string.Join(", ", updateFields.Keys.Select(k => $"{k} = @{k}"));
+              var sql = $"UPDATE patients SET {setClause} WHERE id = @id";
+
+              using var cmd = new NpgsqlCommand(sql, conn);
+
+              // Agregar los parámetros al comando SQL
+              foreach (var field in updateFields)
+              {
+                  cmd.Parameters.AddWithValue(field.Key, field.Value);
+              }
+
+              // Agregar el ID del paciente
+              cmd.Parameters.AddWithValue("id", id);
+
+              // Ejecutar la consulta
+              var rowsAffected = cmd.ExecuteNonQuery();
+
+              if (rowsAffected > 0)
+              {
+                  return Ok($"Paciente con ID {id} actualizado.");
+              }
+              else
+              {
+                  return NotFound($"Paciente con ID {id} no encontrado.");
+              }
+          }
+          catch (Exception ex)
+          {
+              Console.WriteLine($"❌ Error al actualizar el paciente: {ex.Message}");
+              return StatusCode(500, $"Error al actualizar el paciente: {ex.Message}");
+          }
+      }
 
    }
 }
