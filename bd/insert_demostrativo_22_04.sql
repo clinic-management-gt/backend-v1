@@ -131,6 +131,9 @@ VALUES (1, 1, 'Hemoglobina: 13 g/dL', '/results/hemograma1.pdf');
 INSERT INTO appointments (patient_id, doctor_id, appointment_date, reason, status)
 VALUES (1, 1, '2025-04-23 09:00:00', 'Chequeo rutinario', 'Confirmado');
 
+INSERT INTO appointments (patient_id, doctor_id, appointment_date, reason, status)
+VALUES (2, 1, '2025-05-01 10:00:00', 'Consulta de seguimiento', 'Pendiente');
+
 -- 19) Diagnosis
 INSERT INTO diagnosis (appointment_id, description, diagnosis_date)
 VALUES (1, 'Sin anomalías', '2025-04-23 09:30:00');
@@ -143,9 +146,15 @@ VALUES ('Ibuprofeno', 'Proveedor X', 'Analgésico');
 INSERT INTO treatments (appointment_id, medicine_id, dosis, duration, frequency, observaciones, status)
 VALUES (1, 1, '200mg', '5 días', 'Cada 8h', 'Tomar con alimentos', 'No Terminado');
 
+INSERT INTO treatments (appointment_id, medicine_id, dosis, duration, frequency, observaciones, status)
+VALUES (2, 1, '500mg', '7 días', 'Cada 12h', 'Tomar después de las comidas', 'No Terminado');
+
 -- 22) Recipes
 INSERT INTO recipes (treatment_id, prescription)
 VALUES (1, 'Ibuprofeno 200mg c/8h x 5 días');
+
+INSERT INTO recipes (treatment_id, prescription)
+VALUES (2, 'Amoxicilina 500mg c/12h x 7 días');
 
 -- 23) Insurance
 INSERT INTO insurance (patient_id, provider_name, policy_number, coverage_details)
