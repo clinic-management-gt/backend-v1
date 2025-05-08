@@ -432,8 +432,76 @@ namespace Clinica.Controllers
       
       }
           
-          
- 
+      [HttpGet("{id}/growthcurves")]
+      public IActionResult GetAllHeightToAgeEntries(int id)
+      {
 
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try
+        {
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+
+          string birthdateSql = "SELECT birthdate FROM patients WHERE id = @id";
+          NpgsqlCommand birthdateCmd = new NpgsqlCommand(birthdateSql, conn); 
+          birthdateCmd.Parameters.AddWithValue("id", id);
+          DateTime birthdate = (DateTime)birthdateCmd.ExecuteScalar();
+
+          string medicalRecordSql = "SELECT height, weight, created_at FROM medical_records WHERE patient_id = @id";
+          NpgsqlCommand medicalRecordCmd = new NpgsqlCommand(medicalRecordSql, conn); 
+          medicalRecordCmd.Parameters.AddWithValue("id", id);
+
+            
+          List<HeightToAgeEntryDTO> heightToAgeEntries = new List<HeightToAgeEntryDTO>();
+          List<WeightToAgeEntryDTO> weightToAgeEntries = new List<WeightToAgeEntryDTO>();
+          List<WeightToHeightEntryDTO> weightToHeightEntries = new List<WeightToHeightEntryDTO>();
+          List<BodyMassIndexEntryDTO> bodyMassIndexEntries = new List<BodyMassIndexEntryDTO>();
+
+          using var reader = medicalRecordCmd.ExecuteReader();
+          while (reader.Read()){
+            double height = reader.GetDouble(0);
+            double weight = reader.GetDouble(1);
+            int age = reader.GetDateTime(2).Subtract(birthdate).Days;
+
+            heightToAgeEntries.Add( new HeightToAgeEntryDTO
+                    {
+                        Height = height, 
+                        AgeInDays = age, 
+                    });
+            weightToAgeEntries.Add( new WeightToAgeEntryDTO 
+                    {
+                        Weight = weight, 
+                        AgeInDays = age,
+
+                    });
+            weightToHeightEntries.Add(new WeightToHeightEntryDTO
+                    {
+                       Weight = weight,
+                       Height = height,
+                    });
+            bodyMassIndexEntries.Add(new BodyMassIndexEntryDTO
+                    {
+                        BodyMassIndex = weight / (height * height),
+                        AgeInDays = age
+                    });
+          } 
+
+          
+
+          if(heightToAgeEntries.Count > 0 || weightToAgeEntries.Count > 0){
+            return Ok(new GrowthCurvesDTO(heightToAgeEntries, weightToAgeEntries, weightToHeightEntries, bodyMassIndexEntries));
+          }else {
+            return NotFound($"Paciente con ID {id} no cuenta con entradas para generar curvas de crecimiento");
+          }
+          
+
+
+        }
+        catch (Exception ex)
+        {
+         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+        }
+      }
    }
 }
