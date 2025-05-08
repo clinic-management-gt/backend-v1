@@ -113,7 +113,7 @@ namespace Clinica.Controllers
 
 
       }
-      // POST: api/pacientes
+
       [HttpPost]
       public IActionResult CreatePaciente([FromBody] Paciente paciente){
         Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
@@ -134,7 +134,6 @@ namespace Clinica.Controllers
 
         
         try{
-          
           using var conn = new NpgsqlConnection(connectionString);
           conn.Open();
           
@@ -166,12 +165,8 @@ namespace Clinica.Controllers
           Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
           return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
 
-        }
-
-      
+        } 
       }
-
-
 
 
       [HttpPatch("{id}")]
@@ -349,6 +344,95 @@ namespace Clinica.Controllers
 
       
       }
+
+      [HttpGet("{id}/exams")]
+      public IActionResult GetAllPatientExams(int id)
+      {
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try
+        {
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+
+          var sql = "SELECT id, patient_id, exam_id, result_text, result_file_path, created_at FROM patient_exams WHERE patient_id = @id";
+
+          var cmd = new NpgsqlCommand(sql, conn); 
+
+          cmd.Parameters.AddWithValue("id", id);
+
+            
+          List<PatientExam> patientExams = new List<PatientExam>();
+
+          using var reader = cmd.ExecuteReader();
+          while (reader.Read()){
+            patientExams.Add( new PatientExam{
+              Id = reader.GetInt32(0),
+              PatientId = reader.GetInt32(1),
+              ExamId = reader.GetInt32(2),
+              ResultText = reader.GetString(3),
+              ResultFilePath = reader.GetString(4),
+              CreatedAt = reader.GetDateTime(5),
+            });
+
+          } 
+
+          if(patientExams.Count > 0){
+
+            return Ok(patientExams);
+          }else {
+            return NotFound($"Paciente con ID {id} no tiene examenes medicos.");
+          }
+          
+
+
+        }
+        catch (Exception ex)
+        {
+         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+        }
+      }
+
+      [HttpPost("{id}/exams")]
+      public IActionResult CreatePatientExam([FromBody] PatientExam patientExam){
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection"); 
+        
+        try{
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+          
+          var sql = "INSERT INTO patient_exams (patient_id, exam_id, result_text, result_file_path, created_at) " +
+                    "VALUES (@patient_id, @exam_id, @result_text, @result_file_path, NOW() ) RETURNING id";
+          
+          
+          using var cmd = new NpgsqlCommand(sql, conn);
+
+          cmd.Parameters.AddWithValue("patient_id", patientExam.PatientId);
+          cmd.Parameters.AddWithValue("exam_id", patientExam.ExamId);
+          cmd.Parameters.AddWithValue("result_text", patientExam.ResultText);
+          cmd.Parameters.AddWithValue("result_file_path", patientExam.ResultFilePath);
+
+          // Ejecutar la consulta y obtener el ID del nuevo paciente
+          var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
+
+          patientExam.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
+          patientExam.CreatedAt = DateTime.Now;
+
+          return CreatedAtAction(nameof(GetAllPatientExams), new { id = patientExam.Id }, patientExam);
+
+
+        }catch(Exception ex){
+          Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
+          return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+
+        }
+
+      
+      }
+          
+          
  
 
    }
