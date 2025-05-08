@@ -254,5 +254,102 @@ namespace Clinica.Controllers
           }
       }
 
+      [HttpGet("{id}/medicalrecords")]
+      public IActionResult GetAllMedicalRecords(int id)
+      {
+        Console.WriteLine("➡️ Endpoint /pacientes alcanzado (desde DB)");
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try
+        {
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+
+          var sql = "SELECT id, patient_id, weight, height, family_history, notes, created_at, updated_at FROM medical_records WHERE patient_id = @id";
+
+          var cmd = new NpgsqlCommand(sql, conn); 
+
+          cmd.Parameters.AddWithValue("id", id);
+
+            
+          var medicalRecords = new List<MedicalRecord>();
+
+          using var reader = cmd.ExecuteReader();
+          while (reader.Read()){
+            medicalRecords.Add( new MedicalRecord{
+              Id = reader.GetInt32(0),
+              PatientId = reader.GetInt32(1),
+              Weight = reader.GetDouble(2),
+              Height = reader.GetDouble(3),
+              FamilyHistory = reader.GetString(4),
+              Notes = reader.GetString(5),
+              CreatedAt = reader.GetDateTime(6),
+              UpdatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7)
+            });
+
+          } 
+
+          if(medicalRecords.Count > 0){
+
+            return Ok(medicalRecords);
+          }else {
+            return NotFound($"Paciente con ID {id} no tiene registros medicos.");
+          }
+          
+
+
+        }
+        catch (Exception ex)
+        {
+         Console.WriteLine($"❌ Error al consultar pacientes: {ex.Message}");
+         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+        }
+      }
+
+      [HttpPost("{id}/medicalrecords")]
+      public IActionResult CreateMedicalRecordByPatientId([FromBody] MedicalRecord medicalRecord){
+        Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+         
+        try{
+          
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+          
+          var sql = "INSERT INTO medical_records (patient_id, weight, height, family_history, notes, created_at) " +
+                    "VALUES (@patient_id, @weight, @height, @family_history, @notes, NOW()) RETURNING id";
+          
+          
+          using var cmd = new NpgsqlCommand(sql, conn);
+
+          cmd.Parameters.AddWithValue("patient_id", medicalRecord.PatientId);
+          cmd.Parameters.AddWithValue("weight", medicalRecord.Weight);
+          cmd.Parameters.AddWithValue("height", medicalRecord.Height);
+          cmd.Parameters.AddWithValue("family_history", medicalRecord.FamilyHistory);
+          cmd.Parameters.AddWithValue("notes", medicalRecord.Notes);
+
+
+          // Ejecutar la consulta y obtener el ID del nuevo paciente
+          var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
+
+          // Aquí actualizamos el ID del paciente con el valor retornado por la base de datos.
+          medicalRecord.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
+          medicalRecord.CreatedAt = DateTime.Now;
+
+          return CreatedAtAction(nameof(GetAllMedicalRecords), new { id = medicalRecord.Id }, medicalRecord);
+
+
+        }catch(Exception ex){
+          Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
+          return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+
+        }
+
+      
+      }
+ 
+
    }
 }
