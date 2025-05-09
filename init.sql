@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 -- ===================================================================
 -- 1) ENUM TYPES
 -- ===================================================================
-CREATE TYPE appointment_status_enum   AS ENUM ('Confirmado','Pendiente','Completado','Cancelado');
+CREATE TYPE appointment_status_enum   AS ENUM ('Confirmado','Pendiente','Completado','Cancelado', 'Espera');
 CREATE TYPE treatment_status_enum     AS ENUM ('Terminado','No Terminado');
 CREATE TYPE log_action_enum           AS ENUM ('INSERT','UPDATE','DELETE');
 
