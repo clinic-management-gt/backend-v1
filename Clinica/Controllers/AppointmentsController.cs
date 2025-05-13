@@ -1,63 +1,70 @@
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
+using Clinica.Models;
 
-namespace Clinica.Controllers
+namespace Clinica.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class AppointmentsController : ControllerBase
 {
-   [ApiController]
-   [Route("[controller]")]
-   public class AppointmentsController : ControllerBase
-   {
-      private readonly IConfiguration _config;
+    private readonly string[] ValidStatus = {"confirmado","pendiente","completado","cancelado", "espera" };
 
-      public AppointmentsController(IConfiguration config)
-      {
-         _config = config;
-      }
+    private readonly IConfiguration _config;
 
-      // GET: /appointments/patients/{id}
-      [HttpGet("patient/{id}")]
-      public IActionResult GetAppointmentByPacienteId(int id)
-      {
-         Console.WriteLine($"➡️ Endpoint GET /appointments/patient/{id} alcanzado");
+    public AppointmentsController(IConfiguration config)
+    {
+        _config = config;
+    }
 
-         string? connectionString = _config.GetConnectionString("DefaultConnection");
+    [HttpGet]
+    public IActionResult GetTodaysAppointments([FromQuery] string? status)
+    {
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
 
-         try
-         {
-            using var conn = new NpgsqlConnection(connectionString);
-            conn.Open();
+        try{
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
 
-            var citas = new List<object>();
+          NpgsqlCommand cmd = new NpgsqlCommand();
+          cmd.Connection = conn;
 
-            var sql = @"
-               SELECT id, appointment_date, reason, status, created_at, updated_at
-               FROM appointments
-               WHERE patient_id = @id";
+          var sql = "SELECT p.name, p.last_name, u.first_name, u.last_name, a.status , a.appointment_date FROM appointments AS a LEFT JOIN patients AS p ON p.id = a.patient_id LEFT JOIN users AS u ON u.id = a.doctor_id WHERE a.appointment_date::date  = current_date";
+          if(!string.IsNullOrEmpty(status)){
+            if(ValidStatus.Contains(status.ToLower())){
+                sql += " AND a.status = CAST(@status AS appointment_status_enum)"; 
+                cmd.Parameters.AddWithValue("status", status);
+            }else{
+                return BadRequest($"Query parameter {status} is not valid");
+            }
+            
+          }
+          cmd.CommandText = sql;
 
-            using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("id", id);
 
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-               citas.Add(new
-               {
-                     Id = reader.GetInt32(0),
-                     AppointmentDate = reader.GetDateTime(1),
-                     Reason = reader.GetString(2),
-                     Status = reader.GetString(3),
-                     CreatedAt = reader.GetDateTime(4),
-                     UpdatedAt = reader.IsDBNull(5) ? (DateTime?)null : reader.GetDateTime(5) // Corregido
-               });
+          List<DashBoardDTO> dashBoardDTOs = new List<DashBoardDTO>();
+ 
+          using var reader = cmd.ExecuteReader();
+
+          while (reader.Read())  
+          {
+             dashBoardDTOs.Add( new DashBoardDTO  
+                     {
+                        PatientName = $"{reader.GetString(0)} {reader.GetString(1)}",
+                        DoctorName = $"{reader.GetString(2)} {reader.GetString(3)}",                        
+                        Status = reader.GetString(4),
+                        Date = reader.GetDateTime(5),
+                    });
+
+          }
+            if(dashBoardDTOs.Count > 0){
+                return Ok(dashBoardDTOs); 
+            } else{
+                return NotFound("No hay entradas para el dashboard de hoy");
             }
 
-            return Ok(citas);
-         }
-         catch (Exception ex)
-         {
-            Console.WriteLine($"❌ Error al consultar citas: {ex.Message}");
-            return StatusCode(500, $"Error al consultar las citas: {ex.Message}");
-         }
-      }
-   }
+        }catch(Exception ex){
+          return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+        }
+    }
 }
