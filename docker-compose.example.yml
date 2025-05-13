@@ -1,4 +1,3 @@
-
 services:
   backend:
     build:
@@ -23,7 +22,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./bd/entry-point:/docker-entrypoint-initdb.d
 
   adminer:
     image: adminer
