@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Clinica.Models;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Clinica.Controllers
 {
@@ -495,5 +496,54 @@ namespace Clinica.Controllers
          return StatusCode(500, $"Error querying the database: {ex.Message}");
         }
       }
+
+      // patients/{id}/recipes
+      [HttpGet("{id}/recipes")]
+      public IActionResult GetAllRecipesByPatientID(int id)
+      {
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try
+        {
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+
+          var recetas = new List<Recipes>();
+
+          var sql = @"
+            SELECT r.id, r.treatment_id, r.prescription, r.created_at
+            FROM recipes r
+            JOIN treatments t ON r.treatment_id = t.id
+            JOIN appointments a ON t.appointment_id = a.id
+            WHERE a.patient_id = @id";
+
+          using var cmd = new NpgsqlCommand(sql, conn);
+          cmd.Parameters.AddWithValue("id",id);
+          using var reader = cmd.ExecuteReader();
+
+          while (reader.Read())
+          {
+            recetas.Add(new Recipes
+            {
+                Id = reader.GetInt32(0),
+                TreatmentId = reader.GetInt32(1),
+                Prescription = reader.IsDBNull(2) ? null : reader.GetString(2),
+                CreatedAt = reader.GetDateTime(3)
+            });
+
+
+          }
+          
+          return Ok(recetas);
+
+
+        }
+        catch (Exception ex)
+        {
+         return StatusCode(500, $"Error querying the database: {ex.Message}");
+        }
+      }
+
    }
 }
