@@ -268,11 +268,11 @@ namespace Clinica.Controllers
           cmd.Parameters.AddWithValue("id", id);
 
             
-          var medicalRecords = new List<MedicalRecord>();
+          var medicalRecords = new List<RegistrosMedicos>();
 
           using var reader = cmd.ExecuteReader();
           while (reader.Read()){
-            medicalRecords.Add( new MedicalRecord{
+            medicalRecords.Add( new RegistrosMedicos{
               Id = reader.GetInt32(0),
               PatientId = reader.GetInt32(1),
               Weight = reader.GetDouble(2),
@@ -303,7 +303,7 @@ namespace Clinica.Controllers
       }
 
       [HttpPost("{id}/medicalrecords")]
-      public IActionResult CreateMedicalRecordByPatientId([FromBody] MedicalRecord medicalRecord){
+      public IActionResult CreateMedicalRecordByPatientId([FromBody] RegistrosMedicos medicalRecord){
         Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -363,11 +363,11 @@ namespace Clinica.Controllers
           cmd.Parameters.AddWithValue("id", id);
 
             
-          List<PatientExam> patientExams = new List<PatientExam>();
+          List<PacienteExamen> patientExams = new List<PacienteExamen>();
 
           using var reader = cmd.ExecuteReader();
           while (reader.Read()){
-            patientExams.Add( new PatientExam{
+            patientExams.Add( new PacienteExamen{
               Id = reader.GetInt32(0),
               PatientId = reader.GetInt32(1),
               ExamId = reader.GetInt32(2),
@@ -395,7 +395,7 @@ namespace Clinica.Controllers
       }
 
       [HttpPost("{id}/exams")]
-      public IActionResult CreatePatientExam([FromBody] PatientExam patientExam){
+      public IActionResult CreatePatientExam([FromBody] PacienteExamen patientExam){
 
         string? connectionString = _config.GetConnectionString("DefaultConnection"); 
         
@@ -490,7 +490,7 @@ namespace Clinica.Controllers
           
 
           if(heightToAgeEntries.Count > 0 || weightToAgeEntries.Count > 0){
-            return Ok(new GrowthCurvesDTO(heightToAgeEntries, weightToAgeEntries, weightToHeightEntries, bodyMassIndexEntries));
+            return Ok(new CurvaCrecimientoDTO(heightToAgeEntries, weightToAgeEntries, weightToHeightEntries, bodyMassIndexEntries));
           }else {
             return NotFound($"Paciente con ID {id} no cuenta con entradas para generar curvas de crecimiento");
           }

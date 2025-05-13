@@ -1,7 +1,7 @@
 
 namespace Clinica.Models
 {
-    public class PacienteExamenes{
+    public class PacienteExamen{
         public int Id { get; set; }
         public int PatientId { get; set; }
         public int ExamId { get; set; }
