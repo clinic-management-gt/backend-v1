@@ -569,5 +569,64 @@ namespace Clinica.Controllers
         }
       }
 
+            // patients/{id}/recipes
+      [HttpGet("{id}/vaccines")]
+      public IActionResult GetAllVaccinesByPatientID(int id)
+      {
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try
+        {
+          using var conn = new NpgsqlConnection(connectionString);
+          conn.Open();
+
+          var vaccines = new List<PatientVaccineDTO>();
+
+          var sql = @"
+            SELECT 
+              pv.id,
+              v.name AS vaccine_name,
+              v.brand,
+              pv.dosis,
+              pv.age_at_application,
+              pv.application_date,
+              pv.created_at
+          FROM 
+              patient_vaccines pv
+          JOIN 
+              vaccines v ON pv.vaccine_id = v.id
+          WHERE 
+              pv.patient_id = @id;
+          ";
+
+          using var cmd = new NpgsqlCommand(sql, conn);
+          cmd.Parameters.AddWithValue("id",id);
+          using var reader = cmd.ExecuteReader();
+
+          while (reader.Read())
+          {
+            vaccines.Add(new PatientVaccineDTO
+            {
+                Id = reader.GetInt32(0),
+                VaccineName = reader.GetString(1),
+                Brand = reader.GetString(2),
+                Dosis = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                AgeAtApplication = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                ApplicationDate = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
+                CreatedAt = reader.GetDateTime(6)
+            });
+
+
+          }
+          
+          return Ok(vaccines);
+        }
+        catch (Exception ex)
+        {
+         return StatusCode(500, $"Error querying the database: {ex.Message}");
+        }
+      }
+
    }
 }
