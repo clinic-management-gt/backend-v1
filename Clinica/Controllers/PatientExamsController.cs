@@ -6,12 +6,12 @@ namespace Clinica.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PacienteExamenesController : ControllerBase
+    public class PatientExamsController : ControllerBase
     {
         private readonly IConfiguration _config;
         private readonly CloudflareR2Service _r2Service;
 
-        public PacienteExamenesController(IConfiguration config, CloudflareR2Service r2Service)
+        public PatientExamsController(IConfiguration config, CloudflareR2Service r2Service)
         {
             _config = config;
             _r2Service = r2Service;
@@ -21,7 +21,7 @@ namespace Clinica.Controllers
         [HttpPost("patient/exams")]
         public async Task<IActionResult> CreatePatientExam([FromForm] int patientId, [FromForm] int examId, [FromForm] string resultText, [FromForm] IFormFile file)
         {
-            Console.WriteLine($"➡️ Endpoint POST /patient/exams alcanzado");
+            Console.WriteLine($"➡️ Endpoint POST /patient/exams");
 
             string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -32,7 +32,7 @@ namespace Clinica.Controllers
 
                 if (resultFilePath == null)
                 {
-                    return StatusCode(500, "Error al subir el archivo a Cloudflare R2.");
+                    return StatusCode(500, "Error uploading file to Cloudflare R2.");
                 }
 
                 // Guardar los detalles del examen en la base de datos
@@ -52,12 +52,12 @@ namespace Clinica.Controllers
 
                 await cmd.ExecuteNonQueryAsync();
 
-                return Ok("Examen creado y archivo subido correctamente.");
+                return Ok("Exam created and file uploaded successfully.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error al insertar examen: {ex.Message}");
-                return StatusCode(500, $"Error al insertar examen: {ex.Message}");
+                Console.WriteLine($"❌ Error inserting exam: {ex.Message}");
+                return StatusCode(500, $"Error inserting exam: {ex.Message}");
             }
         }
     }

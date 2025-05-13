@@ -6,11 +6,11 @@ namespace Clinica.Controllers
 {
    [ApiController]
    [Route("[controller]")]
-   public class PacientesController : ControllerBase
+   public class PatientsController : ControllerBase
    {
       private readonly IConfiguration _config;
 
-      public PacientesController(IConfiguration config)
+      public PatientsController(IConfiguration config)
       {
          _config = config;
       }
@@ -19,7 +19,7 @@ namespace Clinica.Controllers
       [HttpGet]
       public IActionResult GetAll()
       {
-        Console.WriteLine("➡️ Endpoint /pacientes alcanzado (desde DB)");
+        Console.WriteLine("➡️ Endpoint /patients reached (from DB)");
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -28,7 +28,7 @@ namespace Clinica.Controllers
           using var conn = new NpgsqlConnection(connectionString);
           conn.Open();
 
-          var pacientes = new List<Paciente>();
+          var patients = new List<Patients>();
 
 
           var sql = "SELECT id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at FROM patients";
@@ -37,7 +37,7 @@ namespace Clinica.Controllers
 
           using var reader = cmd.ExecuteReader();
           while (reader.Read()){
-            pacientes.Add(new Paciente{
+            patients.Add(new Patients{
               Id = reader.GetInt32(0),
               Name = reader.GetString(1),
               LastName = reader.GetString(2),
@@ -51,20 +51,20 @@ namespace Clinica.Controllers
             });
           }
 
-          return Ok(pacientes);
+          return Ok(patients);
         }
         catch (Exception ex)
         {
-         Console.WriteLine($"❌ Error al consultar pacientes: {ex.Message}");
-         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+         Console.WriteLine($"❌ Error when consulting patients: {ex.Message}");
+         return StatusCode(500, $"Error when consulting patients: {ex.Message}");
         }
       }
 
 
       //GetById
       [HttpGet("{id}")]
-      public IActionResult GetPacienteById(int id){
-        Console.WriteLine($"➡️ Endpoint GET /pacientes/{id} alcanzado (para obtener un paciente)");
+      public IActionResult GetPatientById(int id){
+        Console.WriteLine($"➡️ Endpoint GET /patients/{id} reached (to get a patient)");
         
         string ? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -83,7 +83,7 @@ namespace Clinica.Controllers
 
           if (reader.Read())  // Si encuentra el paciente
           {
-            var paciente = new Paciente  {
+            var patient = new Patients  {
               Id = reader.GetInt32(0),
               Name = reader.GetString(1),
               LastName = reader.GetString(2),
@@ -95,33 +95,27 @@ namespace Clinica.Controllers
               CreatedAt = reader.GetDateTime(8),
               UpdatedAt = reader.IsDBNull(9) ? null : reader.GetDateTime(9)
             };
-
-
-
-
-            return Ok(paciente);
-        
-
+            return Ok(patient);
           }else{
-            return NotFound($"Paciente con ID {id} no encontrado.");
+            return NotFound($"Patient with ID {id} not found.");
           }
 
         }catch(Exception ex){
-          Console.WriteLine($"❌ Error al consultar paciente: {ex.Message}");
-          return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+          Console.WriteLine($"❌ Error when consulting a patient: {ex.Message}");
+          return StatusCode(500, $"Error querying the database: {ex.Message}");
         }
 
 
       }
 
       [HttpPost]
-      public IActionResult CreatePaciente([FromBody] Paciente paciente){
-        Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
+      public IActionResult CreatePatient([FromBody] Patients patient){
+        Console.WriteLine("➡️ Endpoint POST /patients reached (to create a new patient)");
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
 
         //normalizamos en género
-        string? gender = paciente.Gender?.Trim().ToLower();
+        string? gender = patient.Gender?.Trim().ToLower();
         if (gender == "male"){
           gender = "Male";
         }
@@ -143,41 +137,40 @@ namespace Clinica.Controllers
           
           using var cmd = new NpgsqlCommand(sql, conn);
 
-          cmd.Parameters.AddWithValue("name", paciente.Name);
-          cmd.Parameters.AddWithValue("lastName", paciente.LastName);
-          cmd.Parameters.AddWithValue("birthdate", paciente.Birthdate);
-          cmd.Parameters.AddWithValue("address", paciente.Address);
+          cmd.Parameters.AddWithValue("name", patient.Name);
+          cmd.Parameters.AddWithValue("lastName", patient.LastName);
+          cmd.Parameters.AddWithValue("birthdate", patient.Birthdate);
+          cmd.Parameters.AddWithValue("address", patient.Address);
           cmd.Parameters.AddWithValue("gender",gender);
-          cmd.Parameters.AddWithValue("bloodTypeId", paciente.BloodTypeId);
-          cmd.Parameters.AddWithValue("patientTypeId", paciente.PatientTypeId);
+          cmd.Parameters.AddWithValue("bloodTypeId", patient.BloodTypeId);
+          cmd.Parameters.AddWithValue("patientTypeId", patient.PatientTypeId);
 
           // Ejecutar la consulta y obtener el ID del nuevo paciente
           var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
 
           // Aquí actualizamos el ID del paciente con el valor retornado por la base de datos.
-          paciente.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
-          paciente.CreatedAt = DateTime.Now;
+          patient.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
+          patient.CreatedAt = DateTime.Now;
 
-          return CreatedAtAction(nameof(GetAll), new { id = paciente.Id }, paciente);
+          return CreatedAtAction(nameof(GetAll), new { id = patient.Id }, patient);
 
 
         }catch(Exception ex){
-          Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
-          return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
-
+          Console.WriteLine($"❌ Error creating patient: {ex.Message}");
+          return StatusCode(500, $"Error creating patient: {ex.Message}");
         } 
       }
 
 
       [HttpPatch("{id}")]
-      public IActionResult UpdatePaciente(int id, [FromBody] Paciente paciente)
+      public IActionResult UpdatePatient(int id, [FromBody] Patients patient)
       {
-          Console.WriteLine($"➡️ Endpoint PATCH /pacientes/{id} alcanzado (para actualizar paciente)");
+          Console.WriteLine($"➡️ Endpoint PATCH /patients/{id} reached (to update patient)");
 
           string? connectionString = _config.GetConnectionString("DefaultConnection");
 
           // Limpiar y normalizar el campo "gender"
-          string? gender = paciente.Gender?.Trim().ToLower();
+          string? gender = patient.Gender?.Trim().ToLower();
           if (gender == "male")
           {
               gender = "Male";
@@ -200,19 +193,19 @@ namespace Clinica.Controllers
               var updateFields = new Dictionary<string, object>();
 
               // Agregar campos al diccionario solo si están presentes en el objeto 'paciente'
-              if (!string.IsNullOrEmpty(paciente.Name)) updateFields.Add("name", paciente.Name);
-              if (!string.IsNullOrEmpty(paciente.LastName)) updateFields.Add("last_name", paciente.LastName);
-              if (paciente.Birthdate != null) updateFields.Add("birthdate", paciente.Birthdate);
-              if (!string.IsNullOrEmpty(paciente.Address)) updateFields.Add("address", paciente.Address);
+              if (!string.IsNullOrEmpty(patient.Name)) updateFields.Add("name", patient.Name);
+              if (!string.IsNullOrEmpty(patient.LastName)) updateFields.Add("last_name", patient.LastName);
+              if (patient.Birthdate != null) updateFields.Add("birthdate", patient.Birthdate);
+              if (!string.IsNullOrEmpty(patient.Address)) updateFields.Add("address", patient.Address);
               if (!string.IsNullOrEmpty(gender)) updateFields.Add("gender", gender);
-              if (paciente.BloodTypeId != 0) updateFields.Add("blood_type_id", paciente.BloodTypeId);
-              if (paciente.PatientTypeId != 0) updateFields.Add("patient_type_id", paciente.PatientTypeId);
+              if (patient.BloodTypeId != 0) updateFields.Add("blood_type_id", patient.BloodTypeId);
+              if (patient.PatientTypeId != 0) updateFields.Add("patient_type_id", patient.PatientTypeId);
               updateFields.Add("updated_at", DateTime.Now);
 
               // Si el diccionario está vacío, retornar BadRequest
               if (!updateFields.Any())
               {
-                  return BadRequest("No hay campos para actualizar.");
+                  return BadRequest("There are no fields to update.");
               }
 
               // Construir dinámicamente la consulta SQL
@@ -235,24 +228,24 @@ namespace Clinica.Controllers
 
               if (rowsAffected > 0)
               {
-                  return Ok($"Paciente con ID {id} actualizado.");
+                  return Ok($"Patient with ID {id} updated.");
               }
               else
               {
-                  return NotFound($"Paciente con ID {id} no encontrado.");
+                  return NotFound($"Patient with ID {id} not found.");
               }
           }
           catch (Exception ex)
           {
-              Console.WriteLine($"❌ Error al actualizar el paciente: {ex.Message}");
-              return StatusCode(500, $"Error al actualizar el paciente: {ex.Message}");
+              Console.WriteLine($"❌ Error updating patient: {ex.Message}");
+              return StatusCode(500, $"Error updating patient: {ex.Message}");
           }
       }
 
-      [HttpGet("{id}/registrosmedicos")]
+      [HttpGet("{id}/medicalrecords")]
       public IActionResult GetAllMedicalRecords(int id)
       {
-        Console.WriteLine("➡️ Endpoint /pacientes alcanzado (desde DB)");
+        Console.WriteLine("➡️ Endpoint /patients reached (from DB)");
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -267,12 +260,11 @@ namespace Clinica.Controllers
 
           cmd.Parameters.AddWithValue("id", id);
 
-            
-          var medicalRecords = new List<RegistrosMedicos>();
+          var medicalRecords = new List<MedicalRecords>();
 
           using var reader = cmd.ExecuteReader();
           while (reader.Read()){
-            medicalRecords.Add( new RegistrosMedicos{
+            medicalRecords.Add( new MedicalRecords{
               Id = reader.GetInt32(0),
               PatientId = reader.GetInt32(1),
               Weight = reader.GetDouble(2),
@@ -289,7 +281,7 @@ namespace Clinica.Controllers
 
             return Ok(medicalRecords);
           }else {
-            return NotFound($"Paciente con ID {id} no tiene registros medicos.");
+            return NotFound($"Patient with ID {id} has no medical records.");
           }
           
 
@@ -297,14 +289,14 @@ namespace Clinica.Controllers
         }
         catch (Exception ex)
         {
-         Console.WriteLine($"❌ Error al consultar pacientes: {ex.Message}");
-         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+         Console.WriteLine($"❌ Error when consulting patients: {ex.Message}");
+         return StatusCode(500, $"Error when consulting patients: {ex.Message}");
         }
       }
 
-      [HttpPost("{id}/registrosmedicos")]
-      public IActionResult CreateMedicalRecordByPatientId([FromBody] RegistrosMedicos medicalRecord){
-        Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
+      [HttpPost("{id}/medicalrecords")]
+      public IActionResult CreateMedicalRecordByPatientId([FromBody] MedicalRecords medicalRecord){
+        Console.WriteLine("➡️ Endpoint POST /patients reached (to create a new patient)");
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
          
@@ -337,15 +329,15 @@ namespace Clinica.Controllers
 
 
         }catch(Exception ex){
-          Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
-          return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+          Console.WriteLine($"❌ Error creating patient medical records: {ex.Message}");
+          return StatusCode(500, $"Error creating patient medical records: {ex.Message}");
 
         }
 
       
       }
 
-      [HttpGet("{id}/examenes")]
+      [HttpGet("{id}/exams")]
       public IActionResult GetAllPatientExams(int id)
       {
 
@@ -363,11 +355,11 @@ namespace Clinica.Controllers
           cmd.Parameters.AddWithValue("id", id);
 
             
-          List<PacienteExamen> patientExams = new List<PacienteExamen>();
+          List<PatientExams> patientExams = new List<PatientExams>();
 
           using var reader = cmd.ExecuteReader();
           while (reader.Read()){
-            patientExams.Add( new PacienteExamen{
+            patientExams.Add( new PatientExams{
               Id = reader.GetInt32(0),
               PatientId = reader.GetInt32(1),
               ExamId = reader.GetInt32(2),
@@ -382,7 +374,7 @@ namespace Clinica.Controllers
 
             return Ok(patientExams);
           }else {
-            return NotFound($"Paciente con ID {id} no tiene examenes medicos.");
+            return NotFound($"Patient with ID {id} has no medical examinations.");
           }
           
 
@@ -390,12 +382,12 @@ namespace Clinica.Controllers
         }
         catch (Exception ex)
         {
-         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+         return StatusCode(500, $"Error querying the database: {ex.Message}");
         }
       }
 
-      [HttpPost("{id}/examenes")]
-      public IActionResult CreatePatientExam([FromBody] PacienteExamen patientExam){
+      [HttpPost("{id}/exams")]
+      public IActionResult CreatePatientExam([FromBody] PatientExams patientExam){
 
         string? connectionString = _config.GetConnectionString("DefaultConnection"); 
         
@@ -424,15 +416,15 @@ namespace Clinica.Controllers
 
 
         }catch(Exception ex){
-          Console.WriteLine($"❌ Error al crear paciente: {ex.Message}");
-          return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+          Console.WriteLine($"❌ Error creating patient: {ex.Message}");
+          return StatusCode(500, $"Error creating patient: {ex.Message}");
 
         }
 
       
       }
           
-      [HttpGet("{id}/curvascrecimiento")]
+      [HttpGet("{id}/growthcurve")]
       public IActionResult GetAllHeightToAgeEntries(int id)
       {
 
@@ -490,9 +482,9 @@ namespace Clinica.Controllers
           
 
           if(heightToAgeEntries.Count > 0 || weightToAgeEntries.Count > 0){
-            return Ok(new CurvaCrecimientoDTO(heightToAgeEntries, weightToAgeEntries, weightToHeightEntries, bodyMassIndexEntries));
+            return Ok(new GrowthCurveDTO(heightToAgeEntries, weightToAgeEntries, weightToHeightEntries, bodyMassIndexEntries));
           }else {
-            return NotFound($"Paciente con ID {id} no cuenta con entradas para generar curvas de crecimiento");
+            return NotFound($"Patient with ID {id} does not have inputs to generate growth curves");
           }
           
 
@@ -500,7 +492,7 @@ namespace Clinica.Controllers
         }
         catch (Exception ex)
         {
-         return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
+         return StatusCode(500, $"Error querying the database: {ex.Message}");
         }
       }
    }

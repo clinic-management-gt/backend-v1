@@ -3,14 +3,14 @@ namespace Clinica.Models
 {
 
 
-    public class CurvaCrecimientoDTO
+    public class GrowthCurveDTO
     {
         public List<HeightToAgeEntryDTO> HeightToAgeEntries { set; get; }
         public List<WeightToAgeEntryDTO> WeightToAgeEntries { set; get; } 
         public List<WeightToHeightEntryDTO> WeightToHeightEntries { set; get; }
         public List<BodyMassIndexEntryDTO> BodyMassIndexEntries { set; get; }
 
-        public CurvaCrecimientoDTO(List<HeightToAgeEntryDTO> heightToAgeEntires, List<WeightToAgeEntryDTO> weightToAgeEntries, List<WeightToHeightEntryDTO> weightToHeightEntries, List<BodyMassIndexEntryDTO> bodyMassIndexEntries)
+        public GrowthCurveDTO(List<HeightToAgeEntryDTO> heightToAgeEntires, List<WeightToAgeEntryDTO> weightToAgeEntries, List<WeightToHeightEntryDTO> weightToHeightEntries, List<BodyMassIndexEntryDTO> bodyMassIndexEntries)
         {   
             HeightToAgeEntries = heightToAgeEntires;      
             WeightToAgeEntries = weightToAgeEntries;

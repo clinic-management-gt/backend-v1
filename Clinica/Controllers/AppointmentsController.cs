@@ -5,20 +5,20 @@ namespace Clinica.Controllers
 {
    [ApiController]
    [Route("[controller]")]
-   public class CitasController : ControllerBase
+   public class AppointmentsController : ControllerBase
    {
       private readonly IConfiguration _config;
 
-      public CitasController(IConfiguration config)
+      public AppointmentsController(IConfiguration config)
       {
          _config = config;
       }
 
-      // GET: /citas/paciente/{id}
-      [HttpGet("paciente/{id}")]
-      public IActionResult GetCitasByPacienteId(int id)
+      // GET: /appointments/patients/{id}
+      [HttpGet("patient/{id}")]
+      public IActionResult GetAppointmentByPacienteId(int id)
       {
-         Console.WriteLine($"➡️ Endpoint GET /citas/paciente/{id} alcanzado");
+         Console.WriteLine($"➡️ Endpoint GET /appointments/patient/{id} alcanzado");
 
          string? connectionString = _config.GetConnectionString("DefaultConnection");
 

@@ -5,20 +5,20 @@ namespace Clinica.Controllers
 {
    [ApiController]
    [Route("[controller]")]
-   public class RecetasController : ControllerBase
+   public class RecipesController : ControllerBase
    {
       private readonly IConfiguration _config;
 
-      public RecetasController(IConfiguration config)
+      public RecipesController(IConfiguration config)
       {
          _config = config;
       }
 
-      // GET: /recetas/paciente/{id}
-      [HttpGet("paciente/{id}")]
-      public IActionResult GetRecetasByPacienteId(int id)
+      // GET: /recipes/patient/{id}
+      [HttpGet("patient/{id}")]
+      public IActionResult GetRecipesByPacienteId(int id)
       {
-         Console.WriteLine($"➡️ Endpoint GET /recetas/paciente/{id} alcanzado");
+         Console.WriteLine($"➡️ Endpoint GET /recipes/patient/{id} alcanzado");
 
          string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -58,8 +58,8 @@ namespace Clinica.Controllers
          }
          catch (Exception ex)
          {
-               Console.WriteLine($"❌ Error al consultar recetas: {ex.Message}");
-               return StatusCode(500, $"Error al consultar las recetas: {ex.Message}");
+               Console.WriteLine($"❌ Error when querying recipes: {ex.Message}");
+               return StatusCode(500, $"Error when querying recipes: {ex.Message}");
          }
       }
    }

@@ -2,7 +2,7 @@ using System;
 
 namespace Clinica.Models
 {
-    public class Paciente{
+    public class Patients{
       public int Id { get; set; }
       public string Name { get; set; } = string.Empty;
       public string LastName { get; set; } = string.Empty;
