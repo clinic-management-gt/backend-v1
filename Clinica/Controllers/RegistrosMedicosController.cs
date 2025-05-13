@@ -6,11 +6,11 @@ namespace Clinica.Controllers
 {
    [ApiController]
    [Route("[controller]")]
-   public class MedicalRecordsController : ControllerBase
+   public class RegistrosMedicosController : ControllerBase
    {
       private readonly IConfiguration _config;
 
-      public MedicalRecordsController(IConfiguration config)
+      public RegistrosMedicosController(IConfiguration config)
       {
          _config = config;
       }
@@ -34,7 +34,7 @@ namespace Clinica.Controllers
 
           if (reader.Read())  
           {
-            MedicalRecord medicalRecord = new MedicalRecord  {
+            RegistrosMedicos registrosMedicos = new RegistrosMedicos  {
               PatientId = reader.GetInt32(0),
               Weight = reader.GetDouble(1),
               Height = reader.GetDouble(2),
@@ -43,7 +43,7 @@ namespace Clinica.Controllers
               CreatedAt = reader.GetDateTime(5),
               UpdatedAt = reader.IsDBNull(6) ? null : reader.GetDateTime(6)
             };
-            return Ok(medicalRecord); 
+            return Ok(registrosMedicos); 
 
           }else{
             return NotFound($"Medical record con ID {id} no encontrado.");
@@ -56,7 +56,7 @@ namespace Clinica.Controllers
       }
       
       [HttpPatch("{id}")]
-      public IActionResult UpdateById(int id, [FromBody] MedicalRecord medicalRecord)
+      public IActionResult UpdateById(int id, [FromBody] RegistrosMedicos registrosMedicos)
       {
 
           string? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -68,11 +68,11 @@ namespace Clinica.Controllers
 
               var updateFields = new Dictionary<string, object>();
 
-              if (medicalRecord.PatientId > 0) updateFields.Add("patient_id", medicalRecord.PatientId);
-              if (medicalRecord.Weight > 0) updateFields.Add("weight", medicalRecord.Weight);
-              if (medicalRecord.Height > 0) updateFields.Add("height", medicalRecord.Height);
-              if (!String.IsNullOrEmpty(medicalRecord.FamilyHistory)) updateFields.Add("family_history", medicalRecord.FamilyHistory);
-              if (!String.IsNullOrEmpty(medicalRecord.Notes)) updateFields.Add("notes", medicalRecord.Notes);
+              if (registrosMedicos.PatientId > 0) updateFields.Add("patient_id", registrosMedicos.PatientId);
+              if (registrosMedicos.Weight > 0) updateFields.Add("weight", registrosMedicos.Weight);
+              if (registrosMedicos.Height > 0) updateFields.Add("height", registrosMedicos.Height);
+              if (!String.IsNullOrEmpty(registrosMedicos.FamilyHistory)) updateFields.Add("family_history", registrosMedicos.FamilyHistory);
+              if (!String.IsNullOrEmpty(registrosMedicos.Notes)) updateFields.Add("notes", registrosMedicos.Notes);
               updateFields.Add("updated_at", DateTime.Now);
 
               // Si el diccionario está vacío, retornar BadRequest
