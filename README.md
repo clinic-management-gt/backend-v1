@@ -87,3 +87,10 @@ Once running:
 
 - The `/pacientes` endpoint returns sample patients or real entries from the PostgreSQL table `pacientes`.
 - The backend reads the database connection string from the environment variable: `ConnectionStrings__DefaultConnection`.
+
+## 🏛️ Entity-Relationship Diagram
+
+![Diagram ER.](/proyecto-software-tables.png "Diagram ER")
+
+[ERD](https://dbdiagram.io/d/proyecto-software-67f1f3d34f7afba1847d7bda) 
+

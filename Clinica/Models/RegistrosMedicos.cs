@@ -1,7 +1,7 @@
 
 namespace Clinica.Models
 {
-    public class MedicalRecord{
+    public class RegistrosMedicos{
         public int Id { get; set; }
         public int PatientId { get; set; } 
         public double Weight { get; set; }
