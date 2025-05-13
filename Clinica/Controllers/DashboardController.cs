@@ -29,7 +29,7 @@ public class DashboardController : ControllerBase
           NpgsqlCommand cmd = new NpgsqlCommand();
           cmd.Connection = conn;
 
-          var sql = "SELECT p.name, p.last_name, u.first_name, u.last_name, a.status , a.appointment_date FROM appointments AS a LEFT JOIN patients AS p ON p.id = a.id LEFT JOIN users AS u ON u.id = a.doctor_id WHERE a.appointment_date::date  = current_date";
+          var sql = "SELECT p.name, p.last_name, u.first_name, u.last_name, a.status , a.appointment_date FROM appointments AS a LEFT JOIN patients AS p ON p.id = a.patient_id LEFT JOIN users AS u ON u.id = a.doctor_id WHERE a.appointment_date::date  = current_date";
           if(!string.IsNullOrEmpty(status)){
             if(ValidStatus.Contains(status.ToLower())){
                 sql += " AND a.status = CAST(@status AS appointment_status_enum)"; 

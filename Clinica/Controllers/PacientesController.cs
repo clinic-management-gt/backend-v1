@@ -249,7 +249,7 @@ namespace Clinica.Controllers
           }
       }
 
-      [HttpGet("{id}/medicalrecords")]
+      [HttpGet("{id}/registrosmedicos")]
       public IActionResult GetAllMedicalRecords(int id)
       {
         Console.WriteLine("➡️ Endpoint /pacientes alcanzado (desde DB)");
@@ -302,7 +302,7 @@ namespace Clinica.Controllers
         }
       }
 
-      [HttpPost("{id}/medicalrecords")]
+      [HttpPost("{id}/registrosmedicos")]
       public IActionResult CreateMedicalRecordByPatientId([FromBody] RegistrosMedicos medicalRecord){
         Console.WriteLine("➡️ Endpoint POST /pacientes alcanzado (para crear un nuevo paciente)");
 
@@ -345,7 +345,7 @@ namespace Clinica.Controllers
       
       }
 
-      [HttpGet("{id}/exams")]
+      [HttpGet("{id}/examenes")]
       public IActionResult GetAllPatientExams(int id)
       {
 
@@ -394,7 +394,7 @@ namespace Clinica.Controllers
         }
       }
 
-      [HttpPost("{id}/exams")]
+      [HttpPost("{id}/examenes")]
       public IActionResult CreatePatientExam([FromBody] PacienteExamen patientExam){
 
         string? connectionString = _config.GetConnectionString("DefaultConnection"); 
@@ -432,7 +432,7 @@ namespace Clinica.Controllers
       
       }
           
-      [HttpGet("{id}/growthcurves")]
+      [HttpGet("{id}/curvascrecimiento")]
       public IActionResult GetAllHeightToAgeEntries(int id)
       {
 
