@@ -146,8 +146,14 @@ namespace Clinica.Controllers
           cmd.Parameters.AddWithValue("bloodTypeId", patient.BloodTypeId);
           cmd.Parameters.AddWithValue("patientTypeId", patient.PatientTypeId);
 
-          // Ejecutar la consulta y obtener el ID del nuevo paciente
-          var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
+           // Ejecutar la consulta y obtener el ID del nuevo paciente
+          var result = cmd.ExecuteScalar();
+          if (result == null || result == DBNull.Value)
+          {
+              return StatusCode(500, "No se pudo obtener el ID insertado.");
+          }
+
+          var newPacienteId = Convert.ToInt32(result);// Esto obtiene el ID del nuevo paciente.
 
           // Aquí actualizamos el ID del paciente con el valor retornado por la base de datos.
           patient.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
@@ -196,7 +202,7 @@ namespace Clinica.Controllers
               // Agregar campos al diccionario solo si están presentes en el objeto 'paciente'
               if (!string.IsNullOrEmpty(patient.Name)) updateFields.Add("name", patient.Name);
               if (!string.IsNullOrEmpty(patient.LastName)) updateFields.Add("last_name", patient.LastName);
-              if (patient.Birthdate != null) updateFields.Add("birthdate", patient.Birthdate);
+              updateFields.Add("birthdate", patient.Birthdate);
               if (!string.IsNullOrEmpty(patient.Address)) updateFields.Add("address", patient.Address);
               if (!string.IsNullOrEmpty(gender)) updateFields.Add("gender", gender);
               if (patient.BloodTypeId != 0) updateFields.Add("blood_type_id", patient.BloodTypeId);
@@ -318,9 +324,14 @@ namespace Clinica.Controllers
           cmd.Parameters.AddWithValue("family_history", medicalRecord.FamilyHistory);
           cmd.Parameters.AddWithValue("notes", medicalRecord.Notes);
 
-
           // Ejecutar la consulta y obtener el ID del nuevo paciente
-          var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
+          var result = cmd.ExecuteScalar();
+          if (result == null || result == DBNull.Value)
+          {
+              return StatusCode(500, "No se pudo obtener el ID insertado.");
+          }
+
+          var newPacienteId = Convert.ToInt32(result);// Esto obtiene el ID del nuevo paciente.
 
           // Aquí actualizamos el ID del paciente con el valor retornado por la base de datos.
           medicalRecord.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
@@ -408,7 +419,13 @@ namespace Clinica.Controllers
           cmd.Parameters.AddWithValue("result_file_path", patientExam.ResultFilePath);
 
           // Ejecutar la consulta y obtener el ID del nuevo paciente
-          var newPacienteId = (int)cmd.ExecuteScalar();  // Esto obtiene el ID del nuevo paciente.
+          var result = cmd.ExecuteScalar();
+          if (result == null || result == DBNull.Value)
+          {
+              return StatusCode(500, "No se pudo obtener el ID insertado.");
+          }
+
+          var newPacienteId = Convert.ToInt32(result);// Esto obtiene el ID del nuevo paciente.
 
           patientExam.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
           patientExam.CreatedAt = DateTime.Now;
@@ -439,7 +456,14 @@ namespace Clinica.Controllers
           string birthdateSql = "SELECT birthdate FROM patients WHERE id = @id";
           NpgsqlCommand birthdateCmd = new NpgsqlCommand(birthdateSql, conn); 
           birthdateCmd.Parameters.AddWithValue("id", id);
-          DateTime birthdate = (DateTime)birthdateCmd.ExecuteScalar();
+          var result = birthdateCmd.ExecuteScalar();
+
+          if (result == null || result == DBNull.Value)
+          {
+              return NotFound($"No se encontró la fecha de nacimiento del paciente con ID {id}.");
+          }
+
+          DateTime birthdate = Convert.ToDateTime(result);
 
           string medicalRecordSql = "SELECT height, weight, created_at FROM medical_records WHERE patient_id = @id";
           NpgsqlCommand medicalRecordCmd = new NpgsqlCommand(medicalRecordSql, conn); 
