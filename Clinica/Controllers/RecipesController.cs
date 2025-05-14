@@ -54,7 +54,7 @@ namespace Clinica.Controllers
             }
         }
 
-        // GET: /recipes/{id}
+                // GET: /recipes/{id}
         [HttpGet("{id}")]
         public IActionResult GetRecipeById(int id)
         {
@@ -65,7 +65,15 @@ namespace Clinica.Controllers
                 using var conn = new NpgsqlConnection(connectionString);
                 conn.Open();
 
-                var sql = "SELECT id, treatment_id, prescription, created_at FROM recipes WHERE id = @id";
+                // Modificamos el query para obtener el id de la cita y el paciente
+                var sql = @"
+                    SELECT r.id, r.treatment_id, r.prescription, r.created_at, 
+                        a.id AS appointment_id, p.id AS patient_id 
+                    FROM recipes r
+                    JOIN treatments t ON r.treatment_id = t.id
+                    JOIN appointments a ON t.appointment_id = a.id
+                    JOIN patients p ON a.patient_id = p.id
+                    WHERE r.id = @id";
 
                 using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("id", id);
@@ -73,13 +81,16 @@ namespace Clinica.Controllers
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
-                    var recipe = new Recipes
+                    var recipe = new
                     {
                         Id = reader.GetInt32(0),
                         TreatmentId = reader.GetInt32(1),
                         Prescription = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        CreatedAt = reader.GetDateTime(3)
+                        CreatedAt = reader.GetDateTime(3),
+                        AppointmentId = reader.GetInt32(4),  // ID de la cita
+                        PatientId = reader.GetInt32(5)      // ID del paciente
                     };
+
                     return Ok(recipe);
                 }
                 else
@@ -93,6 +104,8 @@ namespace Clinica.Controllers
                 return StatusCode(500, $"Error querying the database: {ex.Message}");
             }
         }
+
+
 
         // PATCH: /recipes/{id}
         [HttpPatch("{id}")]
