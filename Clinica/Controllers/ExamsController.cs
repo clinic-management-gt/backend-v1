@@ -21,7 +21,7 @@ namespace Clinica.Controllers
         [HttpPost("patients")]
         public async Task<IActionResult> CreatePatientExam([FromForm] int patientId, [FromForm] int examId, [FromForm] string resultText, [FromForm] IFormFile file)
         {
-            Console.WriteLine($"➡️ Endpoint POST /patient/exams");
+            Console.WriteLine($"➡️ Endpoint POST /exams/patients");
 
             string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -34,11 +34,11 @@ namespace Clinica.Controllers
                 }
 
                 // Guardar archivo en Cloudflare R2
-                string resultFilePath = await _r2Service.UploadDocumentToCloudflareR2(file.FileName);
+                string resultFilePath = await _r2Service.UploadDocumentToCloudflareR2(file);
 
                 if (resultFilePath == null)
                 {
-                    return StatusCode(500, "Error uploading file to Cloudflare R2.");
+                    return StatusCode(500, "Error uploading  PINGAAAfile to Cloudflare R2.");
                 }
 
                 // Guardar los detalles del examen en la base de datos
