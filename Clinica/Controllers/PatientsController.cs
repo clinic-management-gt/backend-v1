@@ -301,54 +301,6 @@ namespace Clinica.Controllers
         }
       }
 
-      [HttpPost("{id}/medicalrecords")]
-      public IActionResult CreateMedicalRecordByPatientId([FromBody] MedicalRecords medicalRecord){
-        Console.WriteLine("➡️ Endpoint POST /patients reached (to create a new patient)");
-
-        string? connectionString = _config.GetConnectionString("DefaultConnection");
-         
-        try{
-          
-          using var conn = new NpgsqlConnection(connectionString);
-          conn.Open();
-          
-          var sql = "INSERT INTO medical_records (patient_id, weight, height, family_history, notes, created_at) " +
-                    "VALUES (@patient_id, @weight, @height, @family_history, @notes, NOW()) RETURNING id";
-          
-          
-          using var cmd = new NpgsqlCommand(sql, conn);
-
-          cmd.Parameters.AddWithValue("patient_id", medicalRecord.PatientId);
-          cmd.Parameters.AddWithValue("weight", medicalRecord.Weight);
-          cmd.Parameters.AddWithValue("height", medicalRecord.Height);
-          cmd.Parameters.AddWithValue("family_history", medicalRecord.FamilyHistory);
-          cmd.Parameters.AddWithValue("notes", medicalRecord.Notes);
-
-          // Ejecutar la consulta y obtener el ID del nuevo paciente
-          var result = cmd.ExecuteScalar();
-          if (result == null || result == DBNull.Value)
-          {
-              return StatusCode(500, "No se pudo obtener el ID insertado.");
-          }
-
-          var newPacienteId = Convert.ToInt32(result);// Esto obtiene el ID del nuevo paciente.
-
-          // Aquí actualizamos el ID del paciente con el valor retornado por la base de datos.
-          medicalRecord.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
-          medicalRecord.CreatedAt = DateTime.Now;
-
-          return CreatedAtAction(nameof(GetAllMedicalRecords), new { id = medicalRecord.Id }, medicalRecord);
-
-
-        }catch(Exception ex){
-          Console.WriteLine($"❌ Error creating patient medical records: {ex.Message}");
-          return StatusCode(500, $"Error creating patient medical records: {ex.Message}");
-
-        }
-
-      
-      }
-
       [HttpGet("{id}/exams")]
       public IActionResult GetAllPatientExams(int id)
       {
@@ -397,7 +349,7 @@ namespace Clinica.Controllers
          return StatusCode(500, $"Error querying the database: {ex.Message}");
         }
       }
-
+      //TODO: REVISAR ESTE ENDPOIT
       [HttpPost("{id}/exams")]
       public IActionResult CreatePatientExam([FromBody] PatientExams patientExam){
 

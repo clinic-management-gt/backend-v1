@@ -17,7 +17,6 @@ namespace Clinica.Controllers
 
         // POST: /vaccines
         [HttpPost]
-        [Route("[controller]")]
         public IActionResult CreateVaccine([FromBody] Vaccine vaccine)
         {
             if (string.IsNullOrEmpty(vaccine.Name) || string.IsNullOrEmpty(vaccine.Brand))

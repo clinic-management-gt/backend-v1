@@ -15,6 +15,7 @@ namespace Clinica.Controllers
          _config = config;
       }
       
+      //api/medicalRecords/{id}
       [HttpGet("{id}")]
       public IActionResult GetById(int id){
         string ? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -113,5 +114,48 @@ namespace Clinica.Controllers
               return StatusCode(500, $"Error al actualizar el medical record: {ex.Message}");
           }
       }
+
+      // POST: /medicalRecords
+      [HttpPost]
+      public IActionResult CreateMedicalRecord([FromBody] MedicalRecords medicalRecord)
+      {
+          string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+          try
+          {
+              using var conn = new NpgsqlConnection(connectionString);
+              conn.Open();
+
+              var sql = "INSERT INTO medical_records (patient_id, weight, height, family_history, notes, created_at) " +
+                        "VALUES (@patient_id, @weight, @height, @family_history, @notes, NOW()) RETURNING id";
+
+              using var cmd = new NpgsqlCommand(sql, conn);
+
+              cmd.Parameters.AddWithValue("patient_id", medicalRecord.PatientId);
+              cmd.Parameters.AddWithValue("weight", medicalRecord.Weight);
+              cmd.Parameters.AddWithValue("height", medicalRecord.Height);
+              cmd.Parameters.AddWithValue("family_history", medicalRecord.FamilyHistory);
+              cmd.Parameters.AddWithValue("notes", medicalRecord.Notes);
+
+              // Ejecutar la consulta y obtener el ID del nuevo registro
+              var result = cmd.ExecuteScalar();
+              if (result == null || result == DBNull.Value)
+              {
+                  return StatusCode(500, "No se pudo obtener el ID insertado.");
+              }
+
+              var newRecordId = Convert.ToInt32(result);  // Obtiene el ID recién creado
+              medicalRecord.Id = newRecordId;  // Asigna el ID al objeto de registro
+              medicalRecord.CreatedAt = DateTime.Now;
+
+              return CreatedAtAction(nameof(GetById), new { id = medicalRecord.Id }, medicalRecord);
+          }
+          catch (Exception ex)
+          {
+              Console.WriteLine($"❌ Error creating medical record: {ex.Message}");
+              return StatusCode(500, $"Error creating medical record: {ex.Message}");
+          }
+      }
+
    }
 }
