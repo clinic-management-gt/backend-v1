@@ -5,20 +5,20 @@ using Clinica.Services; // Importa el servicio CloudflareR2Service
 namespace Clinica.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class PatientExamsController : ControllerBase
+    [Route("exams")]
+    public class ExamsController : ControllerBase
     {
         private readonly IConfiguration _config;
         private readonly CloudflareR2Service _r2Service;
 
-        public PatientExamsController(IConfiguration config, CloudflareR2Service r2Service)
+        public ExamsController(IConfiguration config, CloudflareR2Service r2Service)
         {
             _config = config;
             _r2Service = r2Service;
         }
 
-        // POST: /patient/exams
-        [HttpPost("patient/exams")]
+        // POST: /exams/patients
+        [HttpPost("patients")]
         public async Task<IActionResult> CreatePatientExam([FromForm] int patientId, [FromForm] int examId, [FromForm] string resultText, [FromForm] IFormFile file)
         {
             Console.WriteLine($"➡️ Endpoint POST /patient/exams");
@@ -60,5 +60,8 @@ namespace Clinica.Controllers
                 return StatusCode(500, $"Error inserting exam: {ex.Message}");
             }
         }
+    
+    
+    
     }
 }
