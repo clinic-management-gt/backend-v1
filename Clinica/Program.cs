@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
+using Npgsql;
+using Clinica.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Agrega soporte para controladores
@@ -14,11 +18,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Agregar el servicio para CloudflareR2Service
+builder.Services.AddSingleton<CloudflareR2Service>();
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
 
 var app = builder.Build();
 
@@ -31,15 +36,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 app.UseCors("AllowFrontend");
-// Ejemplo de endpoint básico
-app.MapGet("/ping", () => Results.Json(new {message = "pong"}) );
 
+// Ejemplo de endpoint básico
+app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
 
 // Mapea controladores como /pacientes, /testdb
 app.MapControllers();
 
-
 app.Run();
-
