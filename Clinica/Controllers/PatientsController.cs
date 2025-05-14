@@ -18,47 +18,68 @@ namespace Clinica.Controllers
       
       // GET: api/pacientes
       [HttpGet]
-      public IActionResult GetAll()
+      public IActionResult GetAll([FromQuery] string? search)
       {
-        Console.WriteLine("➡️ Endpoint /patients reached (from DB)");
+          Console.WriteLine($"➡️ Endpoint /patients reached (from DB) with search: {search}");
 
-        string? connectionString = _config.GetConnectionString("DefaultConnection");
+          string? connectionString = _config.GetConnectionString("DefaultConnection");
 
-        try
-        {
-          using var conn = new NpgsqlConnection(connectionString);
-          conn.Open();
+          try
+          {
+              using var conn = new NpgsqlConnection(connectionString);
+              conn.Open();
 
-          var patients = new List<Patients>();
+              var patients = new List<Patients>();
 
+              string sql;
 
-          var sql = "SELECT id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at FROM patients";
+              if (string.IsNullOrEmpty(search))
+              {
+                  // Sin búsqueda, devuelve todos los pacientes
+                  sql = "SELECT id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at FROM patients";
+              }
+              else
+              {
+                  // Con búsqueda, filtra por nombre o apellido que contengan el término (insensible a mayúsculas)
+                  sql = @"
+                      SELECT id, name, last_name, birthdate, address, gender, blood_type_id, patient_type_id, created_at, updated_at 
+                      FROM patients
+                      WHERE LOWER(name) LIKE LOWER(@search) OR LOWER(last_name) LIKE LOWER(@search)";
+              }
 
-          var cmd = new NpgsqlCommand(sql, conn);
+              var cmd = new NpgsqlCommand(sql, conn);
 
-          using var reader = cmd.ExecuteReader();
-          while (reader.Read()){
-            patients.Add(new Patients{
-              Id = reader.GetInt32(0),
-              Name = reader.GetString(1),
-              LastName = reader.GetString(2),
-              Birthdate = reader.GetDateTime(3),
-              Address = reader.GetString(4),
-              Gender = reader.GetString(5),
-              BloodTypeId = reader.GetInt32(6),
-              PatientTypeId = reader.GetInt32(7),
-              CreatedAt = reader.GetDateTime(8),
-              UpdatedAt = reader.IsDBNull(9) ? null : reader.GetDateTime(9)
-            });
+              if (!string.IsNullOrEmpty(search))
+              {
+                  cmd.Parameters.AddWithValue("search", "%" + search + "%");
+              }
+
+              using var reader = cmd.ExecuteReader();
+
+              while (reader.Read())
+              {
+                  patients.Add(new Patients
+                  {
+                      Id = reader.GetInt32(0),
+                      Name = reader.GetString(1),
+                      LastName = reader.GetString(2),
+                      Birthdate = reader.GetDateTime(3),
+                      Address = reader.GetString(4),
+                      Gender = reader.GetString(5),
+                      BloodTypeId = reader.GetInt32(6),
+                      PatientTypeId = reader.GetInt32(7),
+                      CreatedAt = reader.GetDateTime(8),
+                      UpdatedAt = reader.IsDBNull(9) ? null : reader.GetDateTime(9)
+                  });
+              }
+
+              return Ok(patients);
           }
-
-          return Ok(patients);
-        }
-        catch (Exception ex)
-        {
-         Console.WriteLine($"❌ Error when consulting patients: {ex.Message}");
-         return StatusCode(500, $"Error when consulting patients: {ex.Message}");
-        }
+          catch (Exception ex)
+          {
+              Console.WriteLine($"❌ Error when consulting patients: {ex.Message}");
+              return StatusCode(500, $"Error when consulting patients: {ex.Message}");
+          }
       }
 
 
