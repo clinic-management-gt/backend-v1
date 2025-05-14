@@ -349,51 +349,7 @@ namespace Clinica.Controllers
          return StatusCode(500, $"Error querying the database: {ex.Message}");
         }
       }
-      //TODO: REVISAR ESTE ENDPOIT
-      [HttpPost("{id}/exams")]
-      public IActionResult CreatePatientExam([FromBody] PatientExams patientExam){
 
-        string? connectionString = _config.GetConnectionString("DefaultConnection"); 
-        
-        try{
-          using var conn = new NpgsqlConnection(connectionString);
-          conn.Open();
-          
-          var sql = "INSERT INTO patient_exams (patient_id, exam_id, result_text, result_file_path, created_at) " +
-                    "VALUES (@patient_id, @exam_id, @result_text, @result_file_path, NOW() ) RETURNING id";
-          
-          
-          using var cmd = new NpgsqlCommand(sql, conn);
-
-          cmd.Parameters.AddWithValue("patient_id", patientExam.PatientId);
-          cmd.Parameters.AddWithValue("exam_id", patientExam.ExamId);
-          cmd.Parameters.AddWithValue("result_text", patientExam.ResultText);
-          cmd.Parameters.AddWithValue("result_file_path", patientExam.ResultFilePath);
-
-          // Ejecutar la consulta y obtener el ID del nuevo paciente
-          var result = cmd.ExecuteScalar();
-          if (result == null || result == DBNull.Value)
-          {
-              return StatusCode(500, "No se pudo obtener el ID insertado.");
-          }
-
-          var newPacienteId = Convert.ToInt32(result);// Esto obtiene el ID del nuevo paciente.
-
-          patientExam.Id = newPacienteId;  // Asignamos el ID recién creado al objeto paciente.
-          patientExam.CreatedAt = DateTime.Now;
-
-          return CreatedAtAction(nameof(GetAllPatientExams), new { id = patientExam.Id }, patientExam);
-
-
-        }catch(Exception ex){
-          Console.WriteLine($"❌ Error creating patient: {ex.Message}");
-          return StatusCode(500, $"Error creating patient: {ex.Message}");
-
-        }
-
-      
-      }
-          
       [HttpGet("{id}/growthcurve")]
       public IActionResult GetAllHeightToAgeEntries(int id)
       {
