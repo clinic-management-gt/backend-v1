@@ -4,8 +4,9 @@ using Clinica.Services; // Importa el servicio CloudflareR2Service
 
 namespace Clinica.Controllers
 {
+    
     [ApiController]
-    [Route("exams")]
+    [Route("[controller]")]
     public class ExamsController : ControllerBase
     {
         private readonly IConfiguration _config;
