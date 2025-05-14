@@ -38,7 +38,7 @@ namespace Clinica.Controllers
 
                 if (resultFilePath == null)
                 {
-                    return StatusCode(500, "Error uploading  PINGAAAfile to Cloudflare R2.");
+                    return StatusCode(500, "Error uploading file to Cloudflare R2.");
                 }
 
                 // Guardar los detalles del examen en la base de datos
