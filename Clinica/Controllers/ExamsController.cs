@@ -27,6 +27,12 @@ namespace Clinica.Controllers
 
             try
             {
+                // Verificar si el archivo está vacío
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("No file uploaded.");
+                }
+
                 // Guardar archivo en Cloudflare R2
                 string resultFilePath = await _r2Service.UploadDocumentToCloudflareR2(file.FileName);
 
@@ -60,8 +66,5 @@ namespace Clinica.Controllers
                 return StatusCode(500, $"Error inserting exam: {ex.Message}");
             }
         }
-    
-    
-    
     }
 }
