@@ -25,6 +25,9 @@ builder.Services.AddSingleton<CloudflareR2Service>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 var app = builder.Build();
 
 // Middleware
