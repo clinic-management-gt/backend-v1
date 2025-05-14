@@ -533,7 +533,7 @@ namespace Clinica.Controllers
           using var conn = new NpgsqlConnection(connectionString);
           conn.Open();
 
-          var recetas = new List<Recipes>();
+          var recipes = new List<Recipes>();
 
           var sql = @"
             SELECT r.id, r.treatment_id, r.prescription, r.created_at
@@ -548,7 +548,7 @@ namespace Clinica.Controllers
 
           while (reader.Read())
           {
-            recetas.Add(new Recipes
+            recipes.Add(new Recipes
             {
                 Id = reader.GetInt32(0),
                 TreatmentId = reader.GetInt32(1),
@@ -559,7 +559,7 @@ namespace Clinica.Controllers
 
           }
           
-          return Ok(recetas);
+          return Ok(recipes);
 
 
         }
