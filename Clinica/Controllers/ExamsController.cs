@@ -4,7 +4,8 @@ using Clinica.Services; // Importa el servicio CloudflareR2Service
 
 namespace Clinica.Controllers
 {
-    
+    [ApiController]
+    [Route("exams")]                
     public class ExamsController : ControllerBase
     {
         private readonly IConfiguration _config;
@@ -17,13 +18,15 @@ namespace Clinica.Controllers
         }
 
         // POST: /exams/patients
-        //[HttpPost("patients")]
+        [HttpPost("patients")]
         public async Task<IActionResult> CreatePatientExam([FromForm] int patientId, [FromForm] int examId, [FromForm] string resultText, [FromForm] IFormFile file)
         {
             Console.WriteLine($"➡️ Endpoint POST /exams/patients");
 
             string? connectionString = _config.GetConnectionString("DefaultConnection");
 
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
             try
             {
                 // Verificar si el archivo está vacío
@@ -33,7 +36,7 @@ namespace Clinica.Controllers
                 }
 
                 // Guardar archivo en Cloudflare R2
-                string resultFilePath = await _r2Service.UploadDocumentToCloudflareR2(file);
+                var resultFilePath = await _r2Service.UploadDocumentToCloudflareR2(file);
 
                 if (resultFilePath == null)
                 {
@@ -57,12 +60,19 @@ namespace Clinica.Controllers
 
                 await cmd.ExecuteNonQueryAsync();
 
-                return Ok("Exam created and file uploaded successfully.");
+                return Ok(new {
+                    message = "Exam created and file uploaded successfully.",
+                    fileUrl = resultFilePath
+                });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error inserting exam: {ex.Message}");
-                return StatusCode(500, $"Error inserting exam: {ex.Message}");
+                return StatusCode(500, new
+                {
+                    error = "Error uploading file to Cloudflare R2",
+                    detail = ex.Message,
+                });
             }
         }
     }

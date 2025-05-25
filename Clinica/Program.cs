@@ -1,4 +1,9 @@
+using Clinica.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// 1) Registrar tu servicio de Cloudflare R2
+builder.Services.AddSingleton<CloudflareR2Service>();
 
 // Agrega soporte para controladores
 builder.Services.AddControllers();
