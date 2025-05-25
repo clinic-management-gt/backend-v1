@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ===================================================================
 -- 1) ENUM TYPES
@@ -55,7 +56,7 @@ CREATE TABLE users (
   last_name    VARCHAR(50)  NOT NULL,
   email        VARCHAR(100),
   role_id      INT          NOT NULL REFERENCES roles(id),
-  password_hash  TEXT        NOT NULL,          -- aquí
+  password_hash  TEXT        NOT NULL,         
   created_at   TIMESTAMP    DEFAULT now(),
   updated_at   TIMESTAMP
 );
