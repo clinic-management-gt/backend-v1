@@ -17,7 +17,7 @@ public class AppointmentsController : ControllerBase
 
     // GET /appointments?status=pendiente
     [HttpGet]
-    public IActionResult GetAllAppointments([FromQuery] string? status)
+    public ActionResult<List<DashBoardDTO>> GetAllAppointments([FromQuery] string? status)
     {
         string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -70,7 +70,7 @@ public class AppointmentsController : ControllerBase
 
     // GET /appointments/today?status=pendiente
     [HttpGet("today")]
-    public IActionResult GetTodaysAppointments([FromQuery] string? status)
+    public ActionResult<List<DashBoardDTO>> GetTodaysAppointments([FromQuery] string? status)
     {
         string? connectionString = _config.GetConnectionString("DefaultConnection");
 
@@ -124,7 +124,7 @@ public class AppointmentsController : ControllerBase
     
     // PATCH /appointments/{id}
     [HttpPatch("{id}")]
-    public IActionResult UpdateAppointmentStatus(int id, [FromBody] UpdateStatusDTO dto)
+    public ActionResult<List<DashBoardDTO>> UpdateAppointmentStatus(int id, [FromBody] UpdateStatusDTO dto)
     {
         string? connectionString = _config.GetConnectionString("DefaultConnection");
 

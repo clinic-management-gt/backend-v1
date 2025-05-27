@@ -4,8 +4,8 @@ using Clinica.Services; // Importa el servicio CloudflareR2Service
 
 namespace Clinica.Controllers
 {
-    [ApiController]
-    [Route("exams")]                
+//    [ApiController]
+ //   [Route("exams")]                
     public class ExamsController : ControllerBase
     {
         private readonly IConfiguration _config;
@@ -18,7 +18,7 @@ namespace Clinica.Controllers
         }
 
         // POST: /exams/patients
-        [HttpPost("patients")]
+  //      [HttpPost("patients")]
         public async Task<IActionResult> CreatePatientExam([FromForm] int patientId, [FromForm] int examId, [FromForm] string resultText, [FromForm] IFormFile file)
         {
             Console.WriteLine($"➡️ Endpoint POST /exams/patients");
