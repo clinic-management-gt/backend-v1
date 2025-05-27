@@ -56,7 +56,7 @@ namespace Clinica.Controllers
 
                 // GET: /recipes/{id}
         [HttpGet("{id}")]
-        public IActionResult GetRecipeById(int id)
+        public ActionResult<Recipes> GetRecipeById(int id)
         {
             string? connectionString = _config.GetConnectionString("DefaultConnection");
 

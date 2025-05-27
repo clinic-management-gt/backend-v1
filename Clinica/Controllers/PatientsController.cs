@@ -18,7 +18,7 @@ namespace Clinica.Controllers
       
       // GET: api/pacientes
       [HttpGet]
-      public IActionResult GetAll([FromQuery] string? search)
+      public ActionResult<List<Patients>> GetAll([FromQuery] string? search)
       {
           Console.WriteLine($"➡️ Endpoint /patients reached (from DB) with search: {search}");
 
@@ -85,7 +85,7 @@ namespace Clinica.Controllers
 
       //GetById
       [HttpGet("{id}")]
-      public IActionResult GetPatientById(int id){
+      public ActionResult<Patients> GetPatientById(int id){
         Console.WriteLine($"➡️ Endpoint GET /patients/{id} reached (to get a patient)");
         
         string ? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -271,7 +271,7 @@ namespace Clinica.Controllers
       }
 
       [HttpGet("{id}/medicalrecords")]
-      public IActionResult GetAllMedicalRecords(int id)
+      public ActionResult<List<MedicalRecords>> GetAllMedicalRecords(int id)
       {
         Console.WriteLine("➡️ Endpoint /patients reached (from DB)");
 
@@ -323,7 +323,7 @@ namespace Clinica.Controllers
       }
 
       [HttpGet("{id}/exams")]
-      public IActionResult GetAllPatientExams(int id)
+      public ActionResult<List<PatientExams>> GetAllPatientExams(int id)
       {
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -372,7 +372,7 @@ namespace Clinica.Controllers
       }
 
       [HttpGet("{id}/growthcurve")]
-      public IActionResult GetAllHeightToAgeEntries(int id)
+      public ActionResult<GrowthCurveDTO> GetAllHeightToAgeEntries(int id)
       {
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -452,7 +452,7 @@ namespace Clinica.Controllers
 
       // patients/{id}/recipes
       [HttpGet("{id}/recipes")]
-      public IActionResult GetAllRecipesByPatientID(int id)
+      public ActionResult<Recipes> GetAllRecipesByPatientID(int id)
       {
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");
@@ -500,7 +500,7 @@ namespace Clinica.Controllers
 
             // patients/{id}/recipes
       [HttpGet("{id}/vaccines")]
-      public IActionResult GetAllVaccinesByPatientID(int id)
+      public ActionResult<List<PatientVaccineDTO>> GetAllVaccinesByPatientID(int id)
       {
 
         string? connectionString = _config.GetConnectionString("DefaultConnection");

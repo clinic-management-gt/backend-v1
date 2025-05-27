@@ -59,7 +59,7 @@ namespace Clinica.Controllers
 
         // GET: /vaccines/{id}
         [HttpGet("{id}")]
-        public IActionResult GetVaccineById(int id)
+        public ActionResult<Vaccine> GetVaccineById(int id)
         {
             string? connectionString = _config.GetConnectionString("DefaultConnection");
 
