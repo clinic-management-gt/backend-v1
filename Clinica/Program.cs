@@ -1,4 +1,7 @@
 using Clinica.Services;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +34,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
+// Configuración de autenticación
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "super_secret_key"))
+        };
+    });
 
 var app = builder.Build();
 
@@ -44,8 +61,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 app.UseCors("AllowFrontend");
+app.UseAuthentication(); // Agregar uso de autenticación
+app.UseAuthorization(); // Agregar uso de autorización
+
 // Ejemplo de endpoint básico
 app.MapGet("/ping", () => Results.Json(new {message = "pong"}) );
 
