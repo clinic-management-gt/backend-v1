@@ -17,7 +17,7 @@ namespace Clinica.Controllers
       
       //api/medicalRecords/{id}
       [HttpGet("{id}")]
-      public IActionResult GetById(int id){
+      public ActionResult<List<MedicalRecords>> GetById(int id){
         string ? connectionString = _config.GetConnectionString("DefaultConnection");
 
         try{
