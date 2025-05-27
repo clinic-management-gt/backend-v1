@@ -35,7 +35,8 @@ public class AuthController : ControllerBase
                 u.last_name,
                 u.email,
                 u.role_id,
-                r.name AS role
+                r.name AS role,
+                u.created_at  
             FROM users u
             JOIN roles r ON u.role_id = r.id
             WHERE u.email = @Email
@@ -60,6 +61,7 @@ public class AuthController : ControllerBase
             var email     = reader.GetString(3);
             var roleId    = reader.GetInt32 (4);
             var roleName  = reader.GetString(5);
+            var createdAt  = reader.GetDateTime(6);
 
             // Genera el JWT
             var token = GenerateJwtToken(userId, firstName, lastName, email, roleId, roleName);
@@ -67,13 +69,15 @@ public class AuthController : ControllerBase
             return Ok(new
             {
                 token,
-                user = new {
-                id         = userId,
-                first_name = firstName,
-                last_name  = lastName,
-                email      = email,
-                role_id    = roleId,
-                role       = roleName
+                user = new
+                {
+                    id = userId,
+                    first_name = firstName,
+                    last_name = lastName,
+                    email = email,
+                    role_id = roleId,
+                    role = roleName,
+                    created_at   = createdAt.ToString("o") 
                 }
             });
         }
