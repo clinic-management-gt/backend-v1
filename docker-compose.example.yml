@@ -4,12 +4,15 @@ services:
       context: .
       dockerfile: DockerFile
     ports:
-      - "9000:8080"
+      - "TU_PUERTO_BACKEND:8080"
     depends_on:
       - db
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Jwt__Key=h8G7d3F2jK9pQ5wZ1xR6tY4uV8oC0mN7
+      - Jwt__Issuer=clinica
+      - Jwt__Audience=clinica
 
   db:
     image: postgres:17
@@ -19,7 +22,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "TU_PUERTO_POSTGRESQL:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./bd/entry-point:/docker-entrypoint-initdb.d
@@ -28,7 +31,7 @@ services:
     image: adminer
     restart: always
     ports:
-      - "9001:8080"
+      - "TU_PUERTO_ADMINER:8080"
     depends_on:
       - db
 
@@ -39,3 +42,4 @@ networks:
   default:
     external: true
     name: //RED
+
