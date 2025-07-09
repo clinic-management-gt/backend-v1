@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Npgsql;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 namespace Clinica.Controllers;
 
@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
             ";
 
             using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("Email",    request.Email);
+            cmd.Parameters.AddWithValue("Email", request.Email);
             cmd.Parameters.AddWithValue("Password", request.Password);
 
             using var reader = cmd.ExecuteReader();
@@ -55,13 +55,13 @@ public class AuthController : ControllerBase
             }
 
             // Si llegamos aquí, el login es válido
-            var userId    = reader.GetInt32 (0);
+            var userId = reader.GetInt32(0);
             var firstName = reader.GetString(1);
-            var lastName  = reader.GetString(2);
-            var email     = reader.GetString(3);
-            var roleId    = reader.GetInt32 (4);
-            var roleName  = reader.GetString(5);
-            var createdAt  = reader.GetDateTime(6);
+            var lastName = reader.GetString(2);
+            var email = reader.GetString(3);
+            var roleId = reader.GetInt32(4);
+            var roleName = reader.GetString(5);
+            var createdAt = reader.GetDateTime(6);
 
             // Genera el JWT
             var token = GenerateJwtToken(userId, firstName, lastName, email, roleId, roleName);
@@ -77,7 +77,7 @@ public class AuthController : ControllerBase
                     email = email,
                     role_id = roleId,
                     role = roleName,
-                    created_at   = createdAt.ToString("o") 
+                    created_at = createdAt.ToString("o")
                 }
             });
         }

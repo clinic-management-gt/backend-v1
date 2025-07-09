@@ -1,13 +1,12 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-
 using Amazon;
 using Amazon.Runtime;           // BasicAWSCredentials
 using Amazon.S3;
 using Amazon.S3.Transfer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Clinica.Services
 {
@@ -19,17 +18,17 @@ namespace Clinica.Services
         private readonly IConfiguration _config;
 
 
-    public CloudflareR2Service(IConfiguration config)
-    {
-        _config    = config!;
-        _accessKey = config["Cloudflare:R2AccessKey"]!;
-        _secretKey = config["Cloudflare:R2SecretKey"]!;
-        _bucketName = config["Cloudflare:R2BucketName"]!;
+        public CloudflareR2Service(IConfiguration config)
+        {
+            _config = config!;
+            _accessKey = config["Cloudflare:R2AccessKey"]!;
+            _secretKey = config["Cloudflare:R2SecretKey"]!;
+            _bucketName = config["Cloudflare:R2BucketName"]!;
 
-        Console.WriteLine($"🔑 R2AccessKey   = {_accessKey  ?? "(null)"}");
-        Console.WriteLine($"🔒 R2SecretKey  = {(_secretKey?.Substring(0,8) ?? "(null)")}…");
-        Console.WriteLine($"📦 R2BucketName = {_bucketName ?? "(null)"}");
-    }
+            Console.WriteLine($"🔑 R2AccessKey   = {_accessKey ?? "(null)"}");
+            Console.WriteLine($"🔒 R2SecretKey  = {(_secretKey?.Substring(0, 8) ?? "(null)")}…");
+            Console.WriteLine($"📦 R2BucketName = {_bucketName ?? "(null)"}");
+        }
 
 
         public async Task<string> UploadDocumentToCloudflareR2(IFormFile file)

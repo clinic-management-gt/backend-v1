@@ -6,18 +6,18 @@ namespace Clinica.Models
     public class GrowthCurveDTO
     {
         public List<HeightToAgeEntryDTO> HeightToAgeEntries { set; get; }
-        public List<WeightToAgeEntryDTO> WeightToAgeEntries { set; get; } 
+        public List<WeightToAgeEntryDTO> WeightToAgeEntries { set; get; }
         public List<WeightToHeightEntryDTO> WeightToHeightEntries { set; get; }
         public List<BodyMassIndexEntryDTO> BodyMassIndexEntries { set; get; }
 
         public GrowthCurveDTO(List<HeightToAgeEntryDTO> heightToAgeEntires, List<WeightToAgeEntryDTO> weightToAgeEntries, List<WeightToHeightEntryDTO> weightToHeightEntries, List<BodyMassIndexEntryDTO> bodyMassIndexEntries)
-        {   
-            HeightToAgeEntries = heightToAgeEntires;      
+        {
+            HeightToAgeEntries = heightToAgeEntires;
             WeightToAgeEntries = weightToAgeEntries;
             WeightToHeightEntries = weightToHeightEntries;
             BodyMassIndexEntries = bodyMassIndexEntries;
         }
-        
+
     }
 
     public class HeightToAgeEntryDTO
@@ -32,13 +32,13 @@ namespace Clinica.Models
         public int AgeInDays { set; get; }
     }
 
-    public class WeightToHeightEntryDTO 
+    public class WeightToHeightEntryDTO
     {
         public double Weight { set; get; }
         public double Height { set; get; }
     }
 
-    public class BodyMassIndexEntryDTO 
+    public class BodyMassIndexEntryDTO
     {
         public double BodyMassIndex { set; get; }
         public int AgeInDays { set; get; }

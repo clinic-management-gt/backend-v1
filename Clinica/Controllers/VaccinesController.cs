@@ -1,6 +1,6 @@
+using Clinica.Models;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
-using Clinica.Models;
 
 namespace Clinica.Controllers
 {

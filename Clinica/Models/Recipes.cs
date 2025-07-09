@@ -1,7 +1,8 @@
 
 namespace Clinica.Models
 {
-    public class Recipes{
+    public class Recipes
+    {
 
         public int Id { get; set; }
         public int TreatmentId { get; set; }

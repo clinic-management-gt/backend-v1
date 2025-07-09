@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Opciones específicas de .NET/C#
+dotnet_sort_system_directives_first = true
+csharp_new_line_before_open_brace = all
