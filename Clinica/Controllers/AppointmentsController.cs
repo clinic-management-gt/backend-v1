@@ -1,6 +1,6 @@
+using Clinica.Models;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
-using Clinica.Models;
 
 namespace Clinica.Controllers;
 
@@ -121,7 +121,7 @@ public class AppointmentsController : ControllerBase
             return StatusCode(500, $"Error al consultar la base de datos: {ex.Message}");
         }
     }
-    
+
     // PATCH /appointments/{id}
     [HttpPatch("{id}")]
     public ActionResult<List<DashBoardDTO>> UpdateAppointmentStatus(int id, [FromBody] UpdateStatusDTO dto)

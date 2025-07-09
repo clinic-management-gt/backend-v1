@@ -1,7 +1,7 @@
-using Clinica.Services;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Clinica.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,7 +66,7 @@ app.UseAuthentication(); // Agregar uso de autenticación
 app.UseAuthorization(); // Agregar uso de autorización
 
 // Ejemplo de endpoint básico
-app.MapGet("/ping", () => Results.Json(new {message = "pong"}) );
+app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
 
 
 // Mapea controladores como /pacientes, /testdb

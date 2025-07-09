@@ -1,6 +1,6 @@
+using Clinica.Models;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
-using Clinica.Models;
 
 namespace Clinica.Controllers
 {
@@ -23,29 +23,29 @@ namespace Clinica.Controllers
 
             try
             {
-               using var conn = new NpgsqlConnection(connectionString);
-               conn.Open();
+                using var conn = new NpgsqlConnection(connectionString);
+                conn.Open();
 
-               var sql = "INSERT INTO recipes (treatment_id, prescription, created_at) " +
-                          "VALUES (@treatment_id, @prescription, NOW()) RETURNING id";
+                var sql = "INSERT INTO recipes (treatment_id, prescription, created_at) " +
+                           "VALUES (@treatment_id, @prescription, NOW()) RETURNING id";
 
-               using var cmd = new NpgsqlCommand(sql, conn);
-               cmd.Parameters.AddWithValue("treatment_id", recipe.TreatmentId);
-               
-               // Si Prescription es nulo, se pasa DBNull.Value
-               cmd.Parameters.AddWithValue("prescription", recipe.Prescription ?? (object)DBNull.Value);
+                using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("treatment_id", recipe.TreatmentId);
 
-               var result = cmd.ExecuteScalar();
-               if (result == null || result == DBNull.Value)
-               {
-                     return StatusCode(500, "No se pudo obtener el ID insertado.");
-               }
+                // Si Prescription es nulo, se pasa DBNull.Value
+                cmd.Parameters.AddWithValue("prescription", recipe.Prescription ?? (object)DBNull.Value);
 
-               var newRecipeId = Convert.ToInt32(result);
-               recipe.Id = newRecipeId;
-               recipe.CreatedAt = DateTime.Now;
+                var result = cmd.ExecuteScalar();
+                if (result == null || result == DBNull.Value)
+                {
+                    return StatusCode(500, "No se pudo obtener el ID insertado.");
+                }
 
-               return CreatedAtAction(nameof(GetRecipeById), new { id = recipe.Id }, recipe);
+                var newRecipeId = Convert.ToInt32(result);
+                recipe.Id = newRecipeId;
+                recipe.CreatedAt = DateTime.Now;
+
+                return CreatedAtAction(nameof(GetRecipeById), new { id = recipe.Id }, recipe);
             }
             catch (Exception ex)
             {
@@ -54,7 +54,7 @@ namespace Clinica.Controllers
             }
         }
 
-                // GET: /recipes/{id}
+        // GET: /recipes/{id}
         [HttpGet("{id}")]
         public ActionResult<Recipes> GetRecipeById(int id)
         {
@@ -121,7 +121,7 @@ namespace Clinica.Controllers
                 var updateFields = new Dictionary<string, object>();
 
                 if (!string.IsNullOrEmpty(recipe.Prescription)) updateFields.Add("prescription", recipe.Prescription);
-                
+
 
                 var setClause = string.Join(", ", updateFields.Keys.Select(k => $"{k} = @{k}"));
                 var sql = $"UPDATE recipes SET {setClause} WHERE id = @id";
