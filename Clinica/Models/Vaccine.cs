@@ -1,4 +1,5 @@
 namespace Clinica.Models
+
 {
     public class Vaccine
     {
@@ -9,3 +10,4 @@ namespace Clinica.Models
         public DateTime? UpdatedAt { get; set; }
     }
 }
+

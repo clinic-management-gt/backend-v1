@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Clinica.Models.EntityFramework;
 
@@ -19,7 +20,8 @@ public partial class Appointment
 
     public DateTime? UpdatedAt { get; set; }
 
-    public AppointmentStatus status { get; set; }
+    [Column("status")]
+    public AppointmentStatus Status { get; set; }
 
     public virtual ICollection<Diagnosis> Diagnoses { get; set; } = new List<Diagnosis>();
 
