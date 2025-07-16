@@ -154,7 +154,159 @@ public class AppointmentsController : ControllerBase
         }
     }
 
+    // PUT /appointments/{id}
+    [HttpPut("{id}")]
+    public IActionResult UpdateAppointment(int id, [FromBody] AppointmentUpdateDTO appointmentDTO)
+    {
+        Console.WriteLine($"➡️ Endpoint PUT /appointments/{id} reached (to update appointment)");
+        Console.WriteLine($"Data received: PatientId={appointmentDTO.PatientId}, DoctorId={appointmentDTO.DoctorId}, Status={appointmentDTO.Status}");
 
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
 
+        try
+        {
+            using var conn = new NpgsqlConnection(connectionString);
+            conn.Open();
+
+            // Verificar si la cita existe y obtener datos actuales
+            var checkSql = "SELECT patient_id, doctor_id, appointment_date FROM appointments WHERE id = @id";
+            using var checkCmd = new NpgsqlCommand(checkSql, conn);
+            checkCmd.Parameters.AddWithValue("id", id);
+            
+            int currentPatientId = 0;
+            int currentDoctorId = 0;
+            DateTime currentDate = DateTime.Now;
+            bool appointmentExists = false;
+            
+            using (var reader = checkCmd.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    appointmentExists = true;
+                    currentPatientId = reader.GetInt32(0);
+                    currentDoctorId = reader.GetInt32(1);
+                    currentDate = reader.GetDateTime(2);
+                }
+            }
+
+            if (!appointmentExists)
+            {
+                return NotFound($"Appointment with ID {id} not found.");
+            }
+
+            // Construir la consulta SQL de actualización dinámicamente
+            var updateParts = new List<string>();
+            var parameters = new Dictionary<string, object>();
+            
+            // Solo actualizar campos que no sean nulos
+            if (appointmentDTO.PatientId.HasValue && appointmentDTO.PatientId.Value > 0)
+            {
+                updateParts.Add("patient_id = @patientId");
+                parameters.Add("patientId", appointmentDTO.PatientId.Value);
+            }
+            
+            if (appointmentDTO.DoctorId.HasValue && appointmentDTO.DoctorId.Value > 0)
+            {
+                updateParts.Add("doctor_id = @doctorId");
+                parameters.Add("doctorId", appointmentDTO.DoctorId.Value);
+            }
+            
+            if (appointmentDTO.Date.HasValue)
+            {
+                updateParts.Add("appointment_date = @appointmentDate");
+                parameters.Add("appointmentDate", appointmentDTO.Date.Value);
+            }
+            
+            if (!string.IsNullOrEmpty(appointmentDTO.Status))
+            {
+                updateParts.Add("status = CAST(@status AS appointment_status_enum)");
+                parameters.Add("status", appointmentDTO.Status);
+            }
+            
+            updateParts.Add("reason = @reason");
+            parameters.Add("reason", appointmentDTO.Notes ?? (object)DBNull.Value);
+            
+            updateParts.Add("updated_at = NOW()");
+            
+            var sql = $"UPDATE appointments SET {string.Join(", ", updateParts)} WHERE id = @id";
+            
+            using var cmd = new NpgsqlCommand(sql, conn);
+            foreach (var param in parameters)
+            {
+                cmd.Parameters.AddWithValue(param.Key, param.Value);
+            }
+            cmd.Parameters.AddWithValue("id", id);
+            
+            var rowsAffected = cmd.ExecuteNonQuery();
+            
+            if (rowsAffected > 0)
+            {
+                return Ok(new { message = $"Cita con ID {id} actualizada correctamente." });
+            }
+            else
+            {
+                return StatusCode(500, "Error al actualizar la cita.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error updating appointment: {ex.Message}");
+            return StatusCode(500, $"Error al actualizar la cita: {ex.Message}");
+        }
+    }
+
+    // DELETE /appointments/{id}
+    [HttpDelete("{id}")]
+    public IActionResult DeleteAppointment(int id)
+    {
+        Console.WriteLine($"➡️ Endpoint DELETE /appointments/{id} reached (to delete appointment)");
+
+        string? connectionString = _config.GetConnectionString("DefaultConnection");
+
+        try
+        {
+            using var conn = new NpgsqlConnection(connectionString);
+            conn.Open();
+
+            // Verificar si la cita existe
+            var checkSql = "SELECT COUNT(*) FROM appointments WHERE id = @id";
+            using var checkCmd = new NpgsqlCommand(checkSql, conn);
+            checkCmd.Parameters.AddWithValue("id", id);
+            var exists = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+
+            if (!exists)
+            {
+                return NotFound($"Appointment with ID {id} not found.");
+            }
+
+            // Eliminar la cita
+            var sql = "DELETE FROM appointments WHERE id = @id";
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("id", id);
+
+            var rowsAffected = cmd.ExecuteNonQuery();
+
+            if (rowsAffected > 0)
+            {
+                return Ok($"Appointment with ID {id} deleted successfully.");
+            }
+            else
+            {
+                return StatusCode(500, "Error deleting appointment.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error deleting appointment: {ex.Message}");
+
+            // Si es un error de clave foránea, dar un mensaje más específico
+            if (ex.Message.Contains("foreign key constraint"))
+            {
+                return Conflict($"Cannot delete appointment with ID {id} because it has related records (treatments, medical records, etc.).");
+            }
+
+            return StatusCode(500, $"Error deleting appointment: {ex.Message}");
+        }
+    }
 
 }
