@@ -1,5 +1,5 @@
-using Clinica.Models.EntityFramework;
 using Clinica.Models;
+using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

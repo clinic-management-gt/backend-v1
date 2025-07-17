@@ -1,5 +1,6 @@
 using NpgsqlTypes;
-public enum AppointmentStatus {
+public enum AppointmentStatus
+{
     [PgName("Confirmado")]
     Confirmado,
     [PgName("Pendiente")]

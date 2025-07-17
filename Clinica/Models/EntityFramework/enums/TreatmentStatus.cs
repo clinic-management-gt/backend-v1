@@ -1,4 +1,5 @@
-public enum TreatmentStatus {
+public enum TreatmentStatus
+{
     Terminado,
     NoTerminado,
 }

@@ -1,4 +1,5 @@
-public enum LogAction {
+public enum LogAction
+{
     INSERT,
     UPDATE,
     DELETE,
