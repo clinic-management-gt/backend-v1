@@ -1,6 +1,7 @@
 using Clinica.Models;
+using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Controllers;
 
@@ -8,59 +9,44 @@ namespace Clinica.Controllers;
 [Route("[controller]")]
 public class AppointmentsController : ControllerBase
 {
-    private readonly IConfiguration _config;
+    private readonly ApplicationDbContext _context;
 
-    public AppointmentsController(IConfiguration config)
+    public AppointmentsController(ApplicationDbContext context)
     {
-        _config = config;
+        _context = context;
     }
 
     // GET /appointments?status=pendiente
     [HttpGet]
-    public ActionResult<List<DashBoardDTO>> GetAllAppointments([FromQuery] string? status)
+    public async Task<ActionResult<List<DashBoardDTO>>> GetAllAppointments([FromQuery] AppointmentStatus? status)
     {
-        string? connectionString = _config.GetConnectionString("DefaultConnection");
-
         try
         {
-            using var conn = new NpgsqlConnection(connectionString);
-            conn.Open();
+            var query = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .AsQueryable();
 
-            NpgsqlCommand cmd = new NpgsqlCommand();
-            cmd.Connection = conn;
-
-            var sql = "SELECT a.id, p.name, p.last_name, u.first_name, u.last_name, a.status, a.appointment_date FROM appointments AS a LEFT JOIN patients AS p ON p.id = a.patient_id LEFT JOIN users AS u ON u.id = a.doctor_id";
-            if (!string.IsNullOrEmpty(status))
+            if (status != null)
             {
-                sql += " WHERE a.status = CAST(@status AS appointment_status_enum)";
-                cmd.Parameters.AddWithValue("status", status);
+                query = query.Where(a => a.Status == status);
             }
-            cmd.CommandText = sql;
 
-            List<DashBoardDTO> dashBoardDTOs = new List<DashBoardDTO>();
-
-            using var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
-            {
-                dashBoardDTOs.Add(new DashBoardDTO
+            var result = await query
+                .Select(a => new DashBoardDTO
                 {
-                    Id = reader.GetInt32(0),
-                    PatientName = $"{reader.GetString(1)} {reader.GetString(2)}",
-                    DoctorName = $"{reader.GetString(3)} {reader.GetString(4)}",
-                    Status = reader.GetString(5),
-                    Date = reader.GetDateTime(6),
-                });
-            }
-            if (dashBoardDTOs.Count > 0)
-            {
-                return Ok(dashBoardDTOs);
-            }
-            else
-            {
-                return NotFound("No hay citas registradas.");
-            }
+                    Id = a.Id,
+                    PatientName = a.Patient.Name + " " + a.Patient.LastName,
+                    DoctorName = a.Doctor.FirstName + " " + a.Doctor.LastName,
+                    Status = a.Status,
+                    Date = a.AppointmentDate
+                })
+                .ToListAsync();
 
+            if (result.Count > 0)
+                return Ok(result);
+            else
+                return NotFound("No hay citas registradas.");
         }
         catch (Exception ex)
         {
@@ -70,51 +56,39 @@ public class AppointmentsController : ControllerBase
 
     // GET /appointments/today?status=pendiente
     [HttpGet("today")]
-    public ActionResult<List<DashBoardDTO>> GetTodaysAppointments([FromQuery] string? status)
+    public async Task<ActionResult<List<DashBoardDTO>>> GetTodaysAppointments([FromQuery] AppointmentStatus? status)
     {
-        string? connectionString = _config.GetConnectionString("DefaultConnection");
-
         try
         {
-            using var conn = new NpgsqlConnection(connectionString);
-            conn.Open();
+            var today = DateTime.Today;
 
-            NpgsqlCommand cmd = new NpgsqlCommand();
-            cmd.Connection = conn;
+            var query = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .Where(a => a.AppointmentDate.Date == today)
+                .AsQueryable();
 
-            var sql = "SELECT a.id, p.name, p.last_name, u.first_name, u.last_name, a.status, a.appointment_date FROM appointments AS a LEFT JOIN patients AS p ON p.id = a.patient_id LEFT JOIN users AS u ON u.id = a.doctor_id WHERE a.appointment_date::date = current_date";
-            if (!string.IsNullOrEmpty(status))
+            if (status != null)
             {
-                sql += " AND a.status = CAST(@status AS appointment_status_enum)";
-                cmd.Parameters.AddWithValue("status", status);
+                query = query.Where(a => a.Status == status);
             }
-            sql += " ORDER BY a.appointment_date ASC";
-            cmd.CommandText = sql;
 
-            List<DashBoardDTO> dashBoardDTOs = new List<DashBoardDTO>();
-
-            using var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
-            {
-                dashBoardDTOs.Add(new DashBoardDTO
+            var result = await query
+                .OrderBy(a => a.AppointmentDate)
+                .Select(a => new DashBoardDTO
                 {
-                    Id = reader.GetInt32(0),
-                    PatientName = $"{reader.GetString(1)} {reader.GetString(2)}",
-                    DoctorName = $"{reader.GetString(3)} {reader.GetString(4)}",
-                    Status = reader.GetString(5),
-                    Date = reader.GetDateTime(6),
-                });
-            }
-            if (dashBoardDTOs.Count > 0)
-            {
-                return Ok(dashBoardDTOs);
-            }
-            else
-            {
-                return NotFound("No hay citas para el día de hoy.");
-            }
+                    Id = a.Id,
+                    PatientName = a.Patient.Name + " " + a.Patient.LastName,
+                    DoctorName = a.Doctor.FirstName + " " + a.Doctor.LastName,
+                    Status = a.Status,
+                    Date = a.AppointmentDate
+                })
+                .ToListAsync();
 
+            if (result.Count > 0)
+                return Ok(result);
+            else
+                return NotFound("No hay citas para el día de hoy.");
         }
         catch (Exception ex)
         {
@@ -124,37 +98,23 @@ public class AppointmentsController : ControllerBase
 
     // PATCH /appointments/{id}
     [HttpPatch("{id}")]
-    public ActionResult<List<DashBoardDTO>> UpdateAppointmentStatus(int id, [FromBody] UpdateStatusDTO dto)
+    public async Task<ActionResult> UpdateAppointmentStatus(int id, [FromBody] UpdateStatusDTO dto)
     {
-        string? connectionString = _config.GetConnectionString("DefaultConnection");
-
         try
         {
-            using var conn = new NpgsqlConnection(connectionString);
-            conn.Open();
-
-            var sql = "UPDATE appointments SET status = CAST(@status AS appointment_status_enum) WHERE id = @id RETURNING id";
-            using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("status", dto.Status);
-            cmd.Parameters.AddWithValue("id", id);
-
-            var result = cmd.ExecuteScalar();
-            if (result != null)
-            {
-                return Ok(new { message = "Estado actualizado correctamente." });
-            }
-            else
-            {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null)
                 return NotFound("No se encontró la cita.");
-            }
+
+            appointment.Status = dto.Status;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Estado actualizado correctamente." });
         }
         catch (Exception ex)
         {
             return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
         }
     }
-
-
-
-
 }
+

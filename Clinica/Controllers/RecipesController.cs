@@ -4,6 +4,7 @@ using Npgsql;
 
 namespace Clinica.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("[controller]")]
     public class RecipesController : ControllerBase
@@ -67,8 +68,8 @@ namespace Clinica.Controllers
 
                 // Modificamos el query para obtener el id de la cita y el paciente
                 var sql = @"
-                    SELECT r.id, r.treatment_id, r.prescription, r.created_at, 
-                        a.id AS appointment_id, p.id AS patient_id 
+                    SELECT r.id, r.treatment_id, r.prescription, r.created_at,
+                        a.id AS appointment_id, p.id AS patient_id
                     FROM recipes r
                     JOIN treatments t ON r.treatment_id = t.id
                     JOIN appointments a ON t.appointment_id = a.id

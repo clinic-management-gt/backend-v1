@@ -4,6 +4,7 @@ using Npgsql;
 
 namespace Clinica.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("[controller]")]
     public class MedicalRecordsController : ControllerBase
