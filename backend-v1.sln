@@ -1,24 +1,58 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clinica", "Clinica\Clinica.csproj", "{53DED6D3-7254-F333-93EB-390D8B5EE449}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EDED3659-FF02-4090-9203-742CE59C8B7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clinica", "src\Clinica\Clinica.csproj", "{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{912086C6-7EDA-4BDD-9E17-15DEE492D9A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTets", "tests\UnitTets\UnitTets.csproj", "{3A9BD14F-10CF-4EF5-B842-A090A00E113A}"
 EndProject
 Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{53DED6D3-7254-F333-93EB-390D8B5EE449}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53DED6D3-7254-F333-93EB-390D8B5EE449}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53DED6D3-7254-F333-93EB-390D8B5EE449}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53DED6D3-7254-F333-93EB-390D8B5EE449}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {39F5C350-FC53-4539-87A9-4C46EC6832F5}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Debug|x64.Build.0 = Debug|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Debug|x86.Build.0 = Debug|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Release|x64.ActiveCfg = Release|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Release|x64.Build.0 = Release|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Release|x86.ActiveCfg = Release|Any CPU
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5}.Release|x86.Build.0 = Release|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Debug|x64.Build.0 = Debug|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Debug|x86.Build.0 = Debug|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Release|x64.ActiveCfg = Release|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Release|x64.Build.0 = Release|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Release|x86.ActiveCfg = Release|Any CPU
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A54F98A1-33DA-4998-8A0E-29BF0E4155C5} = {EDED3659-FF02-4090-9203-742CE59C8B7B}
+		{3A9BD14F-10CF-4EF5-B842-A090A00E113A} = {912086C6-7EDA-4BDD-9E17-15DEE492D9A0}
 	EndGlobalSection
 EndGlobal
