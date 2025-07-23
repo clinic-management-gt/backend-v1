@@ -1,5 +1,5 @@
-using NpgsqlTypes;
 using System.Text.Json.Serialization;
+using NpgsqlTypes;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AppointmentStatus
 {
