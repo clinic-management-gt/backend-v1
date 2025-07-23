@@ -191,5 +191,32 @@ namespace Clinica.Controllers
 
             return Ok(vaccines);
         }
+        [HttpGet("{id}/medicalrecords/full")]
+        public async Task<IActionResult> GetFullMedicalRecords(int id)
+        {
+            var records = await _context.Treatments
+                .Include(t => t.Appointment)
+                .Include(t => t.Recipes)
+                .Where(t => t.Appointment.PatientId == id)
+                .Select(t => new {
+                    TreatmentId = t.Id,
+                    AppointmentId = t.Appointment.Id,
+                    MedicineId = t.MedicineId,
+                    Dosis = t.Dosis,
+                    Duration = t.Duration,
+                    Frequency = t.Frequency,
+                    Observaciones = t.Observaciones,
+                    Status = t.Status,
+                    Recipes = t.Recipes.Select(r => new {
+                        RecipeId = r.Id,
+                        Prescription = r.Prescription,
+                        CreatedAt = r.CreatedAt
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(records);
+        }
+        
     }
 }
