@@ -198,7 +198,8 @@ namespace Clinica.Controllers
                 .Include(t => t.Appointment)
                 .Include(t => t.Recipes)
                 .Where(t => t.Appointment.PatientId == id)
-                .Select(t => new {
+                .Select(t => new
+                {
                     TreatmentId = t.Id,
                     AppointmentId = t.Appointment.Id,
                     MedicineId = t.MedicineId,
@@ -207,7 +208,8 @@ namespace Clinica.Controllers
                     Frequency = t.Frequency,
                     Observaciones = t.Observaciones,
                     Status = t.Status,
-                    Recipes = t.Recipes.Select(r => new {
+                    Recipes = t.Recipes.Select(r => new
+                    {
                         RecipeId = r.Id,
                         Prescription = r.Prescription,
                         CreatedAt = r.CreatedAt
@@ -217,6 +219,6 @@ namespace Clinica.Controllers
 
             return Ok(records);
         }
-        
+
     }
 }

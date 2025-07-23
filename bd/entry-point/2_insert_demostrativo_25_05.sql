@@ -2,7 +2,6 @@
 -- Script SQL Unificado y Ordenado
 -- ========================================
 -- Limpia las tablas principales y reinicia los IDs
-TRUNCATE TABLE recipes, treatments, appointments, medicines, patients, users, roles, patient_types, blood_types, insurance, diagnosis, vaccines, patient_vaccines, contacts, phones, exams, patient_exams, alergies, chronic_diseases, patient_alergies, patient_chronic_diseases RESTART IDENTITY CASCADE;
 -- ========================================
 -- TENANTS
 -- ========================================
