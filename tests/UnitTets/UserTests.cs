@@ -7,7 +7,7 @@ using TUnit.Assertions;
 
 namespace UnitTests;
 
-public class UserTests
+public class UserTests : IAsyncDisposable
 {
     private ApplicationDbContext _context;
 
@@ -94,6 +94,17 @@ public class UserTests
         await Assert.That(result!.Email).IsEqualTo("hugo@example.com");
         await Assert.That(result.FirstName).IsEqualTo("Hugo");
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_context != null)
+        {
+            await _context.DisposeAsync(); // Dispose DbContext asynchronously
+        }
+
+    }
+
+
 }
 
 

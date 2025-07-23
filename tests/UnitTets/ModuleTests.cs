@@ -7,7 +7,8 @@ using TUnit.Assertions;
 
 namespace UnitTests.EntityFrameworkTests;
 
-public class ModuleTests
+public class ModuleTests : IAsyncDisposable
+
 {
     private ApplicationDbContext _context;
 
@@ -57,4 +58,15 @@ public class ModuleTests
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Description).IsEqualTo("Handles invoicing");
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_context != null)
+        {
+            await _context.DisposeAsync(); // Dispose DbContext asynchronously
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
 }

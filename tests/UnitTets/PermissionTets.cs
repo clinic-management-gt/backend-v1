@@ -7,7 +7,8 @@ using TUnit.Assertions;
 
 namespace UnitTests.EntityFrameworkTests;
 
-public class PermissionTests
+public class PermissionTests : IAsyncDisposable
+
 {
     private ApplicationDbContext _context;
 
@@ -109,4 +110,16 @@ public class PermissionTests
         await Assert.That(result!.Role.Name).IsEqualTo("Doctor");
         await Assert.That(result.Module.Name).IsEqualTo("Lab Results");
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_context != null)
+        {
+            await _context.DisposeAsync(); // Dispose DbContext asynchronously
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
+
 }

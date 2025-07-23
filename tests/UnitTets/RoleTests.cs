@@ -7,7 +7,8 @@ using TUnit.Assertions;
 
 namespace UnitTests.EntityFrameworkTests;
 
-public class RoleTests
+public class RoleTests : IAsyncDisposable
+
 {
     private ApplicationDbContext _context;
 
@@ -20,11 +21,6 @@ public class RoleTests
         _context = new ApplicationDbContext(options);
     }
 
-    [After(Test)]
-    public async Task DisposeAsync()
-    {
-        await _context.DisposeAsync();
-    }
 
     [Test]
     public async Task AddRole_ShouldAddRoleToDatabase()
@@ -64,5 +60,14 @@ public class RoleTests
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Type).IsEqualTo(2);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_context != null)
+        {
+            await _context.DisposeAsync(); // Dispose DbContext asynchronously
+        }
+
     }
 }

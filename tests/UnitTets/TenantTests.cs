@@ -7,7 +7,8 @@ using TUnit.Assertions;
 
 namespace UnitTests;
 
-public class TenantTests
+public class TenantTests : IAsyncDisposable
+
 {
     private ApplicationDbContext _context;
 
@@ -20,11 +21,6 @@ public class TenantTests
         _context = new ApplicationDbContext(options);
     }
 
-    [After(Test)]
-    public async Task DisposeAsync()
-    {
-        await _context.DisposeAsync();
-    }
 
     [Test]
     public async Task AddTenant_ShouldAddTenantToDatabase()
@@ -68,5 +64,14 @@ public class TenantTests
         await Assert.That(result.DbHost).IsEqualTo("127.0.0.1");
     }
 
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_context != null)
+        {
+            await _context.DisposeAsync(); // Dispose DbContext asynchronously
+        }
+
+    }
 
 }
