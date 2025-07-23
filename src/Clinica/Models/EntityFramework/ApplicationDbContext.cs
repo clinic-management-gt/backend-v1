@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Clinica.Models.EntityFramework;
 
 public partial class ApplicationDbContext : DbContext
+
 {
     public ApplicationDbContext()
     {

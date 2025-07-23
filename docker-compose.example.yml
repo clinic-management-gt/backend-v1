@@ -1,8 +1,8 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: DockerFile
+      context: ./src
+      dockerfile: ./DockerFile
     ports:
       - "TU_PUERTO_BACKEND:8080"
     depends_on:
@@ -42,4 +42,3 @@ networks:
   default:
     external: true
     name: //RED
-
