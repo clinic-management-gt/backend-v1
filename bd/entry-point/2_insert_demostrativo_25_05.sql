@@ -1,7 +1,7 @@
 -- ========================================
 -- Script SQL Unificado y Ordenado
 -- ========================================
-
+-- Limpia las tablas principales y reinicia los IDs
 -- ========================================
 -- TENANTS
 -- ========================================
@@ -353,7 +353,12 @@ VALUES
 INSERT INTO treatments (appointment_id, medicine_id, dosis, duration, frequency, observaciones, status)
 VALUES 
   (1, 1, '200mg', '5 días', 'Cada 8h', 'Tomar con alimentos', 'No Terminado'),
-  (2, 1, '500mg', '7 días', 'Cada 12h', 'Tomar después de las comidas', 'No Terminado');
+  (2, 1, '500mg', '7 días', 'Cada 12h', 'Tomar después de las comidas', 'No Terminado'),
+  (1, 1, '200mg', '5 días', 'Cada 8h', 'Tomar con alimentos', 'No Terminado'),     
+  (2, 1, '400mg', '7 días', 'Cada 12h', 'Tomar después de las comidas', 'No Terminado'),
+  (3, 1, '100mg', '3 días', 'Cada 6h', 'No tomar en ayunas', 'No Terminado'),       
+  (4, 1, '300mg', '10 días', 'Cada 24h', 'Evitar lácteos', 'No Terminado'),        
+  (5, 1, '250mg', '4 días', 'Cada 8h', 'Tomar con mucha agua', 'No Terminado');
 
 -- ========================================
 -- RECIPES
@@ -362,7 +367,10 @@ VALUES
 INSERT INTO recipes (treatment_id, prescription)
 VALUES 
   (1, 'Ibuprofeno 200mg c/8h x 5 días'),
-  (2, 'Amoxicilina 500mg c/12h x 7 días');
+  (2, 'Ibuprofeno 500mg cada 12h por 7 días. Tomar después de las comidas.'),
+  (3, 'Ibuprofeno 100mg cada 6h por 3 días. No tomar en ayunas.'),
+  (4, 'Ibuprofeno 300mg cada 24h por 10 días. Evitar lácteos.'),
+  (5, 'Ibuprofeno 250mg cada 8h por 4 días. Tomar con mucha agua.');
 
 -- ========================================
 -- INSURANCE
@@ -387,3 +395,7 @@ VALUES
 INSERT INTO patient_vaccines (patient_id, vaccine_id, dosis, age_at_application, application_date)
 VALUES 
   (1, 1, '0.1ml', 1, '2016-01-01');
+
+
+
+
