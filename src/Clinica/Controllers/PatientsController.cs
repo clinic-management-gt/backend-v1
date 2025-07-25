@@ -453,7 +453,8 @@ namespace Clinica.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { 
+                return Ok(new
+                {
                     message = $"Medical record {recordId} updated successfully for patient {id}",
                     updatedRecord = existingRecord
                 });
@@ -486,9 +487,10 @@ namespace Clinica.Controllers
                 await _context.SaveChangesAsync();
 
                 return CreatedAtAction(
-                    nameof(GetFullMedicalRecordByPatientAndRecord), 
-                    new { id = id, recordId = newRecord.Id }, 
-                    new { 
+                    nameof(GetFullMedicalRecordByPatientAndRecord),
+                    new { id = id, recordId = newRecord.Id },
+                    new
+                    {
                         message = $"Medical record created successfully for patient {id}",
                         recordId = newRecord.Id,
                         record = newRecord
@@ -528,7 +530,8 @@ namespace Clinica.Controllers
 
                 if (hasRelatedRecords)
                 {
-                    return BadRequest(new { 
+                    return BadRequest(new
+                    {
                         message = "Cannot delete medical record: patient has related treatments. Consider archiving instead.",
                         suggestion = "Use PATCH to update the record status or notes instead of deleting."
                     });
@@ -537,7 +540,8 @@ namespace Clinica.Controllers
                 _context.MedicalRecords.Remove(recordToDelete);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { 
+                return Ok(new
+                {
                     message = $"Medical record {recordId} deleted successfully for patient {id}",
                     deletedRecordId = recordId
                 });
