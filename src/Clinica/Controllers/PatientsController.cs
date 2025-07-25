@@ -271,5 +271,150 @@ namespace Clinica.Controllers
             return Ok(records);
         }
 
+        [HttpGet("{id}/medicalrecords/{recordId}/full")]
+        public async Task<ActionResult> GetFullMedicalRecordByPatientAndRecord(int id, int recordId)
+        {
+            Console.WriteLine($"➡️ GET /patients/{id}/medicalrecords/{recordId}/full");
+
+            try
+            {
+                // Verificar que el paciente existe
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null)
+                    return NotFound($"Patient with ID {id} not found.");
+
+                // Verificar que el medical record existe y pertenece al paciente
+                var medicalRecord = await _context.MedicalRecords
+                    .Include(mr => mr.Patient)
+                    .Where(mr => mr.Id == recordId && mr.PatientId == id)
+                    .FirstOrDefaultAsync();
+
+                if (medicalRecord == null)
+                    return NotFound($"Medical record with ID {recordId} not found for patient {id}.");
+
+                // Obtener todos los tratamientos del paciente
+                var treatments = await _context.Treatments
+                    .Include(t => t.Appointment)
+                    .Include(t => t.Medicine)
+                    .Include(t => t.Recipes)
+                    .Where(t => t.Appointment.PatientId == id)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Select(t => new
+                    {
+                        Id = t.Id,
+                        AppointmentId = t.AppointmentId,
+                        MedicineId = t.MedicineId,
+                        Dosis = t.Dosis,
+                        Duration = t.Duration,
+                        Frequency = t.Frequency,
+                        Observaciones = t.Observaciones,
+                        Status = t.Status,
+                        CreatedAt = t.CreatedAt,
+                        Medicine = new
+                        {
+                            Name = t.Medicine.Name,
+                            Type = t.Medicine.Type,
+                            Provider = t.Medicine.Provider
+                        },
+                        Appointment = new
+                        {
+                            Date = t.Appointment.AppointmentDate,
+                            Reason = t.Appointment.Reason
+                        },
+                        Recipes = t.Recipes.Select(r => new
+                        {
+                            Id = r.Id,
+                            Prescription = r.Prescription,
+                            CreatedAt = r.CreatedAt
+                        }).ToList()
+                    })
+                    .ToListAsync();
+
+                // Obtener todos los exámenes del paciente
+                var exams = await _context.PatientExams
+                    .Include(pe => pe.Exam)
+                    .Where(pe => pe.PatientId == id)
+                    .OrderByDescending(pe => pe.CreatedAt)
+                    .Select(pe => new
+                    {
+                        Id = pe.Id,
+                        ExamId = pe.ExamId,
+                        ResultText = pe.ResultText,
+                        ResultFilePath = pe.ResultFilePath,
+                        CreatedAt = pe.CreatedAt,
+                        Exam = new
+                        {
+                            Name = pe.Exam.Name,
+                            Description = pe.Exam.Description
+                        }
+                    })
+                    .ToListAsync();
+
+                // Obtener todas las recetas del paciente
+                var recipes = await _context.Recipes
+                    .Include(r => r.Treatment)
+                        .ThenInclude(t => t.Appointment)
+                    .Include(r => r.Treatment)
+                        .ThenInclude(t => t.Medicine)
+                    .Where(r => r.Treatment.Appointment.PatientId == id)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Select(r => new
+                    {
+                        Id = r.Id,
+                        TreatmentId = r.TreatmentId,
+                        Prescription = r.Prescription,
+                        CreatedAt = r.CreatedAt,
+                        Treatment = new
+                        {
+                            Medicine = r.Treatment.Medicine.Name,
+                            Dosis = r.Treatment.Dosis,
+                            Duration = r.Treatment.Duration,
+                            Frequency = r.Treatment.Frequency
+                        }
+                    })
+                    .ToListAsync();
+
+                var fullResponse = new
+                {
+                    Patient = new
+                    {
+                        Id = medicalRecord.Patient.Id,
+                        Name = medicalRecord.Patient.Name,
+                        LastName = medicalRecord.Patient.LastName,
+                        Birthdate = medicalRecord.Patient.Birthdate,
+                        Gender = medicalRecord.Patient.Gender
+                    },
+                    MedicalRecord = new
+                    {
+                        Id = medicalRecord.Id,
+                        PatientId = medicalRecord.PatientId,
+                        Weight = medicalRecord.Weight,
+                        Height = medicalRecord.Height,
+                        FamilyHistory = medicalRecord.FamilyHistory,
+                        Notes = medicalRecord.Notes, // Esta es la "nota de evolución"
+                        CreatedAt = medicalRecord.CreatedAt,
+                        UpdatedAt = medicalRecord.UpdatedAt
+                    },
+                    Treatments = treatments,
+                    Exams = exams,
+                    Recipes = recipes,
+                    Summary = new
+                    {
+                        TotalTreatments = treatments.Count,
+                        TotalExams = exams.Count,
+                        TotalRecipes = recipes.Count,
+                        LastUpdate = medicalRecord.UpdatedAt ?? medicalRecord.CreatedAt
+                    }
+                };
+
+                return Ok(fullResponse);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting full medical record: {ex.Message}");
+                return StatusCode(500, $"Error retrieving full medical record: {ex.Message}");
+            }
+        }
+
     }
 }
