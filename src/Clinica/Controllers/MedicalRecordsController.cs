@@ -1,6 +1,7 @@
 using Clinica.Models;
+using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Controllers
 {
@@ -9,53 +10,27 @@ namespace Clinica.Controllers
     [Route("[controller]")]
     public class MedicalRecordsController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _context;
 
-        public MedicalRecordsController(IConfiguration config)
+        public MedicalRecordsController(ApplicationDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
-        //api/medicalRecords/{id}
+        // GET: api/medicalRecords/{id}
         [HttpGet("{id}")]
-        public ActionResult<List<MedicalRecords>> GetById(int id)
+        public async Task<ActionResult<MedicalRecord>> GetById(int id)
         {
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
-
             try
             {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
+                var medicalRecord = await _context.MedicalRecords.FindAsync(id);
 
-
-                var sql = "SELECT patient_id, weight, height, family_history, notes, created_at, updated_at FROM medical_records WHERE id = @id";
-
-                var cmd = new NpgsqlCommand(sql, conn);
-
-                cmd.Parameters.AddWithValue("id", id);
-
-                using var reader = cmd.ExecuteReader();
-
-                if (reader.Read())
-                {
-                    MedicalRecords medicalRecords = new MedicalRecords
-                    {
-                        PatientId = reader.GetInt32(0),
-                        Weight = reader.GetDouble(1),
-                        Height = reader.GetDouble(2),
-                        FamilyHistory = reader.GetString(3),
-                        Notes = reader.GetString(4),
-                        CreatedAt = reader.GetDateTime(5),
-                        UpdatedAt = reader.IsDBNull(6) ? null : reader.GetDateTime(6)
-                    };
-                    return Ok(medicalRecords);
-
-                }
-                else
+                if (medicalRecord == null)
                 {
                     return NotFound($"Medical record con ID {id} no encontrado.");
                 }
 
+                return Ok(medicalRecord);
             }
             catch (Exception ex)
             {
@@ -64,57 +39,39 @@ namespace Clinica.Controllers
             }
         }
 
+        // PATCH: api/medicalRecords/{id}
         [HttpPatch("{id}")]
-        public IActionResult UpdateById(int id, [FromBody] MedicalRecords medicalRecords)
+        public async Task<IActionResult> UpdateById(int id, [FromBody] MedicalRecord medicalRecords)
         {
-
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
-
             try
             {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
-
-                var updateFields = new Dictionary<string, object>();
-
-                if (medicalRecords.PatientId > 0) updateFields.Add("patient_id", medicalRecords.PatientId);
-                if (medicalRecords.Weight > 0) updateFields.Add("weight", medicalRecords.Weight);
-                if (medicalRecords.Height > 0) updateFields.Add("height", medicalRecords.Height);
-                if (!String.IsNullOrEmpty(medicalRecords.FamilyHistory)) updateFields.Add("family_history", medicalRecords.FamilyHistory);
-                if (!String.IsNullOrEmpty(medicalRecords.Notes)) updateFields.Add("notes", medicalRecords.Notes);
-                updateFields.Add("updated_at", DateTime.Now);
-
-                // Si el diccionario está vacío, retornar BadRequest
-                if (!updateFields.Any())
-                {
-                    return BadRequest("No hay campos para actualizar.");
-                }
-
-                // Construir dinámicamente la consulta SQL
-                var setClause = string.Join(", ", updateFields.Keys.Select(k => $"{k} = @{k}"));
-                var sql = $"UPDATE medical_records SET {setClause} WHERE id = @id";
-
-                using var cmd = new NpgsqlCommand(sql, conn);
-
-                // Agregar los parámetros al comando SQL
-                foreach (var field in updateFields)
-                {
-                    cmd.Parameters.AddWithValue(field.Key, field.Value);
-                }
-
-                cmd.Parameters.AddWithValue("id", id);
-
-                // Ejecutar la consulta
-                var rowsAffected = cmd.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                {
-                    return Ok($"Medical record con ID {id} actualizado.");
-                }
-                else
+                var existingRecord = await _context.MedicalRecords.FindAsync(id);
+                if (existingRecord == null)
                 {
                     return NotFound($"Medical record con ID {id} no encontrado.");
                 }
+
+                // Actualizar solo los campos proporcionados
+                if (medicalRecords.PatientId > 0)
+                    existingRecord.PatientId = medicalRecords.PatientId;
+
+                if (medicalRecords.Weight > 0)
+                    existingRecord.Weight = medicalRecords.Weight;
+
+                if (medicalRecords.Height > 0)
+                    existingRecord.Height = medicalRecords.Height;
+
+                if (!string.IsNullOrEmpty(medicalRecords.FamilyHistory))
+                    existingRecord.FamilyHistory = medicalRecords.FamilyHistory;
+
+                if (!string.IsNullOrEmpty(medicalRecords.Notes))
+                    existingRecord.Notes = medicalRecords.Notes;
+
+                existingRecord.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return Ok($"Medical record con ID {id} actualizado.");
             }
             catch (Exception ex)
             {
@@ -125,36 +82,14 @@ namespace Clinica.Controllers
 
         // POST: /medicalRecords
         [HttpPost]
-        public IActionResult CreateMedicalRecord([FromBody] MedicalRecords medicalRecord)
+        public async Task<IActionResult> CreateMedicalRecord([FromBody] MedicalRecord medicalRecord)
         {
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
-
             try
             {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
+                medicalRecord.CreatedAt = DateTime.UtcNow;
 
-                var sql = "INSERT INTO medical_records (patient_id, weight, height, family_history, notes, created_at) " +
-                          "VALUES (@patient_id, @weight, @height, @family_history, @notes, NOW()) RETURNING id";
-
-                using var cmd = new NpgsqlCommand(sql, conn);
-
-                cmd.Parameters.AddWithValue("patient_id", medicalRecord.PatientId);
-                cmd.Parameters.AddWithValue("weight", medicalRecord.Weight);
-                cmd.Parameters.AddWithValue("height", medicalRecord.Height);
-                cmd.Parameters.AddWithValue("family_history", medicalRecord.FamilyHistory);
-                cmd.Parameters.AddWithValue("notes", medicalRecord.Notes);
-
-                // Ejecutar la consulta y obtener el ID del nuevo registro
-                var result = cmd.ExecuteScalar();
-                if (result == null || result == DBNull.Value)
-                {
-                    return StatusCode(500, "No se pudo obtener el ID insertado.");
-                }
-
-                var newRecordId = Convert.ToInt32(result);  // Obtiene el ID recién creado
-                medicalRecord.Id = newRecordId;  // Asigna el ID al objeto de registro
-                medicalRecord.CreatedAt = DateTime.Now;
+                _context.MedicalRecords.Add(medicalRecord);
+                await _context.SaveChangesAsync();
 
                 return CreatedAtAction(nameof(GetById), new { id = medicalRecord.Id }, medicalRecord);
             }
@@ -165,5 +100,129 @@ namespace Clinica.Controllers
             }
         }
 
+        // GET: /medicalRecords/{id}/details
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult> GetMedicalRecordDetails(int id)
+        {
+            Console.WriteLine($"➡️ GET /medicalrecords/{id}/details");
+
+            try
+            {
+                // Obtener el registro médico con información del paciente
+                var medicalRecord = await _context.MedicalRecords
+                    .Include(mr => mr.Patient)
+                    .Where(mr => mr.Id == id)
+                    .Select(mr => new
+                    {
+                        Id = mr.Id,
+                        PatientId = mr.PatientId,
+                        Weight = mr.Weight,
+                        Height = mr.Height,
+                        FamilyHistory = mr.FamilyHistory,
+                        Notes = mr.Notes,
+                        CreatedAt = mr.CreatedAt,
+                        UpdatedAt = mr.UpdatedAt,
+                        Patient = new
+                        {
+                            Name = mr.Patient.Name,
+                            LastName = mr.Patient.LastName,
+                            Birthdate = mr.Patient.Birthdate,
+                            Gender = mr.Patient.Gender
+                        }
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (medicalRecord == null)
+                {
+                    return NotFound($"Medical record with ID {id} not found.");
+                }
+
+                // Obtener tratamientos asociados con citas del mismo paciente
+                var treatments = await _context.Treatments
+                    .Include(t => t.Appointment)
+                    .Include(t => t.Medicine)
+                    .Where(t => t.Appointment.PatientId == medicalRecord.PatientId)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Select(t => new
+                    {
+                        Id = t.Id,
+                        AppointmentId = t.AppointmentId,
+                        MedicineId = t.MedicineId,
+                        Dosis = t.Dosis,
+                        Duration = t.Duration,
+                        Frequency = t.Frequency,
+                        Observaciones = t.Observaciones,
+                        Status = t.Status,
+                        CreatedAt = t.CreatedAt,
+                        Medicine = new
+                        {
+                            Name = t.Medicine.Name,
+                            Type = t.Medicine.Type
+                        },
+                        Appointment = new
+                        {
+                            Date = t.Appointment.AppointmentDate,
+                            Reason = t.Appointment.Reason
+                        }
+                    })
+                    .ToListAsync();
+
+                // Obtener exámenes del paciente
+                var exams = await _context.PatientExams
+                    .Include(pe => pe.Exam)
+                    .Where(pe => pe.PatientId == medicalRecord.PatientId)
+                    .OrderByDescending(pe => pe.CreatedAt)
+                    .Select(pe => new
+                    {
+                        Id = pe.Id,
+                        ExamId = pe.ExamId,
+                        ResultText = pe.ResultText,
+                        ResultFilePath = pe.ResultFilePath,
+                        CreatedAt = pe.CreatedAt,
+                        Exam = new
+                        {
+                            Name = pe.Exam.Name,
+                            Description = pe.Exam.Description
+                        }
+                    })
+                    .ToListAsync();
+
+                // Obtener recetas relacionadas con tratamientos del paciente
+                var recipes = await _context.Recipes
+                    .Include(r => r.Treatment)
+                        .ThenInclude(t => t.Appointment)
+                    .Where(r => r.Treatment.Appointment.PatientId == medicalRecord.PatientId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Select(r => new
+                    {
+                        Id = r.Id,
+                        TreatmentId = r.TreatmentId,
+                        Prescription = r.Prescription,
+                        CreatedAt = r.CreatedAt
+                    })
+                    .ToListAsync();
+
+                var detailedResponse = new
+                {
+                    MedicalRecord = medicalRecord,
+                    Treatments = treatments,
+                    Exams = exams,
+                    Recipes = recipes,
+                    Summary = new
+                    {
+                        TotalTreatments = treatments.Count,
+                        TotalExams = exams.Count,
+                        TotalRecipes = recipes.Count
+                    }
+                };
+
+                return Ok(detailedResponse);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting medical record details: {ex.Message}");
+                return StatusCode(500, $"Error retrieving medical record details: {ex.Message}");
+            }
+        }
     }
 }
