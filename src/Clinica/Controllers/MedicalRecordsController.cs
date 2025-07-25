@@ -52,21 +52,21 @@ namespace Clinica.Controllers
                 }
 
                 // Actualizar solo los campos proporcionados
-                if (medicalRecords.PatientId > 0) 
+                if (medicalRecords.PatientId > 0)
                     existingRecord.PatientId = medicalRecords.PatientId;
-                
-                if (medicalRecords.Weight > 0) 
+
+                if (medicalRecords.Weight > 0)
                     existingRecord.Weight = medicalRecords.Weight;
-                
-                if (medicalRecords.Height > 0) 
+
+                if (medicalRecords.Height > 0)
                     existingRecord.Height = medicalRecords.Height;
-                
-                if (!string.IsNullOrEmpty(medicalRecords.FamilyHistory)) 
+
+                if (!string.IsNullOrEmpty(medicalRecords.FamilyHistory))
                     existingRecord.FamilyHistory = medicalRecords.FamilyHistory;
-                
-                if (!string.IsNullOrEmpty(medicalRecords.Notes)) 
+
+                if (!string.IsNullOrEmpty(medicalRecords.Notes))
                     existingRecord.Notes = medicalRecords.Notes;
-                
+
                 existingRecord.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
@@ -87,7 +87,7 @@ namespace Clinica.Controllers
             try
             {
                 medicalRecord.CreatedAt = DateTime.UtcNow;
-                
+
                 _context.MedicalRecords.Add(medicalRecord);
                 await _context.SaveChangesAsync();
 

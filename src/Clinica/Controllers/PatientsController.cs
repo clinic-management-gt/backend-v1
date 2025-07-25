@@ -97,9 +97,9 @@ namespace Clinica.Controllers
 
         [HttpGet("{id}/medicalrecords")]
         public async Task<ActionResult> GetPaginatedMedicalRecords(
-            int id, 
-            [FromQuery] int page = 1, 
-            [FromQuery] int limit = 10, 
+            int id,
+            [FromQuery] int page = 1,
+            [FromQuery] int limit = 10,
             [FromQuery] int offset = 0)
         {
             Console.WriteLine($"➡️ GET /patients/{id}/medicalrecords - Page: {page}, Limit: {limit}, Offset: {offset}");
