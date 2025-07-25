@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Clinica.Models.EntityFramework;
 using Clinica.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,7 +20,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 // Agrega soporte para controladores
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configurar para que los enums se serialicen como strings
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+        // Opcional: configurar nombres de propiedades en camelCase
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 // Habilita CORS para el frontend en localhost:5173
 builder.Services.AddCors(options =>
