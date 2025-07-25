@@ -416,5 +416,137 @@ namespace Clinica.Controllers
             }
         }
 
+        [HttpPatch("{id}/medicalrecords/{recordId}")]
+        public async Task<ActionResult> UpdateMedicalRecord(int id, int recordId, [FromBody] MedicalRecord updatedRecord)
+        {
+            Console.WriteLine($"➡️ PATCH /patients/{id}/medicalrecords/{recordId}");
+
+            try
+            {
+                // Verificar que el paciente existe
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null)
+                    return NotFound($"Patient with ID {id} not found.");
+
+                // Verificar que el medical record existe y pertenece al paciente
+                var existingRecord = await _context.MedicalRecords
+                    .Where(mr => mr.Id == recordId && mr.PatientId == id)
+                    .FirstOrDefaultAsync();
+
+                if (existingRecord == null)
+                    return NotFound($"Medical record with ID {recordId} not found for patient {id}.");
+
+                // Actualizar solo los campos proporcionados
+                if (updatedRecord.Weight.HasValue && updatedRecord.Weight > 0)
+                    existingRecord.Weight = updatedRecord.Weight;
+
+                if (updatedRecord.Height.HasValue && updatedRecord.Height > 0)
+                    existingRecord.Height = updatedRecord.Height;
+
+                if (!string.IsNullOrEmpty(updatedRecord.FamilyHistory))
+                    existingRecord.FamilyHistory = updatedRecord.FamilyHistory;
+
+                if (!string.IsNullOrEmpty(updatedRecord.Notes))
+                    existingRecord.Notes = updatedRecord.Notes;
+
+                existingRecord.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = $"Medical record {recordId} updated successfully for patient {id}",
+                    updatedRecord = existingRecord
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error updating medical record: {ex.Message}");
+                return StatusCode(500, $"Error updating medical record: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id}/medicalrecords")]
+        public async Task<ActionResult> CreateMedicalRecord(int id, [FromBody] MedicalRecord newRecord)
+        {
+            Console.WriteLine($"➡️ POST /patients/{id}/medicalrecords");
+
+            try
+            {
+                // Verificar que el paciente existe
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null)
+                    return NotFound($"Patient with ID {id} not found.");
+
+                // Asignar el ID del paciente y fecha de creación
+                newRecord.PatientId = id;
+                newRecord.CreatedAt = DateTime.UtcNow;
+                newRecord.UpdatedAt = null;
+
+                _context.MedicalRecords.Add(newRecord);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(
+                    nameof(GetFullMedicalRecordByPatientAndRecord), 
+                    new { id = id, recordId = newRecord.Id }, 
+                    new { 
+                        message = $"Medical record created successfully for patient {id}",
+                        recordId = newRecord.Id,
+                        record = newRecord
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating medical record: {ex.Message}");
+                return StatusCode(500, $"Error creating medical record: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}/medicalrecords/{recordId}")]
+        public async Task<ActionResult> DeleteMedicalRecord(int id, int recordId)
+        {
+            Console.WriteLine($"➡️ DELETE /patients/{id}/medicalrecords/{recordId}");
+
+            try
+            {
+                // Verificar que el paciente existe
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null)
+                    return NotFound($"Patient with ID {id} not found.");
+
+                // Verificar que el medical record existe y pertenece al paciente
+                var recordToDelete = await _context.MedicalRecords
+                    .Where(mr => mr.Id == recordId && mr.PatientId == id)
+                    .FirstOrDefaultAsync();
+
+                if (recordToDelete == null)
+                    return NotFound($"Medical record with ID {recordId} not found for patient {id}.");
+
+                // Verificar si hay registros relacionados que podrían impedir la eliminación
+                var hasRelatedRecords = await _context.Treatments
+                    .AnyAsync(t => t.Appointment.PatientId == id);
+
+                if (hasRelatedRecords)
+                {
+                    return BadRequest(new { 
+                        message = "Cannot delete medical record: patient has related treatments. Consider archiving instead.",
+                        suggestion = "Use PATCH to update the record status or notes instead of deleting."
+                    });
+                }
+
+                _context.MedicalRecords.Remove(recordToDelete);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = $"Medical record {recordId} deleted successfully for patient {id}",
+                    deletedRecordId = recordId
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error deleting medical record: {ex.Message}");
+                return StatusCode(500, $"Error deleting medical record: {ex.Message}");
+            }
+        }
     }
 }
