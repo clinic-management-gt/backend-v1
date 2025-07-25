@@ -96,16 +96,67 @@ namespace Clinica.Controllers
         }
 
         [HttpGet("{id}/medicalrecords")]
-        public async Task<ActionResult<IEnumerable<MedicalRecord>>> GetAllMedicalRecords(int id)
+        public async Task<ActionResult> GetPaginatedMedicalRecords(
+            int id, 
+            [FromQuery] int page = 1, 
+            [FromQuery] int limit = 10, 
+            [FromQuery] int offset = 0)
         {
-            var records = await _context.MedicalRecords
-                .Where(r => r.PatientId == id)
-                .ToListAsync();
+            Console.WriteLine($"➡️ GET /patients/{id}/medicalrecords - Page: {page}, Limit: {limit}, Offset: {offset}");
 
-            if (!records.Any())
-                return NotFound($"Patient with ID {id} has no medical records.");
+            try
+            {
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null)
+                    return NotFound($"Patient with ID {id} not found.");
 
-            return Ok(records);
+                // Calcular offset si se proporciona page
+                if (page > 1 && offset == 0)
+                {
+                    offset = (page - 1) * limit;
+                }
+
+                var totalRecords = await _context.MedicalRecords
+                    .Where(r => r.PatientId == id)
+                    .CountAsync();
+
+                var records = await _context.MedicalRecords
+                    .Where(r => r.PatientId == id)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Skip(offset)
+                    .Take(limit)
+                    .Select(r => new
+                    {
+                        Id = r.Id,
+                        PatientId = r.PatientId,
+                        Weight = r.Weight,
+                        Height = r.Height,
+                        FamilyHistory = r.FamilyHistory,
+                        Notes = r.Notes,
+                        CreatedAt = r.CreatedAt,
+                        UpdatedAt = r.UpdatedAt
+                    })
+                    .ToListAsync();
+
+                var totalPages = (int)Math.Ceiling((double)totalRecords / limit);
+
+                var response = new
+                {
+                    Records = records,
+                    Total = totalRecords,
+                    Page = page,
+                    TotalPages = totalPages,
+                    Limit = limit,
+                    Offset = offset
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error getting paginated medical records: {ex.Message}");
+                return StatusCode(500, $"Error retrieving medical records: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}/exams")]
