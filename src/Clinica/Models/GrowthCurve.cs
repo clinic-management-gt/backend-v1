@@ -22,25 +22,25 @@ namespace Clinica.Models
 
     public class HeightToAgeEntryDTO
     {
-        public double Height { set; get; }
+        public decimal? Height { set; get; }
         public int AgeInDays { set; get; }
     }
 
     public class WeightToAgeEntryDTO
     {
-        public double Weight { set; get; }
+        public decimal? Weight { set; get; }
         public int AgeInDays { set; get; }
     }
 
     public class WeightToHeightEntryDTO
     {
-        public double Weight { set; get; }
-        public double Height { set; get; }
+        public decimal? Weight { set; get; }
+        public decimal? Height { set; get; }
     }
 
     public class BodyMassIndexEntryDTO
     {
-        public double BodyMassIndex { set; get; }
+        public decimal? BodyMassIndex { set; get; }
         public int AgeInDays { set; get; }
     }
 }
