@@ -160,15 +160,22 @@ namespace Clinica.Controllers
         }
 
         [HttpGet("{id}/exams")]
-        public async Task<ActionResult<IEnumerable<PatientExam>>> GetAllPatientExams(int id)
+        public async Task<ActionResult> GetExamsByPatient(int id)
         {
             var exams = await _context.PatientExams
-                .Where(e => e.PatientId == id)
+                .Include(pe => pe.Exam)
+                .Where(pe => pe.PatientId == id)
+                .OrderByDescending(pe => pe.CreatedAt)
+                .Select(pe => new
+                {
+                    pe.Id,
+                    pe.ExamId,
+                    pe.ResultText,
+                    pe.ResultFilePath,
+                    pe.CreatedAt,
+                    Exam = new { pe.Exam.Name, pe.Exam.Description }
+                })
                 .ToListAsync();
-
-            if (!exams.Any())
-                return NotFound($"Patient with ID {id} has no exams.");
-
             return Ok(exams);
         }
 

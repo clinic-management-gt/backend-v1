@@ -453,6 +453,7 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("patient_chronic_diseases_patient_id_fkey");
         });
 
+
         modelBuilder.Entity<PatientExam>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("patient_exams_pkey");
