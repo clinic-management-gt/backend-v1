@@ -22,6 +22,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Asegurar que agregamos env vars (re-lee proceso)
 builder.Configuration.AddEnvironmentVariables();
 
+// Agregar esto antes de builder.Services.AddSingleton<CloudflareR2Service>();
+builder.Services.AddHttpClient("R2Client", client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(5);
+});
+
 // 1) Registrar tu servicio de Cloudflare R2
 builder.Services.AddSingleton<CloudflareR2Service>();
 
