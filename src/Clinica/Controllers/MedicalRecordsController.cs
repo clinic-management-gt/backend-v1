@@ -39,64 +39,171 @@ namespace Clinica.Controllers
             }
         }
 
+        // POST: /medicalRecords  ⭐ MÉTODO PRINCIPAL CORREGIDO
+        [HttpPost]
+        public async Task<IActionResult> CreateMedicalRecord([FromBody] MedicalRecord medicalRecord)
+        {
+            Console.WriteLine($"🎯 NUEVO CONTROLLER - Datos recibidos en CreateMedicalRecord:");
+            Console.WriteLine($"   PatientId: {medicalRecord.PatientId}");
+            Console.WriteLine($"   Weight: {medicalRecord.Weight}");
+            Console.WriteLine($"   Height: {medicalRecord.Height}");
+            Console.WriteLine($"   FamilyHistory: {medicalRecord.FamilyHistory}");
+            Console.WriteLine($"   Notes: {medicalRecord.Notes}");
+
+            try
+            {
+                // Validación básica
+                if (medicalRecord.PatientId <= 0)
+                {
+                    Console.WriteLine($"❌ PatientId inválido: {medicalRecord.PatientId}");
+                    return BadRequest("PatientId es requerido y debe ser mayor a 0");
+                }
+
+                // Verificar que el paciente existe
+                var patientExists = await _context.Patients.AnyAsync(p => p.Id == medicalRecord.PatientId);
+                if (!patientExists)
+                {
+                    Console.WriteLine($"❌ Paciente no encontrado: {medicalRecord.PatientId}");
+                    return NotFound($"Paciente con ID {medicalRecord.PatientId} no encontrado");
+                }
+
+                // Crear un nuevo objeto limpio para evitar problemas de tracking
+                var newRecord = new MedicalRecord
+                {
+                    PatientId = medicalRecord.PatientId,
+                    Weight = medicalRecord.Weight,
+                    Height = medicalRecord.Height,
+                    FamilyHistory = medicalRecord.FamilyHistory,
+                    Notes = medicalRecord.Notes,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = null
+                    // NO incluir Patient - lo manejará EF automáticamente
+                };
+
+                Console.WriteLine($"💾 Guardando medical record para paciente {newRecord.PatientId}");
+
+                _context.MedicalRecords.Add(newRecord);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ Medical record creado exitosamente con ID: {newRecord.Id}");
+
+                // Retornar respuesta limpia
+                var response = new
+                {
+                    Id = newRecord.Id,
+                    PatientId = newRecord.PatientId,
+                    Weight = newRecord.Weight,
+                    Height = newRecord.Height,
+                    FamilyHistory = newRecord.FamilyHistory,
+                    Notes = newRecord.Notes,
+                    CreatedAt = newRecord.CreatedAt,
+                    UpdatedAt = newRecord.UpdatedAt
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error creating medical record: {ex.Message}");
+                Console.WriteLine($"📋 Stack trace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"🔍 Inner exception: {ex.InnerException.Message}");
+                    return StatusCode(500, $"Error de validación: {ex.InnerException.Message}");
+                }
+
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        // POST: /medicalRecords/test  ⭐ ENDPOINT DE PRUEBA
+        [HttpPost("test")]
+        public async Task<IActionResult> TestCreate([FromBody] dynamic data)
+        {
+            Console.WriteLine($"🧪 TEST ENDPOINT - Ejecutándose correctamente!");
+            Console.WriteLine($"   PatientId: {data.PatientId}");
+            Console.WriteLine($"   Weight: {data.Weight}");
+
+            try
+            {
+                var record = new MedicalRecord
+                {
+                    PatientId = (int)data.PatientId,
+                    Weight = data.Weight != null ? (decimal?)Convert.ToDecimal(data.Weight) : null,
+                    Height = data.Height != null ? (decimal?)Convert.ToDecimal(data.Height) : null,
+                    FamilyHistory = data.FamilyHistory?.ToString(),
+                    Notes = data.Notes?.ToString(),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.MedicalRecords.Add(record);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ TEST - Record creado con ID: {record.Id}");
+
+                return Ok(new { 
+                    success = true, 
+                    id = record.Id, 
+                    message = "✅ Created via TEST endpoint - Controller is working!" 
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ TEST Error: {ex.Message}");
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         // PATCH: api/medicalRecords/{id}
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateById(int id, [FromBody] MedicalRecord medicalRecords)
         {
             try
             {
+                Console.WriteLine($"📝 Actualizando medical record ID: {id}");
+
                 var existingRecord = await _context.MedicalRecords.FindAsync(id);
                 if (existingRecord == null)
                 {
                     return NotFound($"Medical record con ID {id} no encontrado.");
                 }
 
-                // Actualizar solo los campos proporcionados
-                if (medicalRecords.PatientId > 0)
-                    existingRecord.PatientId = medicalRecords.PatientId;
-
-                if (medicalRecords.Weight > 0)
+                // Actualizar campos
+                if (medicalRecords.Weight.HasValue)
                     existingRecord.Weight = medicalRecords.Weight;
 
-                if (medicalRecords.Height > 0)
+                if (medicalRecords.Height.HasValue)
                     existingRecord.Height = medicalRecords.Height;
 
-                if (!string.IsNullOrEmpty(medicalRecords.FamilyHistory))
+                if (medicalRecords.FamilyHistory != null)
                     existingRecord.FamilyHistory = medicalRecords.FamilyHistory;
 
-                if (!string.IsNullOrEmpty(medicalRecords.Notes))
+                if (medicalRecords.Notes != null)
                     existingRecord.Notes = medicalRecords.Notes;
 
                 existingRecord.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
 
-                return Ok($"Medical record con ID {id} actualizado.");
+                Console.WriteLine($"✅ Medical record {id} actualizado exitosamente");
+
+                return Ok(new
+                {
+                    Id = existingRecord.Id,
+                    PatientId = existingRecord.PatientId,
+                    Weight = existingRecord.Weight,
+                    Height = existingRecord.Height,
+                    FamilyHistory = existingRecord.FamilyHistory,
+                    Notes = existingRecord.Notes,
+                    CreatedAt = existingRecord.CreatedAt,
+                    UpdatedAt = existingRecord.UpdatedAt
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error al actualizar el medical record: {ex.Message}");
-                return StatusCode(500, $"Error al actualizar el medical record: {ex.Message}");
-            }
-        }
-
-        // POST: /medicalRecords
-        [HttpPost]
-        public async Task<IActionResult> CreateMedicalRecord([FromBody] MedicalRecord medicalRecord)
-        {
-            try
-            {
-                medicalRecord.CreatedAt = DateTime.UtcNow;
-
-                _context.MedicalRecords.Add(medicalRecord);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(GetById), new { id = medicalRecord.Id }, medicalRecord);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating medical record: {ex.Message}");
-                return StatusCode(500, $"Error creating medical record: {ex.Message}");
+                Console.WriteLine($"❌ Error al actualizar medical record: {ex.Message}");
+                return StatusCode(500, $"Error al actualizar medical record: {ex.Message}");
             }
         }
 
@@ -108,7 +215,6 @@ namespace Clinica.Controllers
 
             try
             {
-                // Obtener el registro médico con información del paciente
                 var medicalRecord = await _context.MedicalRecords
                     .Include(mr => mr.Patient)
                     .Where(mr => mr.Id == id)
@@ -137,86 +243,7 @@ namespace Clinica.Controllers
                     return NotFound($"Medical record with ID {id} not found.");
                 }
 
-                // Obtener tratamientos asociados con citas del mismo paciente
-                var treatments = await _context.Treatments
-                    .Include(t => t.Appointment)
-                    .Include(t => t.Medicine)
-                    .Where(t => t.Appointment.PatientId == medicalRecord.PatientId)
-                    .OrderByDescending(t => t.CreatedAt)
-                    .Select(t => new
-                    {
-                        Id = t.Id,
-                        AppointmentId = t.AppointmentId,
-                        MedicineId = t.MedicineId,
-                        Dosis = t.Dosis,
-                        Duration = t.Duration,
-                        Frequency = t.Frequency,
-                        Observaciones = t.Observaciones,
-                        Status = t.Status,
-                        CreatedAt = t.CreatedAt,
-                        Medicine = new
-                        {
-                            Name = t.Medicine.Name,
-                            Type = t.Medicine.Type
-                        },
-                        Appointment = new
-                        {
-                            Date = t.Appointment.AppointmentDate,
-                            Reason = t.Appointment.Reason
-                        }
-                    })
-                    .ToListAsync();
-
-                // Obtener exámenes del paciente
-                var exams = await _context.PatientExams
-                    .Include(pe => pe.Exam)
-                    .Where(pe => pe.PatientId == medicalRecord.PatientId)
-                    .OrderByDescending(pe => pe.CreatedAt)
-                    .Select(pe => new
-                    {
-                        Id = pe.Id,
-                        ExamId = pe.ExamId,
-                        ResultText = pe.ResultText,
-                        ResultFilePath = pe.ResultFilePath,
-                        CreatedAt = pe.CreatedAt,
-                        Exam = new
-                        {
-                            Name = pe.Exam.Name,
-                            Description = pe.Exam.Description
-                        }
-                    })
-                    .ToListAsync();
-
-                // Obtener recetas relacionadas con tratamientos del paciente
-                var recipes = await _context.Recipes
-                    .Include(r => r.Treatment)
-                        .ThenInclude(t => t.Appointment)
-                    .Where(r => r.Treatment.Appointment.PatientId == medicalRecord.PatientId)
-                    .OrderByDescending(r => r.CreatedAt)
-                    .Select(r => new
-                    {
-                        Id = r.Id,
-                        TreatmentId = r.TreatmentId,
-                        Prescription = r.Prescription,
-                        CreatedAt = r.CreatedAt
-                    })
-                    .ToListAsync();
-
-                var detailedResponse = new
-                {
-                    MedicalRecord = medicalRecord,
-                    Treatments = treatments,
-                    Exams = exams,
-                    Recipes = recipes,
-                    Summary = new
-                    {
-                        TotalTreatments = treatments.Count,
-                        TotalExams = exams.Count,
-                        TotalRecipes = recipes.Count
-                    }
-                };
-
-                return Ok(detailedResponse);
+                return Ok(medicalRecord);
             }
             catch (Exception ex)
             {
