@@ -21,27 +21,43 @@ namespace Clinica.Services
         public CloudflareR2Service(IConfiguration config)
         {
             _config = config!;
-            _accessKey = config["Cloudflare:R2AccessKey"]!;
-            _secretKey = config["Cloudflare:R2SecretKey"]!;
-            _bucketName = config["Cloudflare:R2BucketName"]!;
-
-            Console.WriteLine($"🔑 R2AccessKey   = {_accessKey ?? "(null)"}");
-            Console.WriteLine($"🔒 R2SecretKey  = {(_secretKey?.Substring(0, 8) ?? "(null)")}…");
-            Console.WriteLine($"📦 R2BucketName = {_bucketName ?? "(null)"}");
+            _accessKey = config["Cloudflare:R2AccessKey"] ?? Environment.GetEnvironmentVariable("Cloudflare__R2AccessKey") ?? "";
+            _secretKey = config["Cloudflare:R2SecretKey"] ?? Environment.GetEnvironmentVariable("Cloudflare__R2SecretKey") ?? "";
+            _bucketName = config["Cloudflare:R2BucketName"] ?? Environment.GetEnvironmentVariable("Cloudflare__R2BucketName") ?? "";
+            
+            var accountId = config["Cloudflare:AccountId"] ?? Environment.GetEnvironmentVariable("Cloudflare__AccountId");
+            
+            // DEBUG: Imprime las credenciales (sin mostrar la clave completa)
+            Console.WriteLine($"[R2] AccountId: {accountId}");
+            Console.WriteLine($"[R2] AccessKey: {(_accessKey.Length > 0 ? $"{_accessKey[..4]}***" : "MISSING")}");
+            Console.WriteLine($"[R2] SecretKey: {(_secretKey.Length > 0 ? $"{_secretKey[..4]}***" : "MISSING")}");
+            Console.WriteLine($"[R2] BucketName: {_bucketName}");
+            
+            if (string.IsNullOrEmpty(_accessKey) || string.IsNullOrEmpty(_secretKey) || string.IsNullOrEmpty(accountId))
+            {
+                throw new InvalidOperationException("Cloudflare R2 credentials are not properly configured");
+            }
         }
 
 
         public async Task<string> UploadDocumentToCloudflareR2(IFormFile file)
         {
-            var accountId = _config["Cloudflare:AccountId"];
+            var accountId = _config["Cloudflare:AccountId"] 
+                            ?? Environment.GetEnvironmentVariable("Cloudflare__AccountId");
+
+            if (string.IsNullOrWhiteSpace(accountId))
+                throw new InvalidOperationException("Cloudflare AccountId no configurado.");
+
+            var publicBase = _config["Cloudflare:PublicBase"]; // opcional
             var bucket = _bucketName;
-            var fileName = Path.GetFileName(file.FileName);
-            var safeName = Uri.EscapeDataString(fileName);
+
+            // Nombre único: opcional subcarpeta por fecha
+            var ext = Path.GetExtension(file.FileName);
+            var key = $"{DateTime.UtcNow:yyyy/MM/dd}/{Guid.NewGuid():N}{ext}";
+            var safeKeyForUrl = Uri.EscapeDataString(key);
 
             try
             {
-                Console.WriteLine($"📂 Preparing to upload {fileName} ({file.Length} bytes)");
-
                 var s3Config = new AmazonS3Config
                 {
                     ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com",
@@ -58,15 +74,18 @@ namespace Clinica.Services
                 {
                     BucketName = bucket,
                     InputStream = stream,
-                    Key = fileName,
-                    CannedACL = S3CannedACL.PublicRead
+                    Key = key,
+                    CannedACL = S3CannedACL.PublicRead,
+                    ContentType = file.ContentType
                 };
 
                 await transfer.UploadAsync(request);
-                Console.WriteLine("✅ Upload to R2 succeeded!");
 
-                var url = $"https://{bucket}.{accountId}.r2.cloudflarestorage.com/{safeName}";
-                Console.WriteLine($"🌐 File URL: {url}");
+                // URL pública (usa PublicBase si está configurado)
+                var url = !string.IsNullOrEmpty(publicBase)
+                    ? $"{publicBase}/{safeKeyForUrl}"
+                    : $"https://{bucket}.{accountId}.r2.cloudflarestorage.com/{safeKeyForUrl}";
+
                 return url;
             }
             catch (AmazonS3Exception s3Ex)

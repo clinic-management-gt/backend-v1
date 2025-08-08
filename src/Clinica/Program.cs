@@ -6,9 +6,21 @@ using Clinica.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Http.Features;
+using DotNetEnv;
+using System.IO;
 
 
+// Detectar ruta real del .env (está en backend-v1/.env)
+var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..","..","..","..",".env"));
+Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
+if (File.Exists(envPath)) Env.Load(envPath);
+
+// Crear builder DESPUÉS de cargar .env
 var builder = WebApplication.CreateBuilder(args);
+
+// Asegurar que agregamos env vars (re-lee proceso)
+builder.Configuration.AddEnvironmentVariables();
 
 // 1) Registrar tu servicio de Cloudflare R2
 builder.Services.AddSingleton<CloudflareR2Service>();
@@ -19,7 +31,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         );
 
 
-// Agrega soporte para controladores
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -69,6 +80,11 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
+builder.Services.Configure<FormOptions>(o =>
+{
+    o.MultipartBodyLengthLimit = 25_000_000; // 25 MB
+});
+
 var app = builder.Build();
 
 // Middleware
@@ -91,6 +107,8 @@ app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
 // Mapea controladores como /pacientes, /testdb
 app.MapControllers();
 
+// (puedes comentar el bloque DotNetEnv si ya usas appsettings.*)
+Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
 
 app.Run();
 
