@@ -42,7 +42,7 @@ namespace Clinica.Controllers
             cmd.Parameters.AddWithValue("@e", examId);
             cmd.Parameters.AddWithValue("@t", resultText ?? string.Empty);
             cmd.Parameters.AddWithValue("@f", fileUrl);
-            var newId = (int) (await cmd.ExecuteScalarAsync()!);
+            var newId = (int)(await cmd.ExecuteScalarAsync()!);
 
             return Ok(new { id = newId, patientId, examId, resultText, fileUrl });
         }

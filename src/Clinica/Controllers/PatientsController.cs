@@ -166,7 +166,8 @@ namespace Clinica.Controllers
                 .Include(pe => pe.Exam)
                 .Where(pe => pe.PatientId == id)
                 .OrderByDescending(pe => pe.CreatedAt)
-                .Select(pe => new {
+                .Select(pe => new
+                {
                     pe.Id,
                     pe.ExamId,
                     pe.ResultText,

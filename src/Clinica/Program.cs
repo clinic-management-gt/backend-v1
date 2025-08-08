@@ -1,18 +1,18 @@
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Clinica.Models.EntityFramework;
 using Clinica.Services;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Http.Features;
-using DotNetEnv;
-using System.IO;
 
 
 // Detectar ruta real del .env (está en backend-v1/.env)
-var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..","..","..","..",".env"));
+var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
 Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
 if (File.Exists(envPath)) Env.Load(envPath);
 
