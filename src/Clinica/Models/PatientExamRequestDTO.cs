@@ -6,12 +6,12 @@ namespace Clinica.Models
     {
         [Required]
         public int PatientId { get; set; }
-        
+
         [Required]
         public int ExamId { get; set; }
-        
+
         public string? ResultText { get; set; }
-        
+
         [Required]
         public IFormFile File { get; set; }
     }

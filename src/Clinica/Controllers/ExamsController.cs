@@ -1,5 +1,5 @@
-using Clinica.Services;
 using Clinica.Models;
+using Clinica.Services;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
@@ -39,7 +39,7 @@ namespace Clinica.Controllers
                 cmd.Parameters.AddWithValue("@e", request.ExamId);
                 cmd.Parameters.AddWithValue("@t", request.ResultText ?? string.Empty);
                 cmd.Parameters.AddWithValue("@f", fileUrl);
-                
+
                 var result = await cmd.ExecuteScalarAsync();
                 if (result == null)
                     return StatusCode(500, new { error = "Error al crear el examen" });
@@ -59,9 +59,9 @@ namespace Clinica.Controllers
             {
                 return BadRequest(new { error = "Archivo vacío" });
             }
-            
 
-           
+
+
         }
     }
 }

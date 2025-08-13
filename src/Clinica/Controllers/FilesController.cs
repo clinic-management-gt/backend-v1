@@ -1,5 +1,5 @@
-using Clinica.Services;
 using Clinica.Models;
+using Clinica.Services;
 using Microsoft.AspNetCore.Mvc;
 using Sprache;
 
@@ -36,13 +36,13 @@ namespace Clinica.Controllers
                 });
             }
             else
-            { 
+            {
                 result = BadRequest(new { error = "Archivo vacío" });
             }
 
 
             return result;
-            
+
         }
     }
 }
