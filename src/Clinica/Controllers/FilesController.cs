@@ -1,6 +1,7 @@
 using Clinica.Services;
 using Clinica.Models;
 using Microsoft.AspNetCore.Mvc;
+using Sprache;
 
 namespace Clinica.Controllers
 {
@@ -18,20 +19,30 @@ namespace Clinica.Controllers
         // POST /files/upload
         [HttpPost("upload")]
         [RequestSizeLimit(25_000_000)] // 25 MB ejemplo
-        public async Task<IActionResult> Upload([FromForm] IFormFile file)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Upload([FromForm] FileUploadRequest request)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { error = "Archivo vacío" });
+            IActionResult result;
 
-            var url = await _r2.UploadDocumentToCloudflareR2(file);
-            return Ok(new FileDTO
+            if (request.File != null && request.File.Length > 0)
             {
-                Message = "Archivo subidp",
-                Url = url,
-                Size = file.Length,
-                ContentType = file.ContentType
-            });
+                var url = await _r2.UploadDocumentToCloudflareR2(request.File);
+                result = Ok(new FileDTO
+                {
+                    Message = "Archivo subido",
+                    Url = url,
+                    Size = request.File.Length,
+                    ContentType = request.File.ContentType
+                });
+            }
+            else
+            { 
+                result = BadRequest(new { error = "Archivo vacío" });
+            }
 
+
+            return result;
+            
         }
     }
 }
