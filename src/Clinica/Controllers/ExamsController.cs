@@ -1,4 +1,5 @@
 using Clinica.Services;
+using Clinica.Models;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
@@ -20,7 +21,7 @@ namespace Clinica.Controllers
         // POST /exams/patients
         [HttpPost("patients")]
         [RequestSizeLimit(25_000_000)]
-        public async Task<IActionResult> CreatePatientExam(
+        public async Task<ActionResult<ExamDTO>> CreatePatientExam(
             [FromForm] int patientId,
             [FromForm] int examId,
             [FromForm] string resultText,
@@ -44,7 +45,8 @@ namespace Clinica.Controllers
             cmd.Parameters.AddWithValue("@f", fileUrl);
             var newId = (int)(await cmd.ExecuteScalarAsync()!);
 
-            return Ok(new { id = newId, patientId, examId, resultText, fileUrl });
+            return Ok(new ExamDTO { Id = newId, PatientId = patientId, ExamId = examId, ResultText = resultText, FileUrl = fileUrl });
+
         }
     }
 }

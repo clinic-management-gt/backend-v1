@@ -1,4 +1,5 @@
 using Clinica.Services;
+using Clinica.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clinica.Controllers
@@ -23,13 +24,14 @@ namespace Clinica.Controllers
                 return BadRequest(new { error = "Archivo vacío" });
 
             var url = await _r2.UploadDocumentToCloudflareR2(file);
-            return Ok(new
+            return Ok(new FileDTO
             {
-                message = "Archivo subido",
-                url,
-                size = file.Length,
-                contentType = file.ContentType
+                Message = "Archivo subidp",
+                Url = url,
+                Size = file.Length,
+                ContentType = file.ContentType
             });
+
         }
     }
 }
