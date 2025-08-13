@@ -30,4 +30,7 @@ public partial class Appointment
     public virtual Patient Patient { get; set; } = null!;
 
     public virtual ICollection<Treatment> Treatments { get; set; } = new List<Treatment>();
+
+    // Añadir la propiedad Duration a la clase Appointment
+    public int? Duration { get; set; } = 30; // Duración predeterminada en minutos
 }

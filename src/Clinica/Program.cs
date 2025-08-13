@@ -28,6 +28,9 @@ builder.Services.AddHttpClient("R2Client", client =>
     client.Timeout = TimeSpan.FromMinutes(5);
 });
 
+// Registra el servicio de citas
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
 // 1) Registrar tu servicio de Cloudflare R2
 builder.Services.AddSingleton<CloudflareR2Service>();
 

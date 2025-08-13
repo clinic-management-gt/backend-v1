@@ -1,7 +1,11 @@
 using Clinica.Models;
 using Clinica.Models.EntityFramework;
+using Clinica.Services; // Añadir este using para acceder a IAppointmentService
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Clinica.Controllers;
 
@@ -10,10 +14,12 @@ namespace Clinica.Controllers;
 public class AppointmentsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAppointmentService _appointmentService;
 
-    public AppointmentsController(ApplicationDbContext context)
+    public AppointmentsController(ApplicationDbContext context, IAppointmentService appointmentService)
     {
         _context = context;
+        _appointmentService = appointmentService;
     }
 
     // GET /appointments?status=pendiente
@@ -115,6 +121,55 @@ public class AppointmentsController : ControllerBase
         {
             return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
         }
+    }
+
+    // POST /appointments
+    [HttpPost]
+    public async Task<IActionResult> CreateAppointment([FromBody] AppointmentCreateDto appointmentDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        // Verificar si hay conflictos de horarios
+        bool hasConflict = await _appointmentService.CheckForConflicts(
+            appointmentDto.PatientId,
+            appointmentDto.DoctorId,  // Ahora pasamos el doctorId como parámetro
+            appointmentDto.Date,
+            appointmentDto.Duration
+        );
+
+        if (hasConflict)
+        {
+            return Conflict(new { message = "Ya existe una cita programada para este horario." });
+        }
+
+        // Si no hay conflictos, crear la cita
+        var result = await _appointmentService.CreateAppointmentAsync(appointmentDto);
+        
+        if (result.IsSuccess)
+        {
+            return CreatedAtAction(
+                nameof(GetAppointmentById),
+                new { id = result.Data.Id },
+                result.Data
+            );
+        }
+
+        return BadRequest(result.Error);
+    }
+
+    // GET /appointments/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<AppointmentDTO>> GetAppointmentById(int id)
+    {
+        var result = await _appointmentService.GetAppointmentByIdAsync(id);
+        
+        if (!result.IsSuccess)
+            return NotFound($"No se encontró la cita con ID {id}");
+            
+        return Ok(result.Data);
     }
 }
 
