@@ -1,11 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Clinica.Services; // Añadir este using para acceder a IAppointmentService
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Clinica.Controllers;
 
@@ -147,7 +147,7 @@ public class AppointmentsController : ControllerBase
 
         // Si no hay conflictos, crear la cita
         var result = await _appointmentService.CreateAppointmentAsync(appointmentDto);
-        
+
         if (result.IsSuccess)
         {
             return CreatedAtAction(
@@ -165,10 +165,10 @@ public class AppointmentsController : ControllerBase
     public async Task<ActionResult<AppointmentDTO>> GetAppointmentById(int id)
     {
         var result = await _appointmentService.GetAppointmentByIdAsync(id);
-        
+
         if (!result.IsSuccess)
             return NotFound($"No se encontró la cita con ID {id}");
-            
+
         return Ok(result.Data);
     }
 }

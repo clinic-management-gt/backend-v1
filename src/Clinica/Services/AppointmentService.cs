@@ -18,7 +18,7 @@ namespace Clinica.Services
         public async Task<bool> CheckForConflicts(int patientId, int doctorId, DateTime appointmentDate, int durationMinutes)
         {
             var appointmentEnd = appointmentDate.AddMinutes(durationMinutes);
-            
+
             // Consulta más eficiente usando una sola expresión LINQ
             return await _context.Appointments
                 .Where(a => a.PatientId == patientId || a.DoctorId == doctorId) // Filtrar por paciente o doctor
@@ -36,11 +36,11 @@ namespace Clinica.Services
                 var patient = await _context.Patients.FindAsync(appointmentDto.PatientId);
                 if (patient == null)
                     return Result<AppointmentDTO>.Failure($"Paciente con ID {appointmentDto.PatientId} no encontrado");
-                    
+
                 var doctor = await _context.Users.FindAsync(appointmentDto.DoctorId);
                 if (doctor == null)
                     return Result<AppointmentDTO>.Failure($"Doctor con ID {appointmentDto.DoctorId} no encontrado");
-            
+
                 // Crear nueva cita
                 var appointment = new Appointment
                 {
@@ -52,19 +52,19 @@ namespace Clinica.Services
                     CreatedAt = DateTime.UtcNow,
                     Duration = appointmentDto.Duration
                 };
-                
+
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
-                
+
                 // Cargar relaciones para el resultado
                 await _context.Entry(appointment)
                     .Reference(a => a.Patient)
                     .LoadAsync();
-                    
+
                 await _context.Entry(appointment)
                     .Reference(a => a.Doctor)
                     .LoadAsync();
-            
+
                 // Mapear a DTO
                 var resultDto = new AppointmentDTO
                 {
@@ -78,7 +78,7 @@ namespace Clinica.Services
                     Notes = appointment.Reason,
                     Duration = appointment.Duration
                 };
-                
+
                 return Result<AppointmentDTO>.Success(resultDto);
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace Clinica.Services
                 return Result<AppointmentDTO>.Failure($"Error al crear la cita: {ex.Message}");
             }
         }
-        
+
         // Implementar el método faltante
         public async Task<Result<AppointmentDTO>> GetAppointmentByIdAsync(int id)
         {
