@@ -10,6 +10,7 @@ public partial class Appointment
 
     public int PatientId { get; set; }
 
+    [Column("doctor_id")]
     public int DoctorId { get; set; }
 
     public DateTime AppointmentDate { get; set; }
@@ -25,9 +26,11 @@ public partial class Appointment
 
     public virtual ICollection<Diagnosis> Diagnoses { get; set; } = new List<Diagnosis>();
 
-    public virtual User Doctor { get; set; } = null!;
-
+    // Relaciones
     public virtual Patient Patient { get; set; } = null!;
+    
+    // ✅ CAMBIAR DE Doctor a User:
+    public virtual User Doctor { get; set; } = null!;
 
     public virtual ICollection<Treatment> Treatments { get; set; } = new List<Treatment>();
 

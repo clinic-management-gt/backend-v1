@@ -250,3 +250,4 @@ CREATE TABLE patient_vaccines (
   created_at       TIMESTAMP DEFAULT now()
 );
 
+
