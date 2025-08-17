@@ -49,7 +49,7 @@ namespace Clinica.Controllers
             {
                 Console.WriteLine($"  {kvp.Key}: {kvp.Value} (Type: {kvp.Value?.GetType().Name})");
             }
-            
+
             try
             {
                 var existingRecord = await _context.MedicalRecords.FindAsync(id);
@@ -113,7 +113,7 @@ namespace Clinica.Controllers
         {
             Console.WriteLine($"➡️ POST /medicalrecords - Creando nuevo registro");
             Console.WriteLine($"📝 Datos recibidos: PatientId={medicalRecord.PatientId}, Weight={medicalRecord.Weight}, Height={medicalRecord.Height}, FamilyHistory='{medicalRecord.FamilyHistory}', Notes='{medicalRecord.Notes}'");
-            
+
             try
             {
                 medicalRecord.CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
