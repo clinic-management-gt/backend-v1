@@ -41,14 +41,14 @@ namespace Clinica.Controllers
 
         // PATCH: api/medicalRecords/{id}
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateById(int id, [FromBody] Dictionary<string, object> updateData)
+        public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateMedicalRecordDto updateData)
         {
             Console.WriteLine($"➡️ PATCH /medicalrecords/{id} - Recibido");
-            Console.WriteLine($"📝 Datos recibidos como Dictionary:");
-            foreach (var kvp in updateData)
-            {
-                Console.WriteLine($"  {kvp.Key}: {kvp.Value} (Type: {kvp.Value?.GetType().Name})");
-            }
+            Console.WriteLine($"📝 Datos recibidos como DTO:");
+            Console.WriteLine($"  Weight: {updateData.Weight}");
+            Console.WriteLine($"  Height: {updateData.Height}");
+            Console.WriteLine($"  FamilyHistory: {updateData.FamilyHistory}");
+            Console.WriteLine($"  Notes: {updateData.Notes}");
 
             try
             {
@@ -59,30 +59,24 @@ namespace Clinica.Controllers
                 }
 
                 // Actualizar solo los campos proporcionados
-                if (updateData.ContainsKey("Weight") && updateData["Weight"] != null)
+                if (updateData.Weight.HasValue && updateData.Weight.Value > 0)
                 {
-                    if (decimal.TryParse(updateData["Weight"].ToString(), out decimal weight) && weight > 0)
-                        existingRecord.Weight = weight;
+                    existingRecord.Weight = updateData.Weight.Value;
                 }
 
-                if (updateData.ContainsKey("Height") && updateData["Height"] != null)
+                if (updateData.Height.HasValue && updateData.Height.Value > 0)
                 {
-                    if (decimal.TryParse(updateData["Height"].ToString(), out decimal height) && height > 0)
-                        existingRecord.Height = height;
+                    existingRecord.Height = updateData.Height.Value;
                 }
 
-                if (updateData.ContainsKey("FamilyHistory") && updateData["FamilyHistory"] != null)
+                if (!string.IsNullOrEmpty(updateData.FamilyHistory))
                 {
-                    var familyHistory = updateData["FamilyHistory"].ToString();
-                    if (!string.IsNullOrEmpty(familyHistory))
-                        existingRecord.FamilyHistory = familyHistory;
+                    existingRecord.FamilyHistory = updateData.FamilyHistory;
                 }
 
-                if (updateData.ContainsKey("Notes") && updateData["Notes"] != null)
+                if (!string.IsNullOrEmpty(updateData.Notes))
                 {
-                    var notes = updateData["Notes"].ToString();
-                    if (!string.IsNullOrEmpty(notes))
-                        existingRecord.Notes = notes;
+                    existingRecord.Notes = updateData.Notes;
                 }
 
                 existingRecord.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
