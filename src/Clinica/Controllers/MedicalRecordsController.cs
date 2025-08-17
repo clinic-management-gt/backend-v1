@@ -41,8 +41,15 @@ namespace Clinica.Controllers
 
         // PATCH: api/medicalRecords/{id}
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateById(int id, [FromBody] MedicalRecord medicalRecords)
+        public async Task<IActionResult> UpdateById(int id, [FromBody] Dictionary<string, object> updateData)
         {
+            Console.WriteLine($"➡️ PATCH /medicalrecords/{id} - Recibido");
+            Console.WriteLine($"📝 Datos recibidos como Dictionary:");
+            foreach (var kvp in updateData)
+            {
+                Console.WriteLine($"  {kvp.Key}: {kvp.Value} (Type: {kvp.Value?.GetType().Name})");
+            }
+            
             try
             {
                 var existingRecord = await _context.MedicalRecords.FindAsync(id);
@@ -52,30 +59,50 @@ namespace Clinica.Controllers
                 }
 
                 // Actualizar solo los campos proporcionados
-                if (medicalRecords.PatientId > 0)
-                    existingRecord.PatientId = medicalRecords.PatientId;
+                if (updateData.ContainsKey("Weight") && updateData["Weight"] != null)
+                {
+                    if (decimal.TryParse(updateData["Weight"].ToString(), out decimal weight) && weight > 0)
+                        existingRecord.Weight = weight;
+                }
 
-                if (medicalRecords.Weight > 0)
-                    existingRecord.Weight = medicalRecords.Weight;
+                if (updateData.ContainsKey("Height") && updateData["Height"] != null)
+                {
+                    if (decimal.TryParse(updateData["Height"].ToString(), out decimal height) && height > 0)
+                        existingRecord.Height = height;
+                }
 
-                if (medicalRecords.Height > 0)
-                    existingRecord.Height = medicalRecords.Height;
+                if (updateData.ContainsKey("FamilyHistory") && updateData["FamilyHistory"] != null)
+                {
+                    var familyHistory = updateData["FamilyHistory"].ToString();
+                    if (!string.IsNullOrEmpty(familyHistory))
+                        existingRecord.FamilyHistory = familyHistory;
+                }
 
-                if (!string.IsNullOrEmpty(medicalRecords.FamilyHistory))
-                    existingRecord.FamilyHistory = medicalRecords.FamilyHistory;
+                if (updateData.ContainsKey("Notes") && updateData["Notes"] != null)
+                {
+                    var notes = updateData["Notes"].ToString();
+                    if (!string.IsNullOrEmpty(notes))
+                        existingRecord.Notes = notes;
+                }
 
-                if (!string.IsNullOrEmpty(medicalRecords.Notes))
-                    existingRecord.Notes = medicalRecords.Notes;
+                existingRecord.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-                existingRecord.UpdatedAt = DateTime.UtcNow;
+                Console.WriteLine($"📤 Guardando cambios para record {id}:");
+                Console.WriteLine($"  Weight: {existingRecord.Weight}");
+                Console.WriteLine($"  Height: {existingRecord.Height}");
+                Console.WriteLine($"  FamilyHistory: {existingRecord.FamilyHistory}");
+                Console.WriteLine($"  Notes: {existingRecord.Notes}");
 
                 await _context.SaveChangesAsync();
 
+                Console.WriteLine($"✅ Medical record {id} actualizado exitosamente");
                 return Ok($"Medical record con ID {id} actualizado.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error al actualizar el medical record: {ex.Message}");
+                Console.WriteLine($"❌ Inner exception: {ex.InnerException?.Message}");
+                Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 return StatusCode(500, $"Error al actualizar el medical record: {ex.Message}");
             }
         }
@@ -84,18 +111,23 @@ namespace Clinica.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateMedicalRecord([FromBody] MedicalRecord medicalRecord)
         {
+            Console.WriteLine($"➡️ POST /medicalrecords - Creando nuevo registro");
+            Console.WriteLine($"📝 Datos recibidos: PatientId={medicalRecord.PatientId}, Weight={medicalRecord.Weight}, Height={medicalRecord.Height}, FamilyHistory='{medicalRecord.FamilyHistory}', Notes='{medicalRecord.Notes}'");
+            
             try
             {
-                medicalRecord.CreatedAt = DateTime.UtcNow;
+                medicalRecord.CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
                 _context.MedicalRecords.Add(medicalRecord);
                 await _context.SaveChangesAsync();
 
+                Console.WriteLine($"✅ Medical record creado exitosamente con ID: {medicalRecord.Id}");
                 return CreatedAtAction(nameof(GetById), new { id = medicalRecord.Id }, medicalRecord);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error creating medical record: {ex.Message}");
+                Console.WriteLine($"❌ Inner exception: {ex.InnerException?.Message}");
                 return StatusCode(500, $"Error creating medical record: {ex.Message}");
             }
         }
