@@ -561,7 +561,7 @@ namespace Clinica.Controllers
         }
 
         [HttpGet("{id}/contact_info")]
-        public async Task<IActionResult> GetPatientContactInformationByPatientId(int id)
+        public async Task<ActionResult<List<ContactResponseDTO>>> GetPatientContactInformationByPatientId(int id)
         {
             var exists = await _context.Patients.AnyAsync(p => p.Id == id);
 
@@ -570,24 +570,21 @@ namespace Clinica.Controllers
 
             var contacts = await _context.Contacts
                 .Where(c => c.PatientId == id)
-                .Include(c => c.Phones)
-                .Select(c => new
+                .Select(c => new ContactResponseDTO
                 {
-                    id = c.Id,
-                    c.PatientId,
-                    c.Type,
-                    c.Name,
-                    c.LastName,
-                    c.CreatedAt,
-                    c.UpdatedAt,
-                    Phones = c.Phones.Select(phone => new
-                    {
-                        phone.Id,
-                        phone.ContactId,
-                        Phone = phone.Phone1,
-                        phone.CreatedAt,
-                        phone.UpdatedAt
-                    }).ToList()
+                    Id = c.Id,
+                    PatientId = c.PatientId,
+                    Type = c.Type,
+                    Name = c.Name,
+                    LastName = c.LastName,
+                    Phones = c.Phones
+                        .OrderBy(p => p.Id)
+                        .Select(p => new PhoneResponseDTO
+                        {
+                            ContactId = p.ContactId,
+                            PhoneNumber = p.Phone1,
+                        })
+                        .ToList()
                 })
                 .ToListAsync();
 
