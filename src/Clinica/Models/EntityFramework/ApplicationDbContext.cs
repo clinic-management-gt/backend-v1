@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Clinica.Models.EntityFramework;
 
 public partial class ApplicationDbContext : DbContext
-
 {
     public ApplicationDbContext()
     {
@@ -70,6 +69,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Vaccine> Vaccines { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -453,7 +454,6 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("patient_chronic_diseases_patient_id_fkey");
         });
 
-
         modelBuilder.Entity<PatientExam>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("patient_exams_pkey");
@@ -744,7 +744,6 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");
         });
-
 
         OnModelCreatingPartial(modelBuilder);
     }
