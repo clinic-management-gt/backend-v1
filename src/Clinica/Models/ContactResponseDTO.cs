@@ -13,6 +13,6 @@ namespace Clinica.Models
     public class PhoneResponseDTO
     {
         public int ContactId { get; set; }
-        public string PhoneNumber { get; set; } = string.Empty;
+        public required string PhoneNumber { get; set; }
     }
 }
