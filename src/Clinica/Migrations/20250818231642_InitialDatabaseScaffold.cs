@@ -12,6 +12,7 @@ namespace Clinica.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            /*
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:Enum:appointment_status_enum", "Confirmado,Pendiente,Completado,Cancelado,Espera")
                 .Annotation("Npgsql:Enum:log_action_enum", "INSERT,UPDATE,DELETE")
@@ -708,11 +709,13 @@ namespace Clinica.Migrations
                 name: "IX_users_role_id",
                 table: "users",
                 column: "role_id");
+            */
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            /*
             migrationBuilder.DropTable(
                 name: "diagnosis");
 
@@ -793,6 +796,7 @@ namespace Clinica.Migrations
 
             migrationBuilder.DropTable(
                 name: "patient_types");
+            */
         }
     }
 }
