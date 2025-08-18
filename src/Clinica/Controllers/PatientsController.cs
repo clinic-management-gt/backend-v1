@@ -559,5 +559,37 @@ namespace Clinica.Controllers
                 return StatusCode(500, $"Error deleting medical record: {ex.Message}");
             }
         }
+
+        [HttpGet("{id}/contact_info")]
+        public async Task<ActionResult<List<ContactResponseDTO>>> GetPatientContactInformationByPatientId(int id)
+        {
+            var exists = await _context.Patients.AnyAsync(p => p.Id == id);
+
+            if (!exists)
+                return NotFound($"Patient with ID {id} not found.");
+
+            var contacts = await _context.Contacts
+                .Where(c => c.PatientId == id)
+                .Select(c => new ContactResponseDTO
+                {
+                    Id = c.Id,
+                    PatientId = c.PatientId,
+                    Type = c.Type,
+                    Name = c.Name,
+                    LastName = c.LastName,
+                    Phones = c.Phones
+                        .OrderBy(p => p.Id)
+                        .Select(p => new PhoneResponseDTO
+                        {
+                            ContactId = p.ContactId,
+                            PhoneNumber = p.Phone1,
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return Ok(contacts);
+        }
+
     }
 }
