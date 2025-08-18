@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-//using Clinica.Models.EntityFramework;
+using Clinica.Models.EntityFramework;
 using Clinica.Services;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -33,11 +33,11 @@ builder.Services.AddHttpClient("R2Client", client =>
 // 1) Registrar tu servicio de Cloudflare R2
 builder.Services.AddSingleton<CloudflareR2Service>();
 
-/*
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 //        o => o.MapEnum<AppointmentStatus>("appointment_status_enum"))
-*/
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
