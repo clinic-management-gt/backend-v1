@@ -10,19 +10,17 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-/*
 // Detectar ruta real del .env (está en backend-v1/.env)
 var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
 Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
 if (File.Exists(envPath)) Env.Load(envPath);
 
-*/
 // Crear builder DESPUÉS de cargar .env
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Asegurar que agregamos env vars (re-lee proceso)
-//builder.Configuration.AddEnvironmentVariables();
+builder.Configuration.AddEnvironmentVariables();
 
 // Agregar esto antes de builder.Services.AddSingleton<CloudflareR2Service>();
 builder.Services.AddHttpClient("R2Client", client =>
