@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Clinica.Controllers
 {
@@ -33,7 +34,7 @@ namespace Clinica.Controllers
             {
                 Name = vaccine.Name,
                 Brand = vaccine.Brand,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             vaccinesSet.Add(newVaccine);
@@ -56,10 +57,13 @@ namespace Clinica.Controllers
 
         // GET: /vaccines/{id}
         [HttpGet("{id}")]
-        public ActionResult<VaccineDTO> GetVaccineById(int id)
+        public async Task<ActionResult<VaccineDTO>> GetVaccineById(int id)
         {
             var vaccionesSet = _context.Vaccines;
-            Vaccine vaccine = vaccionesSet.Single(v => v.Id == id);
+            Vaccine? vaccine = await vaccionesSet.FindAsync(id);
+
+            if (vaccine is null)
+                return NotFound();
 
             return new VaccineDTO
             {
@@ -72,23 +76,24 @@ namespace Clinica.Controllers
 
         // PATCH: /vaccines/{id}
         [HttpPatch("{id}")]
-        public IActionResult UpdateVaccine(int id, [FromBody] VaccineDTO vaccine)
+        public async Task<IActionResult> UpdateVaccine(int id, [FromBody] VaccineDTO vaccine)
         {
             if (id != vaccine.Id)
                 return BadRequest();
 
             var vaccinesSet = _context.Vaccines;
 
-            Vaccine existingVaccine = vaccinesSet.Single(v => v.Id == id);
+            Vaccine? existingVaccine = await vaccinesSet.FindAsync(id);
 
-            existingVaccine = new Vaccine
-            {
-                Id = existingVaccine.Id,
-                Name = existingVaccine.Name,
-                Brand = existingVaccine.Brand,
-                CreatedAt = existingVaccine.CreatedAt,
-                UpdatedAt = DateTime.UtcNow,
-            };
+            if (existingVaccine is null)
+                return NotFound();
+
+            existingVaccine.Name = vaccine.Name;
+            existingVaccine.Brand = vaccine.Brand;
+
+
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
 

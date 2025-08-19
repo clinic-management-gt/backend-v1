@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("[controller]")]
     public class MedicalRecordsController : ControllerBase
@@ -249,6 +248,21 @@ namespace Clinica.Controllers
                 Console.WriteLine($"❌ Error getting medical record details: {ex.Message}");
                 return StatusCode(500, $"Error retrieving medical record details: {ex.Message}");
             }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+
+            var medicalRecordsSet = _context.MedicalRecords;
+            MedicalRecord? existingRecord = await medicalRecordsSet.FindAsync(id);
+
+            if (existingRecord is null)
+                return NotFound();
+
+            medicalRecordsSet.Remove(existingRecord);
+
+            return NoContent();
         }
     }
 }
