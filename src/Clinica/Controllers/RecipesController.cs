@@ -42,13 +42,12 @@ public class RecipesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRecipeById(int id)
     {
-        IActionResult result;
         var recipesSet = _context.Recipes;
 
         Recipe? recipe = await recipesSet.FindAsync(id);
 
         if (recipe is null)
-            result = NotFound();
+            return NotFound();
 
         RecipeDTO response = new RecipeDTO
         {
@@ -57,9 +56,8 @@ public class RecipesController : ControllerBase
             Prescription = recipe.Prescription,
         };
 
-        result = Ok(response);
 
-        return result;
+        return Ok(response);
 
     }
 
@@ -94,7 +92,7 @@ public class RecipesController : ControllerBase
         if (recipe is null)
             return NotFound();
 
-        _context.Remove(recipe);
+        recipesSet.Remove(recipe);
         await _context.SaveChangesAsync();
 
         return NoContent();
