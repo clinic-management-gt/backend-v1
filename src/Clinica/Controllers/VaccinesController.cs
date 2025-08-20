@@ -1,10 +1,10 @@
-using Clinica.Models.EntityFramework;
 using Clinica.Models;
-using Microsoft.AspNetCore.Mvc;
-using Npgsql;
+using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Clinica.Controllers
 {
