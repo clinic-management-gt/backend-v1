@@ -84,6 +84,21 @@ public class RecipesController : ControllerBase
 
         return NoContent();
     }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var recipesSet = _context.Recipes;
+
+        Recipe? recipe = await recipesSet.FindAsync(id);
+
+        if (recipe is null)
+            return NotFound();
+
+        _context.Remove(recipe);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 
 }
 
