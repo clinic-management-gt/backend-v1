@@ -1,159 +1,102 @@
 using Clinica.Models;
+using Clinica.Models.EntityFramework;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Clinica.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("[controller]")]
     public class VaccinesController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _context;
 
-        public VaccinesController(IConfiguration config)
+        public VaccinesController(ApplicationDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
         // POST: /vaccines
         [HttpPost]
-        public IActionResult CreateVaccine([FromBody] Vaccine vaccine)
+        public async Task<IActionResult> CreateVaccine(VaccineDTO vaccine)
+
         {
             if (string.IsNullOrEmpty(vaccine.Name) || string.IsNullOrEmpty(vaccine.Brand))
             {
                 return BadRequest("Name and Brand are required fields.");
             }
 
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
-
-            try
+            var vaccinesSet = _context.Vaccines;
+            Vaccine newVaccine = new Vaccine
             {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
+                Name = vaccine.Name,
+                Brand = vaccine.Brand,
+                CreatedAt = DateTime.Now
+            };
 
-                var sql = "INSERT INTO vaccines (name, brand, created_at, updated_at) " +
-                          "VALUES (@name, @brand, NOW(), NULL) RETURNING id";
+            vaccinesSet.Add(newVaccine);
 
-                using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("name", vaccine.Name);
-                cmd.Parameters.AddWithValue("brand", vaccine.Brand);
 
-                var result = cmd.ExecuteScalar();
-                if (result == null || result == DBNull.Value)
-                {
-                    return StatusCode(500, "No se pudo obtener el ID insertado.");
-                }
+            await _context.SaveChangesAsync();
 
-                var newVaccineId = Convert.ToInt32(result);
-                vaccine.Id = newVaccineId;
-                vaccine.CreatedAt = DateTime.Now;
-
-                return CreatedAtAction(nameof(GetVaccineById), new { id = vaccine.Id }, vaccine);
-            }
-            catch (Exception ex)
+            VaccineDTO reponseDTO = new VaccineDTO
             {
-                Console.WriteLine($"❌ Error creating vaccine: {ex.Message}");
-                return StatusCode(500, $"Error creating vaccine: {ex.Message}");
-            }
+                Id = vaccine.Id,
+                Name = vaccine.Name,
+                Brand = vaccine.Brand,
+
+            };
+
+            return CreatedAtAction(nameof(GetVaccineById), new { id = vaccine.Id }, reponseDTO);
+
+
         }
 
         // GET: /vaccines/{id}
         [HttpGet("{id}")]
-        public ActionResult<Vaccine> GetVaccineById(int id)
+        public async Task<ActionResult<VaccineDTO>> GetVaccineById(int id)
         {
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
+            var vaccionesSet = _context.Vaccines;
+            Vaccine? vaccine = await vaccionesSet.FindAsync(id);
 
-            try
+            if (vaccine is null)
+                return NotFound();
+
+            return new VaccineDTO
             {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
+                Id = vaccine.Id,
+                Name = vaccine.Name,
+                Brand = vaccine.Brand,
+            };
 
-                var sql = "SELECT id, name, brand, created_at, updated_at FROM vaccines WHERE id = @id";
-
-                using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("id", id);
-
-                using var reader = cmd.ExecuteReader();
-                if (reader.Read())
-                {
-                    var vaccine = new Vaccine
-                    {
-                        Id = reader.GetInt32(0),
-                        Name = reader.GetString(1),
-                        Brand = reader.GetString(2),
-                        CreatedAt = reader.GetDateTime(3),
-                        UpdatedAt = reader.IsDBNull(4) ? null : reader.GetDateTime(4)
-                    };
-                    return Ok(vaccine);
-                }
-                else
-                {
-                    return NotFound($"Vaccine with ID {id} not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error when consulting vaccine: {ex.Message}");
-                return StatusCode(500, $"Error querying the database: {ex.Message}");
-            }
         }
 
         // PATCH: /vaccines/{id}
         [HttpPatch("{id}")]
-        public IActionResult UpdateVaccine(int id, [FromBody] Vaccine vaccine)
+        public async Task<IActionResult> UpdateVaccine(int id, [FromBody] VaccineDTO vaccine)
         {
-            if (string.IsNullOrEmpty(vaccine.Name) && string.IsNullOrEmpty(vaccine.Brand))
-            {
-                return BadRequest("At least one field (Name or Brand) must be provided for update.");
-            }
+            if (id != vaccine.Id)
+                return BadRequest();
 
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
+            var vaccinesSet = _context.Vaccines;
 
-            try
-            {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
+            Vaccine? existingVaccine = await vaccinesSet.FindAsync(id);
 
-                var updateFields = new Dictionary<string, object>();
+            if (existingVaccine is null)
+                return NotFound();
 
-                if (!string.IsNullOrEmpty(vaccine.Name)) updateFields.Add("name", vaccine.Name);
-                if (!string.IsNullOrEmpty(vaccine.Brand)) updateFields.Add("brand", vaccine.Brand);
-                updateFields.Add("updated_at", DateTime.Now);
+            existingVaccine.Name = vaccine.Name;
+            existingVaccine.Brand = vaccine.Brand;
 
-                if (!updateFields.Any())
-                {
-                    return BadRequest("No fields to update.");
-                }
 
-                var setClause = string.Join(", ", updateFields.Keys.Select(k => $"{k} = @{k}"));
-                var sql = $"UPDATE vaccines SET {setClause} WHERE id = @id";
 
-                using var cmd = new NpgsqlCommand(sql, conn);
+            await _context.SaveChangesAsync();
 
-                foreach (var field in updateFields)
-                {
-                    cmd.Parameters.AddWithValue(field.Key, field.Value);
-                }
+            return NoContent();
 
-                cmd.Parameters.AddWithValue("id", id);
-
-                var rowsAffected = cmd.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                {
-                    return Ok($"Vaccine with ID {id} updated.");
-                }
-                else
-                {
-                    return NotFound($"Vaccine with ID {id} not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error updating vaccine: {ex.Message}");
-                return StatusCode(500, $"Error updating vaccine: {ex.Message}");
-            }
         }
     }
 }

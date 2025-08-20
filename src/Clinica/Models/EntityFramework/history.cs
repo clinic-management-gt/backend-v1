@@ -16,6 +16,4 @@ public partial class History
     public string? OldData { get; set; }
 
     public string? NewData { get; set; }
-
-    public LogAction action { get; set; }
 }

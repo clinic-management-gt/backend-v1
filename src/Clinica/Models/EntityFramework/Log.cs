@@ -18,6 +18,4 @@ public partial class Log
     public string? NewData { get; set; }
 
     public virtual User? User { get; set; }
-
-    public LogAction action { get; set; }
 }
