@@ -1,8 +1,8 @@
-using Clinica.Models.EntityFramework;
+using System.Diagnostics.CodeAnalysis;
 using Clinica.Models;
+using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Clinica.Controllers;
 
