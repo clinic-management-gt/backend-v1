@@ -26,6 +26,6 @@ Thumbs.db
 nuke.sql
 
 # keys de cloudfare
-Clinica/appsettings.json
+src/Clinica/appsettings.json
 
 
