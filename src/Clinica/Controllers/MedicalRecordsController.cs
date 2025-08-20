@@ -257,12 +257,16 @@ namespace Clinica.Controllers
             var medicalRecordsSet = _context.MedicalRecords;
             MedicalRecord? existingRecord = await medicalRecordsSet.FindAsync(id);
 
+            IActionResult result;
+
             if (existingRecord is null)
-                return NotFound();
+                result = NotFound();
 
             medicalRecordsSet.Remove(existingRecord);
 
-            return NoContent();
+            result = NoContent();
+
+            return result;
         }
     }
 }
