@@ -1,157 +1,125 @@
 using Clinica.Models;
+using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("[controller]")]
     public class RecipesController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _context;
 
-        public RecipesController(IConfiguration config)
+        public RecipesController(ApplicationDbContext context)
         {
-            _config = config;
-        }
-
-        // POST: /recipes
-        [HttpPost]
-        public IActionResult CreateRecipe([FromBody] Recipes recipe)
-        {
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
-
-            try
-            {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
-
-                var sql = "INSERT INTO recipes (treatment_id, prescription, created_at) " +
-                           "VALUES (@treatment_id, @prescription, NOW()) RETURNING id";
-
-                using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("treatment_id", recipe.TreatmentId);
-
-                // Si Prescription es nulo, se pasa DBNull.Value
-                cmd.Parameters.AddWithValue("prescription", recipe.Prescription ?? (object)DBNull.Value);
-
-                var result = cmd.ExecuteScalar();
-                if (result == null || result == DBNull.Value)
-                {
-                    return StatusCode(500, "No se pudo obtener el ID insertado.");
-                }
-
-                var newRecipeId = Convert.ToInt32(result);
-                recipe.Id = newRecipeId;
-                recipe.CreatedAt = DateTime.Now;
-
-                return CreatedAtAction(nameof(GetRecipeById), new { id = recipe.Id }, recipe);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error creating recipe: {ex.Message}");
-                return StatusCode(500, $"Error creating recipe: {ex.Message}");
-            }
+            _context = context;
         }
 
         // GET: /recipes/{id}
         [HttpGet("{id}")]
-        public ActionResult<Recipes> GetRecipeById(int id)
+        public async Task<ActionResult<RecipeResponseDTO>> GetById(int id)
         {
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
-
-            try
-            {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
-
-                // Modificamos el query para obtener el id de la cita y el paciente
-                var sql = @"
-                    SELECT r.id, r.treatment_id, r.prescription, r.created_at,
-                        a.id AS appointment_id, p.id AS patient_id
-                    FROM recipes r
-                    JOIN treatments t ON r.treatment_id = t.id
-                    JOIN appointments a ON t.appointment_id = a.id
-                    JOIN patients p ON a.patient_id = p.id
-                    WHERE r.id = @id";
-
-                using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("id", id);
-
-                using var reader = cmd.ExecuteReader();
-                if (reader.Read())
+            var dto = await _context.Recipes
+                .Include(r => r.Treatment)
+                    .ThenInclude(t => t.Appointment)
+                .Where(r => r.Id == id)
+                .Select(r => new RecipeResponseDTO
                 {
-                    var recipe = new
-                    {
-                        Id = reader.GetInt32(0),
-                        TreatmentId = reader.GetInt32(1),
-                        Prescription = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        CreatedAt = reader.GetDateTime(3),
-                        AppointmentId = reader.GetInt32(4),  // ID de la cita
-                        PatientId = reader.GetInt32(5)      // ID del paciente
-                    };
+                    Id = r.Id,
+                    TreatmentId = r.TreatmentId,
+                    Prescription = r.Prescription,
+                    CreatedAt = r.CreatedAt,
+                })
+                .FirstOrDefaultAsync();
 
-                    return Ok(recipe);
-                }
-                else
-                {
-                    return NotFound($"Recipe with ID {id} not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error when consulting recipe: {ex.Message}");
-                return StatusCode(500, $"Error querying the database: {ex.Message}");
-            }
+            if (dto == null)
+                return NotFound($"Recipe with ID {id} not found.");
+
+            return Ok(dto);
         }
 
+        // POST: /recipes
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] RecipeCreateDTO input)
+        {
+            if (input == null || input.TreatmentId <= 0)
+                return BadRequest("TreatmentId is required.");
 
+            // Validar que exista el Treatment
+            var treatmentExists = await _context.Treatments
+                .AnyAsync(t => t.Id == input.TreatmentId);
+            if (!treatmentExists)
+                return NotFound($"Treatment with ID {input.TreatmentId} not found.");
+
+            var entity = new Recipe
+            {
+                TreatmentId = input.TreatmentId,
+                Prescription = input.Prescription.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Recipes.Add(entity);
+            await _context.SaveChangesAsync();
+
+            var dto = await _context.Recipes
+                .Include(r => r.Treatment)
+                    .ThenInclude(t => t.Appointment)
+                .Where(r => r.Id == entity.Id)
+                .Select(r => new RecipeResponseDTO
+                {
+                    Id = r.Id,
+                    TreatmentId = r.TreatmentId,
+                    Prescription = r.Prescription,
+                    CreatedAt = r.CreatedAt,
+                })
+                .FirstAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+        }
 
         // PATCH: /recipes/{id}
         [HttpPatch("{id}")]
-        public IActionResult UpdateRecipe(int id, [FromBody] Recipes recipe)
+        public async Task<IActionResult> Update(int id, [FromBody] RecipeUpdateDTO patch)
         {
-            string? connectionString = _config.GetConnectionString("DefaultConnection");
+            if (patch == null)
+                return BadRequest("Body required.");
 
-            try
+            var entity = await _context.Recipes
+                .Include(r => r.Treatment)
+                    .ThenInclude(t => t.Appointment)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                return NotFound($"Recipe with ID {id} not found.");
+
+            // Si quieren mover la receta a otro Treatment
+            if (patch.TreatmentId != entity.TreatmentId)
             {
-                using var conn = new NpgsqlConnection(connectionString);
-                conn.Open();
-
-                var updateFields = new Dictionary<string, object>();
-
-                if (!string.IsNullOrEmpty(recipe.Prescription)) updateFields.Add("prescription", recipe.Prescription);
-
-
-                var setClause = string.Join(", ", updateFields.Keys.Select(k => $"{k} = @{k}"));
-                var sql = $"UPDATE recipes SET {setClause} WHERE id = @id";
-
-                using var cmd = new NpgsqlCommand(sql, conn);
-
-                foreach (var field in updateFields)
-                {
-                    cmd.Parameters.AddWithValue(field.Key, field.Value);
-                }
-
-                cmd.Parameters.AddWithValue("id", id);
-
-                var rowsAffected = cmd.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                {
-                    return Ok($"Recipe with ID {id} updated.");
-                }
-                else
-                {
-                    return NotFound($"Recipe with ID {id} not found.");
-                }
+                var treatmentExists = await _context.Treatments
+                    .AnyAsync(t => t.Id == patch.TreatmentId);
+                if (!treatmentExists)
+                    return NotFound($"Treatment with ID {patch.TreatmentId} not found.");
+                entity.TreatmentId = patch.TreatmentId;
             }
-            catch (Exception ex)
+
+            if (patch.Prescription is not null)
             {
-                Console.WriteLine($"❌ Error updating recipe: {ex.Message}");
-                return StatusCode(500, $"Error updating recipe: {ex.Message}");
+                if (string.IsNullOrWhiteSpace(patch.Prescription))
+                    return BadRequest("Prescription cannot be empty");
+                entity.Prescription = patch.Prescription.Trim();
             }
+            await _context.SaveChangesAsync();
+
+            var dto = new RecipeResponseDTO
+            {
+                Id = entity.Id,
+                TreatmentId = entity.TreatmentId,
+                Prescription = entity.Prescription,
+                CreatedAt = entity.CreatedAt,
+            };
+
+            return Ok(dto);
         }
     }
 }
