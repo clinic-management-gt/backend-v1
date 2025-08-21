@@ -18,7 +18,7 @@ namespace Clinica.Controllers
 
         // GET: /recipes/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<RecipeResponseDTO>> GetById(int id)
+        public async Task<ActionResult<RecipeResponseDTO>> GetRecipeById(int id)
         {
             var dto = await _context.Recipes
                 .Include(r => r.Treatment)
@@ -41,7 +41,7 @@ namespace Clinica.Controllers
 
         // POST: /recipes
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] RecipeCreateDTO input)
+        public async Task<IActionResult> CreateRecipe([FromBody] RecipeCreateDTO input)
         {
             if (input == null || input.TreatmentId <= 0)
                 return BadRequest("TreatmentId is required.");
@@ -75,12 +75,12 @@ namespace Clinica.Controllers
                 })
                 .FirstAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+            return CreatedAtAction(nameof(GetRecipeById), new { id = dto.Id }, dto);
         }
 
         // PATCH: /recipes/{id}
         [HttpPatch("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] RecipeUpdateDTO patch)
+        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeUpdateDTO patch)
         {
             if (patch == null)
                 return BadRequest("Body required.");
