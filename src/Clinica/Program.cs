@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-
 // Detectar ruta real del .env (está en backend-v1/.env)
 var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
 Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
@@ -18,6 +17,7 @@ if (File.Exists(envPath)) Env.Load(envPath);
 
 // Crear builder DESPUÉS de cargar .env
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Asegurar que agregamos env vars (re-lee proceso)
 builder.Configuration.AddEnvironmentVariables();
@@ -31,10 +31,10 @@ builder.Services.AddHttpClient("R2Client", client =>
 // 1) Registrar tu servicio de Cloudflare R2
 builder.Services.AddSingleton<CloudflareR2Service>();
 
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        o => o.MapEnum<AppointmentStatus>("appointment_status_enum"))
-        );
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.MapEnum<AppointmentStatus>("appointment_status_enum")));
+
 
 
 builder.Services.AddControllers()
