@@ -9,7 +9,7 @@ public partial class Recipe
 
     public int TreatmentId { get; set; }
 
-    public string? Prescription { get; set; }
+    public required string Prescription { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
