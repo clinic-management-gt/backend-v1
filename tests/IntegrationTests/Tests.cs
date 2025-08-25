@@ -5,6 +5,7 @@ public class Tests
     [ClassDataSource<WebApplicationFactory>(Shared = SharedType.PerTestSession)]
     public required WebApplicationFactory WebApplicationFactory { get; init; }
 
+
     [Test]
     public async Task Test()
     {
