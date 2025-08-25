@@ -107,7 +107,7 @@ app.UseAuthentication(); // Agregar uso de autenticación
 app.UseAuthorization(); // Agregar uso de autorización
 
 // Ejemplo de endpoint básico
-app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
+app.MapGet("/ping", () => "pong");
 
 
 // Mapea controladores como /pacientes, /testdb
@@ -118,3 +118,4 @@ Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloud
 
 app.Run();
 
+public partial class Program;

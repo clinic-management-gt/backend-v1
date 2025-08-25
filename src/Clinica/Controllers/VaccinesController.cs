@@ -44,13 +44,13 @@ namespace Clinica.Controllers
 
             VaccineDTO reponseDTO = new VaccineDTO
             {
-                Id = vaccine.Id,
-                Name = vaccine.Name,
-                Brand = vaccine.Brand,
+                Id = newVaccine.Id,
+                Name = newVaccine.Name,
+                Brand = newVaccine.Brand,
 
             };
 
-            return CreatedAtAction(nameof(GetVaccineById), new { id = vaccine.Id }, reponseDTO);
+            return CreatedAtAction(nameof(GetVaccineById), new { id = newVaccine.Id }, reponseDTO);
 
 
         }
