@@ -94,14 +94,14 @@ public class Program
                 using (var scope = app.Services.CreateScope())
                 {
                     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    db.Database.Migrate();
+                    await db.Database.MigrateAsync();
                 }
                 break; // Si funciona, salimos del ciclo
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[BOOT] DB not ready, retrying in {delayMs / 1000}s... ({i + 1}/{maxRetries})");
-                Thread.Sleep(delayMs);
+                Console.WriteLine($"[BOOT] DB not ready, retrying in {delayMs / 1000}s... ({i + 1}/{maxRetries}) with exception: {ex.Message}");
+                await Task.Delay(delayMs);
             }
         }
 
