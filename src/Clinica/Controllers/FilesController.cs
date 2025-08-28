@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar la subida y descarga de archivos de pacientes.
+    /// </summary>
     [ApiController]
     [Route("files")]
     public class FilesController : ControllerBase
@@ -13,13 +16,22 @@ namespace Clinica.Controllers
         private readonly CloudflareR2Service _r2;
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Constructor del controlador de archivos.
+        /// </summary>
+        /// <param name="r2">Servicio para subir archivos a Cloudflare R2.</param>
+        /// <param name="context">Contexto de base de datos.</param>
         public FilesController(CloudflareR2Service r2, ApplicationDbContext context)
         {
             _r2 = r2;
             _context = context;
         }
 
-        // POST /files/upload
+        /// <summary>
+        /// Sube un archivo de paciente al sistema y lo almacena en Cloudflare R2.
+        /// </summary>
+        /// <param name="request">Datos del archivo y metadatos.</param>
+        /// <returns>Información del archivo subido o error.</returns>
         [HttpPost("upload")]
         [RequestSizeLimit(25_000_000)] // 25 MB ejemplo
         [Consumes("multipart/form-data")]
@@ -64,6 +76,13 @@ namespace Clinica.Controllers
 
         }
 
+        /// <summary>
+        /// Obtiene la lista de archivos de un paciente filtrados por tipo y expediente médico.
+        /// </summary>
+        /// <param name="PatientId">Id del paciente.</param>
+        /// <param name="Type">Tipo de documento.</param>
+        /// <param name="MedicalRecordId">Id del expediente médico.</param>
+        /// <returns>Lista de archivos encontrados.</returns>
         [HttpGet("download")]
         public async Task<IActionResult> GetPatientDocuments([FromQuery] int PatientId, [FromQuery] string Type, [FromQuery] int MedicalRecordId)
         {

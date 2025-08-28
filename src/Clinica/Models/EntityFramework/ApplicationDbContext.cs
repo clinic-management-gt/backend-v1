@@ -4,73 +4,115 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Models.EntityFramework;
 
+/// <summary>
+/// Contexto principal de la base de datos para la clínica.
+/// Gestiona las entidades y la configuración de EF Core.
+/// </summary>
 public partial class ApplicationDbContext : DbContext
 {
+    /// <summary>
+    /// Constructor sin parámetros. Usado por EF Core.
+    /// </summary>
     public ApplicationDbContext()
     {
     }
 
+    /// <summary>
+    /// Constructor que recibe opciones de configuración.
+    /// </summary>
+    /// <param name="options">Opciones de configuración de DbContext.</param>
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
+    /// <summary>Tabla de alergias.</summary>
     public virtual DbSet<Alergy> Alergies { get; set; }
 
+    /// <summary>Tabla de citas médicas.</summary>
     public virtual DbSet<Appointment> Appointments { get; set; }
 
+    /// <summary>Tabla de tipos de sangre.</summary>
     public virtual DbSet<BloodType> BloodTypes { get; set; }
 
+    /// <summary>Tabla de enfermedades crónicas.</summary>
     public virtual DbSet<ChronicDisease> ChronicDiseases { get; set; }
 
+    /// <summary>Tabla de contactos de pacientes.</summary>
     public virtual DbSet<Contact> Contacts { get; set; }
 
+    /// <summary>Tabla de diagnósticos.</summary>
     public virtual DbSet<Diagnosis> Diagnoses { get; set; }
 
+    /// <summary>Tabla de exámenes médicos.</summary>
     public virtual DbSet<Exam> Exams { get; set; }
 
+    /// <summary>Tabla de historial de cambios.</summary>
     public virtual DbSet<History> Histories { get; set; }
 
+    /// <summary>Tabla de seguros médicos.</summary>
     public virtual DbSet<Insurance> Insurances { get; set; }
 
+    /// <summary>Tabla de logs de acciones.</summary>
     public virtual DbSet<Log> Logs { get; set; }
 
+    /// <summary>Tabla de expedientes médicos.</summary>
     public virtual DbSet<MedicalRecord> MedicalRecords { get; set; }
 
+    /// <summary>Tabla de medicamentos.</summary>
     public virtual DbSet<Medicine> Medicines { get; set; }
 
+    /// <summary>Tabla de módulos del sistema.</summary>
     public virtual DbSet<Module> Modules { get; set; }
 
+    /// <summary>Tabla de pacientes.</summary>
     public virtual DbSet<Patient> Patients { get; set; }
 
+    /// <summary>Tabla de alergias de pacientes.</summary>
     public virtual DbSet<PatientAlergy> PatientAlergies { get; set; }
 
+    /// <summary>Tabla de enfermedades crónicas de pacientes.</summary>
     public virtual DbSet<PatientChronicDisease> PatientChronicDiseases { get; set; }
 
+    /// <summary>Tabla de exámenes de pacientes.</summary>
     public virtual DbSet<PatientExam> PatientExams { get; set; }
 
+    /// <summary>Tabla de tipos de pacientes.</summary>
     public virtual DbSet<PatientType> PatientTypes { get; set; }
 
+    /// <summary>Tabla de vacunas aplicadas a pacientes.</summary>
     public virtual DbSet<PatientVaccine> PatientVaccines { get; set; }
 
+    /// <summary>Tabla de permisos.</summary>
     public virtual DbSet<Permission> Permissions { get; set; }
 
+    /// <summary>Tabla de teléfonos.</summary>
     public virtual DbSet<Phone> Phones { get; set; }
 
+    /// <summary>Tabla de recetas médicas.</summary>
     public virtual DbSet<Recipe> Recipes { get; set; }
 
+    /// <summary>Tabla de roles de usuario.</summary>
     public virtual DbSet<Role> Roles { get; set; }
 
+    /// <summary>Tabla de tenants (multiempresa).</summary>
     public virtual DbSet<Tenant> Tenants { get; set; }
 
+    /// <summary>Tabla de tratamientos médicos.</summary>
     public virtual DbSet<Treatment> Treatments { get; set; }
 
+    /// <summary>Tabla de usuarios.</summary>
     public virtual DbSet<User> Users { get; set; }
 
+    /// <summary>Tabla de vacunas.</summary>
     public virtual DbSet<Vaccine> Vaccines { get; set; }
 
+    /// <summary>Tabla de documentos de pacientes.</summary>
     public virtual DbSet<PatientDocument> PatientDocuments { get; set; }
 
+    /// <summary>
+    /// Configura la conexión a la base de datos si no está configurada.
+    /// </summary>
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -79,6 +121,10 @@ public partial class ApplicationDbContext : DbContext
         }
     }
 
+    /// <summary>
+    /// Configura las entidades y relaciones del modelo.
+    /// </summary>
+    /// <param name="modelBuilder">Constructor de modelos de EF Core.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
@@ -755,5 +801,8 @@ public partial class ApplicationDbContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
+    /// <summary>
+    /// Método parcial para extender la configuración del modelo.
+    /// </summary>
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
