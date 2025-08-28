@@ -69,6 +69,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Vaccine> Vaccines { get; set; }
 
+    public virtual DbSet<PatientDocument> PatientDocuments { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
