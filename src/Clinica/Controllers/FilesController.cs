@@ -30,7 +30,7 @@ namespace Clinica.Controllers
             if (request.File != null && request.File.Length > 0)
             {
 
-                var url = await _r2.UploadDocumentToCloudflareR2(request.File, request.PatientId, request.Type);
+                var url = await _r2.UploadDocumentToCloudflareR2(request.File, request.PatientId, request.Type, request.MedicalRecordId);
                 var doc = new PatientDocument
                 {
                     PatientId = request.PatientId,
@@ -40,7 +40,8 @@ namespace Clinica.Controllers
                     UploadedBy = null,
                     UploadedAt = DateTime.UtcNow,
                     Size = request.File.Length,
-                    ContentType = request.File.ContentType
+                    ContentType = request.File.ContentType,
+                    MedicalRecordId = request.MedicalRecordId
                 };
 
                 _context.PatientDocuments.Add(doc);
@@ -64,17 +65,19 @@ namespace Clinica.Controllers
         }
 
         [HttpGet("download")]
-        public async Task<IActionResult> GetPatientDocuments([FromQuery] int PatientId, [FromQuery] string Type)
+        public async Task<IActionResult> GetPatientDocuments([FromQuery] int PatientId, [FromQuery] string Type, [FromQuery] int MedicalRecordId)
         {
             var docs = await _context.PatientDocuments
-                .Where(d => d.PatientId == PatientId && d.Type == Type)
+                .Where(d => d.PatientId == PatientId && d.Type == Type && d.MedicalRecordId == MedicalRecordId)
                 .OrderByDescending(d => d.UploadedAt)
                 .Select(d => new FileDTO
                 {
                     Url = d.FileUrl,
                     Size = d.Size,
                     ContentType = d.ContentType,
-                    Message = "Archivo encontrado"
+                    Message = "Archivo encontrado",
+                    Patient = "Id del paciente: " + d.PatientId,
+                    MedicalRecordId = "Id del medical record: " + d.MedicalRecordId
                 })
                 .ToListAsync();
 

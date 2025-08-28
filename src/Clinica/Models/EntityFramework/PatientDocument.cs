@@ -11,6 +11,7 @@ namespace Clinica.Models.EntityFramework
         public string FileUrl { get; set; } = string.Empty;
         public int? UploadedBy { get; set; }
         public DateTime UploadedAt { get; set; }
+        public int MedicalRecordId { get; set; }
 
         // Relaciones
         public Patient Patient { get; set; } = null!;
