@@ -86,6 +86,9 @@ CREATE TABLE patients (
   updated_at       TIMESTAMP
 );
 
+ALTER TABLE patients ALTER COLUMN created_at TYPE timestamp with time zone;
+ALTER TABLE patients ALTER COLUMN updated_at TYPE timestamp with time zone;
+
 CREATE TABLE alergies (
   id               SERIAL PRIMARY KEY,
   alergy_code      VARCHAR(10)  NOT NULL,
