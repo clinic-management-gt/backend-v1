@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using Clinica.Models.EntityFramework;
 using Clinica.Services;
 using DotNetEnv;
@@ -10,113 +11,103 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-// Detectar ruta real del .env (está en backend-v1/.env)
-var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
-Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
-if (File.Exists(envPath)) Env.Load(envPath);
-
-// Crear builder DESPUÉS de cargar .env
-var builder = WebApplication.CreateBuilder(args);
-
-
-// Asegurar que agregamos env vars (re-lee proceso)
-builder.Configuration.AddEnvironmentVariables();
-
-// Agregar esto antes de builder.Services.AddSingleton<CloudflareR2Service>();
-builder.Services.AddHttpClient("R2Client", client =>
+public class Program
 {
-    client.Timeout = TimeSpan.FromMinutes(5);
-});
-
-// 1) Registrar tu servicio de Cloudflare R2
-builder.Services.AddSingleton<CloudflareR2Service>();
-
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.MapEnum<AppointmentStatus>("appointment_status_enum")));
-
-
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+    public static async Task Main(string[] args)
     {
-        // Configurar para que los enums se serialicen como strings
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        // Detectar ruta real del .env (está en backend-v1/.env)
+        var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
+        Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
+        if (File.Exists(envPath)) Env.Load(envPath);
 
-        // Opcional: configurar nombres de propiedades en camelCase
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
+        var builder = WebApplication.CreateBuilder(args);
 
-// Habilita CORS para el frontend en localhost:5173
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
+        builder.Configuration.AddEnvironmentVariables();
 
-// Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "Clinica API",
-        Version = "v1",
-        Description = "API documentation for Clinica system"
-    });
-});
-
-// Configuración de autenticación
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+        builder.Services.AddHttpClient("R2Client", client =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "super_secret_key"))
-        };
-    });
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
 
-builder.Services.Configure<FormOptions>(o =>
-{
-    o.MultipartBodyLengthLimit = 25_000_000; // 25 MB
-});
+        builder.Services.AddSingleton<CloudflareR2Service>();
 
-var app = builder.Build();
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.MapEnum<AppointmentStatus>("appointment_status_enum")));
 
-// Middleware
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
+
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = "Clinica API",
+                Version = "v1",
+                Description = "API documentation for Clinica system"
+            });
+        });
+
+        builder.Services.AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "super_secret_key"))
+                };
+            });
+
+        builder.Services.Configure<FormOptions>(o =>
+        {
+            o.MultipartBodyLengthLimit = 25_000_000; // 25 MB
+        });
+
+        var app = builder.Build();
+
+        // Esperar a que la base de datos esté lista y aplicar migraciones (solo una vez, sin ciclo)
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Database.MigrateAsync();
+        }
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseHttpsRedirection();
+        app.UseCors("AllowFrontend");
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
+        app.MapControllers();
+
+        Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
+
+        app.Run();
+    }
 }
 
-app.UseHttpsRedirection();
-
-app.UseCors("AllowFrontend");
-app.UseAuthentication(); // Agregar uso de autenticación
-app.UseAuthorization(); // Agregar uso de autorizació
-
-// Ejemplo de endpoint básico
-
-app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
-
-
-// Mapea controladores como /pacientes, /testdb
-app.MapControllers();
-
-// (puedes comentar el bloque DotNetEnv si ya usas appsettings.*)
-Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
-
-app.Run();
-
-public partial class Program;

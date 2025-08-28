@@ -44,14 +44,16 @@ namespace Clinica.Services
             _httpClient = httpClientFactory.CreateClient("R2Client");
         }
 
-        public async Task<string> UploadDocumentToCloudflareR2(IFormFile file)
+        public async Task<string> UploadDocumentToCloudflareR2(IFormFile file, int patientId, string tipo, int medicalRecordId)
         {
-            if (file == null || file.Length == 0)
-                throw new ArgumentException("Archivo vacío", nameof(file));
-
             var ext = Path.GetExtension(file.FileName);
-            var key = $"{DateTime.UtcNow:yyyy/MM/dd}/{Guid.NewGuid():N}{ext}";
+            var fecha = DateTime.UtcNow.ToString("yyyy/MM/dd");
+            var guid = Guid.NewGuid().ToString("N");
+            var tipoSafe = tipo.Replace(" ", "_").ToLower();
+
+            var key = $"{fecha}/patientID_{patientId}/medicalRecordId_{medicalRecordId}/tipo_{tipoSafe}/{guid}{ext}";
             var safeKeyForUrl = Uri.EscapeDataString(key);
+
 
             try
             {
