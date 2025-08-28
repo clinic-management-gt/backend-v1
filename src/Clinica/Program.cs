@@ -104,9 +104,10 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication(); // Agregar uso de autenticación
-app.UseAuthorization(); // Agregar uso de autorización
+app.UseAuthorization(); // Agregar uso de autorizació
 
 // Ejemplo de endpoint básico
+
 app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
 
 
@@ -118,3 +119,4 @@ Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloud
 
 app.Run();
 
+public partial class Program;
