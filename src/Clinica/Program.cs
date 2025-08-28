@@ -84,25 +84,11 @@ public class Program
 
         var app = builder.Build();
 
-        // Esperar a que la base de datos esté lista (retry simple)
-        var maxRetries = 10;
-        var delayMs = 3000;
-        for (int i = 0; i < maxRetries; i++)
+        // Esperar a que la base de datos esté lista y aplicar migraciones (solo una vez, sin ciclo)
+        using (var scope = app.Services.CreateScope())
         {
-            try
-            {
-                using (var scope = app.Services.CreateScope())
-                {
-                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    await db.Database.MigrateAsync();
-                }
-                break; // Si funciona, salimos del ciclo
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[BOOT] DB not ready, retrying in {delayMs / 1000}s... ({i + 1}/{maxRetries}) with exception: {ex.Message}");
-                await Task.Delay(delayMs);
-            }
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Database.MigrateAsync();
         }
 
         if (app.Environment.IsDevelopment())
