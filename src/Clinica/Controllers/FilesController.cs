@@ -1,7 +1,7 @@
-using Clinica.Services;
-using Microsoft.AspNetCore.Mvc;
 using Clinica.Models.EntityFramework;
+using Clinica.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Controllers
