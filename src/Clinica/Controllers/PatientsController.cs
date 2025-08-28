@@ -59,6 +59,31 @@ public class PatientsController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
+        // Crear contacto principal (puedes ajustar el tipo y nombre si lo necesitas)
+        var contact = new Contact
+        {
+            PatientId = patient.Id,
+            Type = "Principal",
+            Name = patient.Name,
+            LastName = patient.LastName,
+            CreatedAt = now
+        };
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        // Guardar cada teléfono
+        foreach (var phone in request.ContactPhones)
+        {
+            var phoneEntity = new Phone
+            {
+                ContactId = contact.Id,
+                Phone1 = phone,
+                CreatedAt = now
+            };
+            _context.Phones.Add(phoneEntity);
+        }
+        await _context.SaveChangesAsync();
+
         return Ok(new
         {
             message = "Paciente registrado exitosamente",

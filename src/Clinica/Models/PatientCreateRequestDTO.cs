@@ -17,7 +17,7 @@ namespace Clinica.Models
         public string Pediatrician { get; set; } = string.Empty;
         public string MotherInfo { get; set; } = string.Empty;
         public string FatherInfo { get; set; } = string.Empty;
-        public string ContactPhone { get; set; } = string.Empty;
+        public List<string> ContactPhones { get; set; } = new();
         public string Insurance { get; set; } = string.Empty;
         public string ResidenceAddress { get; set; } = string.Empty;
         public string ContactEmail { get; set; } = string.Empty;
