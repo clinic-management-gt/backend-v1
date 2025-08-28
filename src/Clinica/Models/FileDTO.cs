@@ -1,11 +1,11 @@
-namespace Clinica.Models;
+namespace Clinica.Models.EntityFramework;
 
 public class FileDTO
 {
-    public string Message { get; set; }
-    public string Url { get; set; }
-    public long Size { get; set; }
-    public string ContentType { get; set; }
+    public string? Message { get; set; }
+    public string? Url { get; set; }
+    public long? Size { get; set; }
+    public string? ContentType { get; set; }
 }
 
 
