@@ -15,5 +15,7 @@ namespace Clinica.Models.EntityFramework
         // Relaciones
         public Patient Patient { get; set; } = null!;
         public User? UploadedByUser { get; set; }
+        public long? Size { get; set; }
+        public string? ContentType { get; set; }
     }
 }

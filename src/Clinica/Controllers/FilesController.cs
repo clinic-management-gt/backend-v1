@@ -38,7 +38,9 @@ namespace Clinica.Controllers
                     Description = request.Description,
                     FileUrl = url,
                     UploadedBy = null,
-                    UploadedAt = DateTime.UtcNow
+                    UploadedAt = DateTime.UtcNow,
+                    Size = request.File.Length,
+                    ContentType = request.File.ContentType
                 };
 
                 _context.PatientDocuments.Add(doc);
@@ -70,8 +72,8 @@ namespace Clinica.Controllers
                 .Select(d => new FileDTO
                 {
                     Url = d.FileUrl,
-                    Size = null,
-                    ContentType = null,
+                    Size = d.Size,
+                    ContentType = d.ContentType,
                     Message = "Archivo encontrado"
                 })
                 .ToListAsync();
