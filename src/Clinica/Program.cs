@@ -104,10 +104,11 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication(); // Agregar uso de autenticación
-app.UseAuthorization(); // Agregar uso de autorización
+app.UseAuthorization(); // Agregar uso de autorizació
 
 // Ejemplo de endpoint básico
-app.MapGet("/ping", () => "pong");
+
+app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
 
 
 // Mapea controladores como /pacientes, /testdb
