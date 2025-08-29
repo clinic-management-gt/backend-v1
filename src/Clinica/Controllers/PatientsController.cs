@@ -161,7 +161,8 @@ public class PatientsController : ControllerBase
                 pa.Alergy.AlergyCode,
                 pa.Alergy.AlergyDescription
             }).ToList(),
-            PatientVaccines = patient.PatientVaccines.Select(pv => new {
+            PatientVaccines = patient.PatientVaccines.Select(pv => new
+            {
                 pv.Id,
                 VaccineName = pv.Vaccine.Name,
                 Brand = pv.Vaccine.Brand,
@@ -169,12 +170,14 @@ public class PatientsController : ControllerBase
                 AgeAtApplication = pv.AgeAtApplication,
                 ApplicationDate = pv.ApplicationDate
             }).ToList(),
-            PatientChronicDiseases = patient.PatientChronicDiseases.Select(pc => new {
+            PatientChronicDiseases = patient.PatientChronicDiseases.Select(pc => new
+            {
                 pc.Id,
                 DiseaseCode = pc.ChronicDisease.DiseaseCode,
                 Description = pc.ChronicDisease.DiseaseDescription
             }).ToList(),
-            PatientExams = patient.PatientExams.Select(pe => new {
+            PatientExams = patient.PatientExams.Select(pe => new
+            {
                 pe.Id,
                 ExamName = pe.Exam.Name,
                 ResultText = pe.ResultText,
