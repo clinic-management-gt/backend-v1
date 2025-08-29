@@ -53,7 +53,7 @@ public class PatientsController : ControllerBase
                 UploadedAt = DateTime.UtcNow,
                 Size = request.InfoSheetFile.Length,
                 ContentType = request.InfoSheetFile.ContentType,
-                MedicalRecordId = 0 
+                MedicalRecordId = 0
             };
             _context.PatientDocuments.Add(doc);
             await _context.SaveChangesAsync();
