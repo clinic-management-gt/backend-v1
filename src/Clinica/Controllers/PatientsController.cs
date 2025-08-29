@@ -94,8 +94,6 @@ public class PatientsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Patient>>> GetAll([FromQuery] string? search)
     {
-        Console.WriteLine($"➡️ GET /patients with search: {search}");
-
         IQueryable<Patient> query = _context.Patients;
 
         if (!string.IsNullOrEmpty(search))
@@ -205,7 +203,6 @@ public class PatientsController : ControllerBase
             _ => "No specified"
         };
 
-        // Only update provided fields
         patient.Name = updatedPatient.Name ?? patient.Name;
         patient.LastName = updatedPatient.LastName ?? patient.LastName;
         patient.Birthdate = updatedPatient.Birthdate != default ? updatedPatient.Birthdate : patient.Birthdate;
@@ -226,7 +223,6 @@ public class PatientsController : ControllerBase
         [FromQuery] int limit = 10,
         [FromQuery] int offset = 0)
     {
-        Console.WriteLine($"➡️ GET /patients/{id}/medicalrecords - Page: {page}, Limit: {limit}, Offset: {offset}");
 
         try
         {
@@ -278,7 +274,6 @@ public class PatientsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error getting paginated medical records: {ex.Message}");
             return StatusCode(500, $"Error retrieving medical records: {ex.Message}");
         }
     }
@@ -405,7 +400,6 @@ public class PatientsController : ControllerBase
     [HttpGet("{id}/medicalrecords/{recordId}/full")]
     public async Task<ActionResult> GetFullMedicalRecordByPatientAndRecord(int id, int recordId)
     {
-        Console.WriteLine($"➡️ GET /patients/{id}/medicalrecords/{recordId}/full");
 
         try
         {
@@ -542,7 +536,6 @@ public class PatientsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error getting full medical record: {ex.Message}");
             return StatusCode(500, $"Error retrieving full medical record: {ex.Message}");
         }
     }
@@ -550,7 +543,6 @@ public class PatientsController : ControllerBase
     [HttpPatch("{id}/medicalrecords/{recordId}")]
     public async Task<ActionResult> UpdateMedicalRecord(int id, int recordId, [FromBody] MedicalRecord updatedRecord)
     {
-        Console.WriteLine($"➡️ PATCH /patients/{id}/medicalrecords/{recordId}");
 
         try
         {
@@ -592,7 +584,6 @@ public class PatientsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error updating medical record: {ex.Message}");
             return StatusCode(500, $"Error updating medical record: {ex.Message}");
         }
     }
@@ -600,8 +591,6 @@ public class PatientsController : ControllerBase
     [HttpPost("{id}/medicalrecords")]
     public async Task<ActionResult> CreateMedicalRecord(int id, [FromBody] MedicalRecord newRecord)
     {
-        Console.WriteLine($"➡️ POST /patients/{id}/medicalrecords");
-
         try
         {
             // Verificar que el paciente existe
@@ -630,7 +619,6 @@ public class PatientsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error creating medical record: {ex.Message}");
             return StatusCode(500, $"Error creating medical record: {ex.Message}");
         }
     }
@@ -638,7 +626,6 @@ public class PatientsController : ControllerBase
     [HttpDelete("{id}/medicalrecords/{recordId}")]
     public async Task<ActionResult> DeleteMedicalRecord(int id, int recordId)
     {
-        Console.WriteLine($"➡️ DELETE /patients/{id}/medicalrecords/{recordId}");
 
         try
         {
@@ -679,7 +666,6 @@ public class PatientsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error deleting medical record: {ex.Message}");
             return StatusCode(500, $"Error deleting medical record: {ex.Message}");
         }
     }
