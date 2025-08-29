@@ -53,7 +53,7 @@ public class PatientsController : ControllerBase
                 UploadedAt = DateTime.UtcNow,
                 Size = request.InfoSheetFile.Length,
                 ContentType = request.InfoSheetFile.ContentType,
-                MedicalRecordId = 0 // Si tu modelo lo permite, usa int? y asigna null
+                MedicalRecordId = 0 
             };
             _context.PatientDocuments.Add(doc);
             await _context.SaveChangesAsync();
