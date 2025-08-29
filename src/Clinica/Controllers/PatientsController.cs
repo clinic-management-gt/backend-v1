@@ -110,14 +110,80 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Patient>> GetPatientById(int id)
+    public async Task<ActionResult> GetPatientById(int id)
     {
-        var patient = await _context.Patients.FindAsync(id);
+        var patient = await _context.Patients
+            .Include(p => p.Contacts).ThenInclude(c => c.Phones)
+            .Include(p => p.BloodType)
+            .Include(p => p.PatientType)
+            .Include(p => p.Insurances)
+            .Include(p => p.PatientAlergies).ThenInclude(pa => pa.Alergy)
+            .Include(p => p.PatientVaccines).ThenInclude(pv => pv.Vaccine)
+            .Include(p => p.PatientChronicDiseases).ThenInclude(pc => pc.ChronicDisease)
+            .Include(p => p.PatientExams).ThenInclude(pe => pe.Exam)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (patient == null)
             return NotFound($"Patient with ID {id} not found.");
 
-        return Ok(patient);
+        var response = new
+        {
+            patient.Id,
+            patient.Name,
+            patient.LastName,
+            patient.Birthdate,
+            patient.Address,
+            patient.Gender,
+            patient.BloodTypeId,
+            BloodType = patient.BloodType?.Type,
+            patient.PatientTypeId,
+            PatientType = patient.PatientType?.Name,
+            patient.CreatedAt,
+            patient.UpdatedAt,
+            Contacts = patient.Contacts.Select(c => new
+            {
+                c.Id,
+                c.Type,
+                c.Name,
+                c.LastName,
+                Phones = c.Phones.Select(ph => ph.Phone1).ToList()
+            }).ToList(),
+            Insurances = patient.Insurances.Select(i => new
+            {
+                i.Id,
+                i.ProviderName,
+                i.PolicyNumber,
+                i.CoverageDetails
+            }).ToList(),
+            Alergies = patient.PatientAlergies.Select(pa => new
+            {
+                pa.Alergy.Id,
+                pa.Alergy.AlergyCode,
+                pa.Alergy.AlergyDescription
+            }).ToList(),
+            PatientVaccines = patient.PatientVaccines.Select(pv => new {
+                pv.Id,
+                VaccineName = pv.Vaccine.Name,
+                Brand = pv.Vaccine.Brand,
+                Dosis = pv.Dosis,
+                AgeAtApplication = pv.AgeAtApplication,
+                ApplicationDate = pv.ApplicationDate
+            }).ToList(),
+            PatientChronicDiseases = patient.PatientChronicDiseases.Select(pc => new {
+                pc.Id,
+                DiseaseCode = pc.ChronicDisease.DiseaseCode,
+                Description = pc.ChronicDisease.DiseaseDescription
+            }).ToList(),
+            PatientExams = patient.PatientExams.Select(pe => new {
+                pe.Id,
+                ExamName = pe.Exam.Name,
+                ResultText = pe.ResultText,
+                ResultFilePath = pe.ResultFilePath,
+                CreatedAt = pe.CreatedAt
+            }).ToList()
+        };
+
+        return Ok(response);
     }
 
 
