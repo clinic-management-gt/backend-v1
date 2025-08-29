@@ -59,7 +59,6 @@ public class PatientsController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        // Crear contacto principal (puedes ajustar el tipo y nombre si lo necesitas)
         var contact = new Contact
         {
             PatientId = patient.Id,
