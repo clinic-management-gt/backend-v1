@@ -29,7 +29,7 @@ namespace Clinica.Models.EntityFramework
         public DateTime UploadedAt { get; set; }
 
         /// <summary>Id del expediente médico relacionado.</summary>
-        public int MedicalRecordId { get; set; }
+        public int? MedicalRecordId { get; set; }
 
         // Relaciones
         public Patient Patient { get; set; } = null!;
