@@ -118,5 +118,48 @@ public class AppointmentsController : ControllerBase
             return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
         }
     }
+
+    // POST /appointments
+    [HttpPost]
+    public async Task<ActionResult> CreateAppointment([FromBody] CreateAppointmentDTO dto)
+    {
+        try
+        {
+            // Verificar que el paciente existe
+            var patient = await _context.Patients.FindAsync(dto.PatientId);
+            if (patient == null)
+                return NotFound("No se encontró el paciente.");
+
+            // Obtener el primer doctor disponible (por simplicidad)
+            var doctor = await _context.Users.FirstOrDefaultAsync();
+            if (doctor == null)
+                return StatusCode(500, "No hay doctores registrados en el sistema.");
+
+            var appointment = new Appointment
+            {
+                PatientId = dto.PatientId,
+                DoctorId = doctor.Id,
+                AppointmentDate = dto.AppointmentDate,
+                Status = Enum.TryParse<AppointmentStatus>(dto.Status, true, out var status)
+                    ? status
+                    : AppointmentStatus.Pendiente,
+                Reason = dto.Reason,
+                CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+            };
+
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id = appointment.Id,
+                message = "Cita creada exitosamente."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al crear la cita: {ex.Message}");
+        }
+    }
 }
 
