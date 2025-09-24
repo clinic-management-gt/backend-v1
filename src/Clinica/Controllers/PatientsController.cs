@@ -91,6 +91,42 @@ public class PatientsController : ControllerBase
         });
     }
 
+    [HttpPost("basic")]
+    public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)
+    {
+        try
+        {
+            var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+            var patient = new Patient
+            {
+                Name = request.Name,
+                LastName = request.LastName,
+                Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
+                Gender = "no_especificado", // Valor por defecto
+                Address = "", // Valor por defecto
+                BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
+                PatientTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
+                CreatedAt = now
+            };
+
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id = patient.Id,
+                name = patient.Name,
+                lastName = patient.LastName,
+                message = "Paciente básico creado correctamente."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+        }
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Patient>>> GetAll([FromQuery] string? search)
     {
