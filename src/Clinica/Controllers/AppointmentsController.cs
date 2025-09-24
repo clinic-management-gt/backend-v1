@@ -140,8 +140,8 @@ public class AppointmentsController : ControllerBase
                 PatientId = dto.PatientId,
                 DoctorId = doctor.Id,
                 AppointmentDate = dto.AppointmentDate,
-                Status = Enum.TryParse<AppointmentStatus>(dto.Status, true, out var status) 
-                    ? status 
+                Status = Enum.TryParse<AppointmentStatus>(dto.Status, true, out var status)
+                    ? status
                     : AppointmentStatus.Pendiente,
                 Reason = dto.Reason,
                 CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
@@ -150,9 +150,10 @@ public class AppointmentsController : ControllerBase
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 
-            return Ok(new { 
-                id = appointment.Id, 
-                message = "Cita creada exitosamente." 
+            return Ok(new
+            {
+                id = appointment.Id,
+                message = "Cita creada exitosamente."
             });
         }
         catch (Exception ex)
