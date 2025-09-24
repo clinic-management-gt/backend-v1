@@ -103,7 +103,7 @@ public class PatientsController : ControllerBase
                 Name = request.Name,
                 LastName = request.LastName,
                 Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
-                Gender = "no_especificado", // Valor por defecto
+                Gender = request.Gender, // Usar el género del DTO
                 Address = "", // Valor por defecto
                 BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
                 PatientTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)

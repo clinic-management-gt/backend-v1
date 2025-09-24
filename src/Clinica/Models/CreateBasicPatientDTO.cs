@@ -1,7 +1,7 @@
 namespace Clinica.Models;
 
 /// <summary>
-/// DTO para crear un paciente básico (solo nombre y apellido)
+/// DTO para crear un paciente básico (solo nombre, apellido y género)
 /// </summary>
 public class CreateBasicPatientDTO
 {
@@ -14,4 +14,9 @@ public class CreateBasicPatientDTO
     /// Apellido del paciente
     /// </summary>
     public string LastName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Género del paciente (masculino, femenino, no_especificado)
+    /// </summary>
+    public string Gender { get; set; } = "no_especificado";
 }
