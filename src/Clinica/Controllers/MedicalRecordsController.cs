@@ -250,23 +250,29 @@ namespace Clinica.Controllers
             }
         }
 
+        // DELETE: api/medicalRecords/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            try
+            {
+                var existingRecord = await _context.MedicalRecords.FindAsync(id);
 
-            var medicalRecordsSet = _context.MedicalRecords;
-            MedicalRecord? existingRecord = await medicalRecordsSet.FindAsync(id);
+                if (existingRecord == null)
+                {
+                    return NotFound($"Medical record con ID {id} no encontrado.");
+                }
 
-            IActionResult result;
+                _context.MedicalRecords.Remove(existingRecord);
+                await _context.SaveChangesAsync();
 
-            if (existingRecord is null)
-                result = NotFound();
-
-            medicalRecordsSet.Remove(existingRecord);
-
-            result = NoContent();
-
-            return result;
+                return Ok(new { message = $"Medical record con ID {id} eliminado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al eliminar medical record: {ex.Message}");
+                return StatusCode(500, $"Error al eliminar el medical record: {ex.Message}");
+            }
         }
     }
 }
