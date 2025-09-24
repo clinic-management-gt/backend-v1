@@ -36,6 +36,7 @@ public class AppointmentsController : ControllerBase
                 .Select(a => new DashBoardDTO
                 {
                     Id = a.Id,
+                    PatientId = a.Patient.Id,  // Agregar ID del paciente
                     PatientName = a.Patient.Name + " " + a.Patient.LastName,
                     DoctorName = a.Doctor.FirstName + " " + a.Doctor.LastName,
                     Status = a.Status,
@@ -78,6 +79,7 @@ public class AppointmentsController : ControllerBase
                 .Select(a => new DashBoardDTO
                 {
                     Id = a.Id,
+                    PatientId = a.Patient.Id,  // Agregar ID del paciente
                     PatientName = a.Patient.Name + " " + a.Patient.LastName,
                     DoctorName = a.Doctor.FirstName + " " + a.Doctor.LastName,
                     Status = a.Status,
