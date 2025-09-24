@@ -679,7 +679,8 @@ public class PatientsController : ControllerBase
         if (patient is null)
             return NotFound();
 
-        List<PatientChronicDiseaseDTO> chronicDiseases = patient.PatientChronicDiseases
+        List<PatientChronicDiseaseDTO> chronicDiseases = _context.PatientChronicDiseases
+            .Where(p => p.PatientId == id)
             .Select(cd =>
                     new PatientChronicDiseaseDTO
                     {
@@ -700,7 +701,8 @@ public class PatientsController : ControllerBase
         if (patient is null)
             return NotFound();
 
-        List<PatientAlergyDTO> alergies = patient.PatientAlergies
+        List<PatientAlergyDTO> alergies = _context.PatientAlergies
+            .Where(p => p.PatientId == id)
             .Select(p => new PatientAlergyDTO
             {
                 Id = p.AlergyId,
