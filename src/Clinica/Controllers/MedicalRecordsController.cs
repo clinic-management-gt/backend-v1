@@ -102,14 +102,23 @@ namespace Clinica.Controllers
 
         // POST: /medicalRecords
         [HttpPost]
-        public async Task<IActionResult> CreateMedicalRecord([FromBody] MedicalRecord medicalRecord)
+        public async Task<IActionResult> CreateMedicalRecord([FromBody] MedicalRecordDTO medicalRecordDTO)
         {
             Console.WriteLine($"➡️ POST /medicalrecords - Creando nuevo registro");
-            Console.WriteLine($"📝 Datos recibidos: PatientId={medicalRecord.PatientId}, Weight={medicalRecord.Weight}, Height={medicalRecord.Height}, FamilyHistory='{medicalRecord.FamilyHistory}', Notes='{medicalRecord.Notes}'");
+            Console.WriteLine($"📝 Datos recibidos: PatientId={medicalRecordDTO.PatientId}, Weight={medicalRecordDTO.Weight}, Height={medicalRecordDTO.Height}, FamilyHistory='{medicalRecordDTO.FamilyHistory}', Notes='{medicalRecordDTO.Notes}'");
 
             try
             {
-                medicalRecord.CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                MedicalRecord medicalRecord = new MedicalRecord
+                {
+                    PatientId = medicalRecordDTO.PatientId,
+                    Weight = medicalRecordDTO.Weight,
+                    Height = medicalRecordDTO.Height,
+                    FamilyHistory = medicalRecordDTO.FamilyHistory,
+                    Notes = medicalRecordDTO.Notes,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+
+                };
 
                 _context.MedicalRecords.Add(medicalRecord);
                 await _context.SaveChangesAsync();
@@ -258,10 +267,12 @@ namespace Clinica.Controllers
             {
                 var existingRecord = await _context.MedicalRecords.FindAsync(id);
 
+
                 if (existingRecord == null)
                 {
                     return NotFound($"Medical record con ID {id} no encontrado.");
                 }
+
 
                 _context.MedicalRecords.Remove(existingRecord);
                 await _context.SaveChangesAsync();
