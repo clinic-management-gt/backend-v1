@@ -670,6 +670,49 @@ public class PatientsController : ControllerBase
         }
     }
 
+    [HttpGet("{id}/chronic-diseases")]
+    public async Task<ActionResult<List<PatientChronicDiseaseDTO>>> GetChronicDiseases(int id)
+    {
+
+        Patient patient = await _context.Patients.FindAsync(id);
+
+        if (patient is null)
+            return NotFound();
+
+        List<PatientChronicDiseaseDTO> chronicDiseases = patient.PatientChronicDiseases
+            .Select(cd =>
+                    new PatientChronicDiseaseDTO
+                    {
+                        Id = cd.ChronicDiseaseId,
+                        DiseaseCode = cd.ChronicDisease.DiseaseCode,
+                        DiseaseDescription = cd.ChronicDisease.DiseaseDescription,
+                    }
+                ).ToList();
+
+        return Ok(chronicDiseases);
+    }
+
+    [HttpGet("{id}/alergies")]
+    public async Task<ActionResult<List<PatientAlergyDTO>>> GetAlergies(int id)
+    {
+        Patient? patient = await _context.Patients.FindAsync(id);
+
+        if (patient is null)
+            return NotFound();
+
+        List<PatientAlergyDTO> alergies = patient.PatientAlergies
+            .Select(p => new PatientAlergyDTO
+            {
+                Id = p.AlergyId,
+                AlergyCode = p.Alergy.AlergyCode,
+                AlergyDescription = p.Alergy.AlergyDescription
+            }).ToList();
+
+        return Ok(alergies);
+    }
+
+
+
     [HttpGet("{id}/contact_info")]
     public async Task<ActionResult<List<ContactResponseDTO>>> GetPatientContactInformationByPatientId(int id)
     {
