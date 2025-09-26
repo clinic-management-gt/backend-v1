@@ -11,6 +11,25 @@ A folder called `Clinica` is used to organize the code, inspect logs, and access
 
 ---
 
+## 🔧 Prerequisitos
+
+Antes de compilar o ejecutar el backend asegúrate de tener instalado el SDK de .NET 9 y el runtime de ASP.NET Core 9.0:
+
+- `dotnet --list-sdks` debe mostrar `9.x`
+- `dotnet --list-runtimes` debe incluir `Microsoft.AspNetCore.App 9.x`
+
+Según tu sistema operativo puedes instalarlos con:
+
+- **Ubuntu/Debian**: `sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0 aspnetcore-runtime-9.0`
+- **Fedora/RHEL/CentOS**: `sudo dnf install dotnet-sdk-9.0 aspnetcore-runtime-9.0`
+- **Arch/Manjaro**: `sudo pacman -S dotnet-sdk aspnet-runtime`
+- **Windows (PowerShell admin)**: `winget install Microsoft.DotNet.SDK.9`
+- **macOS (Homebrew)**: `brew install --cask dotnet-sdk`
+
+Después de instalarlos, reinicia la terminal y valida nuevamente con `dotnet --info`.
+
+---
+
 ## 📁 Configuration Files
 
 ### 🐳 Dockerfile

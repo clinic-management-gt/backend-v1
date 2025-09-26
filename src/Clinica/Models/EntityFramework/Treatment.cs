@@ -25,7 +25,7 @@ public partial class Treatment
     public DateTime? UpdatedAt { get; set; }
 
     [Column("status")]
-    public string Status { get; set; }
+    public string Status { get; set; } = string.Empty;
 
     public virtual Appointment Appointment { get; set; } = null!;
 
