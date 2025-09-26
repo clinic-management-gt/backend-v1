@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
@@ -100,22 +101,129 @@ public class AppointmentsController : ControllerBase
 
     // PATCH /appointments/{id}
     [HttpPatch("{id}")]
-    public async Task<ActionResult> UpdateAppointmentStatus(int id, [FromBody] UpdateStatusDTO dto)
+    public async Task<ActionResult> UpdateAppointment(int id, [FromBody] UpdateAppointmentDto dto)
     {
+        if (dto is null)
+        {
+            return BadRequest("Debe proporcionar los datos a actualizar.");
+        }
+
+        var hasUpdates = dto.PatientId.HasValue
+            || dto.DoctorId.HasValue
+            || dto.AppointmentDate.HasValue
+            || dto.Date.HasValue
+            || dto.Status is not null
+            || dto.Reason is not null
+            || dto.Notes is not null;
+
+        if (!hasUpdates)
+        {
+            return BadRequest("Debe proporcionar al menos un campo para actualizar.");
+        }
+
         try
         {
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment == null)
                 return NotFound("No se encontró la cita.");
 
-            appointment.Status = dto.Status;
+            var updated = false;
+
+            if (dto.PatientId.HasValue && dto.PatientId.Value != appointment.PatientId)
+            {
+                var patientExists = await _context.Patients.AnyAsync(p => p.Id == dto.PatientId.Value);
+                if (!patientExists)
+                    return NotFound($"No se encontró el paciente con ID {dto.PatientId.Value}.");
+                appointment.PatientId = dto.PatientId.Value;
+                updated = true;
+            }
+
+            if (dto.DoctorId.HasValue && dto.DoctorId.Value != appointment.DoctorId)
+            {
+                var doctorExists = await _context.Users.AnyAsync(u => u.Id == dto.DoctorId.Value);
+                if (!doctorExists)
+                    return NotFound($"No se encontró el doctor con ID {dto.DoctorId.Value}.");
+                appointment.DoctorId = dto.DoctorId.Value;
+                updated = true;
+            }
+
+            var requestedDate = dto.AppointmentDate ?? dto.Date;
+            if (requestedDate.HasValue)
+            {
+                appointment.AppointmentDate = DateTime.SpecifyKind(requestedDate.Value, DateTimeKind.Unspecified);
+                updated = true;
+            }
+
+            if (dto.Status is { Length: > 0 })
+            {
+                if (!TryParseStatus(dto.Status, out var newStatus))
+                {
+                    var validStatuses = string.Join(", ", Enum.GetNames(typeof(AppointmentStatus)));
+                    return BadRequest($"Estado no válido. Valores permitidos: {validStatuses}.");
+                }
+
+                appointment.Status = newStatus;
+                updated = true;
+            }
+
+            if (dto.Reason is not null || dto.Notes is not null)
+            {
+                appointment.Reason = dto.Reason ?? dto.Notes;
+                updated = true;
+            }
+
+            if (!updated)
+            {
+                return BadRequest("No se detectaron cambios en la cita.");
+            }
+
+            appointment.UpdatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Estado actualizado correctamente." });
+            return Ok(new { message = "Cita actualizada correctamente." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
+            return StatusCode(500, $"Error al actualizar la cita: {ex.Message}");
+        }
+    }
+
+    // DELETE /appointments/{id}
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteAppointment(int id)
+    {
+        try
+        {
+            var appointment = await _context.Appointments
+                .Include(a => a.Diagnoses)
+                .Include(a => a.Treatments)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (appointment == null)
+                return NotFound("No se encontró la cita.");
+
+            if (appointment.Diagnoses.Any())
+            {
+                _context.Diagnoses.RemoveRange(appointment.Diagnoses);
+            }
+
+            if (appointment.Treatments.Any())
+            {
+                _context.Treatments.RemoveRange(appointment.Treatments);
+            }
+
+            _context.Appointments.Remove(appointment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cita eliminada correctamente." });
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, $"No se pudo eliminar la cita por restricciones de integridad: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al eliminar la cita: {ex.Message}");
         }
     }
 
@@ -161,5 +269,37 @@ public class AppointmentsController : ControllerBase
             return StatusCode(500, $"Error al crear la cita: {ex.Message}");
         }
     }
-}
 
+    private static bool TryParseStatus(string rawValue, out AppointmentStatus status)
+    {
+        if (Enum.TryParse(rawValue, true, out status))
+        {
+            return true;
+        }
+
+        var normalized = rawValue.Trim();
+        if (StatusAliases.TryGetValue(normalized, out status))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static readonly Dictionary<string, AppointmentStatus> StatusAliases = new(System.StringComparer.OrdinalIgnoreCase)
+    {
+        ["general.pending"] = AppointmentStatus.Pendiente,
+        ["general.confirmed"] = AppointmentStatus.Confirmado,
+        ["general.completed"] = AppointmentStatus.Completado,
+        ["general.canceled"] = AppointmentStatus.Cancelado,
+        ["general.cancelled"] = AppointmentStatus.Cancelado,
+        ["general.waiting"] = AppointmentStatus.Espera,
+        ["pending"] = AppointmentStatus.Pendiente,
+        ["confirmed"] = AppointmentStatus.Confirmado,
+        ["completed"] = AppointmentStatus.Completado,
+        ["canceled"] = AppointmentStatus.Cancelado,
+        ["cancelled"] = AppointmentStatus.Cancelado,
+        ["waiting"] = AppointmentStatus.Espera
+    };
+
+}
