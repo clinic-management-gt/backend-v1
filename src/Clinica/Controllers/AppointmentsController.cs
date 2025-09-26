@@ -45,10 +45,7 @@ public class AppointmentsController : ControllerBase
                 })
                 .ToListAsync();
 
-            if (result.Count > 0)
-                return Ok(result);
-            else
-                return NotFound("No hay citas registradas.");
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -88,10 +85,7 @@ public class AppointmentsController : ControllerBase
                 })
                 .ToListAsync();
 
-            if (result.Count > 0)
-                return Ok(result);
-            else
-                return NotFound("No hay citas para el día de hoy.");
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -197,6 +191,7 @@ public class AppointmentsController : ControllerBase
             var appointment = await _context.Appointments
                 .Include(a => a.Diagnoses)
                 .Include(a => a.Treatments)
+                    .ThenInclude(t => t.Recipes)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (appointment == null)
@@ -209,6 +204,14 @@ public class AppointmentsController : ControllerBase
 
             if (appointment.Treatments.Any())
             {
+                foreach (var treatment in appointment.Treatments)
+                {
+                    if (treatment.Recipes.Any())
+                    {
+                        _context.Recipes.RemoveRange(treatment.Recipes);
+                    }
+                }
+
                 _context.Treatments.RemoveRange(appointment.Treatments);
             }
 
