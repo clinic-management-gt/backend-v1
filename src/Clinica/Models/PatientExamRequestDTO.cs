@@ -13,6 +13,6 @@ namespace Clinica.Models
         public string? ResultText { get; set; }
 
         [Required]
-        public IFormFile File { get; set; }
+        public required IFormFile File { get; set; } = default!;
     }
 }

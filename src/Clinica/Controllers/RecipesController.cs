@@ -25,7 +25,7 @@ public class RecipesController : ControllerBase
         Recipe newRecipe = new Recipe
         {
             TreatmentId = recipe.TreatmentId,
-            Prescription = recipe.Prescription,
+            Prescription = recipe.Prescription ?? string.Empty,
             CreatedAt = DateTime.Now,
         };
 
@@ -34,7 +34,7 @@ public class RecipesController : ControllerBase
         recipesSet.Add(newRecipe);
         await _context.SaveChangesAsync();
 
-        RecipeDTO response = new RecipeDTO { Id = newRecipe.Id, TreatmentId = newRecipe.TreatmentId, Prescription = newRecipe.Prescription };
+        RecipeDTO response = new RecipeDTO { Id = newRecipe.Id, TreatmentId = newRecipe.TreatmentId, Prescription = newRecipe.Prescription ?? string.Empty };
         return CreatedAtAction(nameof(GetRecipeById), new { id = newRecipe.Id }, response);
     }
 
@@ -53,7 +53,7 @@ public class RecipesController : ControllerBase
         {
             Id = recipe.Id,
             TreatmentId = recipe.TreatmentId,
-            Prescription = recipe.Prescription,
+            Prescription = recipe.Prescription ?? string.Empty,
         };
 
 

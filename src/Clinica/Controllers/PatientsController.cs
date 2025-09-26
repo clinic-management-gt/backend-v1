@@ -387,20 +387,24 @@ public class PatientsController : ControllerBase
     [HttpGet("{id}/vaccines")]
     public async Task<ActionResult<IEnumerable<PatientVaccineDTO>>> GetAllVaccinesByPatientID(int id)
     {
-        var vaccines = await _context.PatientVaccines
+        var vaccinesEntities = await _context.PatientVaccines
             .Include(pv => pv.Vaccine)
             .Where(pv => pv.PatientId == id)
+            .AsNoTracking()
+            .ToListAsync();
+
+        var vaccines = vaccinesEntities
             .Select(pv => new PatientVaccineDTO
             {
                 Id = pv.Id,
-                VaccineName = pv.Vaccine.Name,
-                Brand = pv.Vaccine.Brand,
-                Dosis = pv.Dosis,
+                VaccineName = pv.Vaccine?.Name ?? string.Empty,
+                Brand = pv.Vaccine?.Brand ?? string.Empty,
+                Dosis = pv.Dosis ?? string.Empty,
                 AgeAtApplication = pv.AgeAtApplication,
-                ApplicationDate = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
+                ApplicationDate = pv.ApplicationDate?.ToDateTime(TimeOnly.MinValue),
+                CreatedAt = pv.CreatedAt ?? DateTime.MinValue
             })
-            .ToListAsync();
+            .ToList();
 
         return Ok(vaccines);
     }
@@ -710,7 +714,7 @@ public class PatientsController : ControllerBase
     public async Task<ActionResult<List<PatientChronicDiseaseDTO>>> GetChronicDiseases(int id)
     {
 
-        Patient patient = await _context.Patients.FindAsync(id);
+        var patient = await _context.Patients.FindAsync(id);
 
         if (patient is null)
             return NotFound();
