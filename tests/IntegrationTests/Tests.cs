@@ -1,20 +1,28 @@
-﻿namespace IntegrationTests;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
 
-public class Tests
+namespace IntegrationTests;
+
+public class PingEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    [ClassDataSource<WebApplicationFactory>(Shared = SharedType.PerTestSession)]
-    public required WebApplicationFactory WebApplicationFactory { get; init; }
+    private readonly WebApplicationFactory<Program> _factory;
 
-
-    [Test]
-    public async Task Test()
+    public PingEndpointTests(WebApplicationFactory<Program> factory)
     {
-        var client = WebApplicationFactory.CreateClient();
+        _factory = factory;
+    }
+
+    [Fact]
+    public async Task GetPing_ReturnsPong()
+    {
+        var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/ping");
+        response.EnsureSuccessStatusCode();
 
         var stringContent = await response.Content.ReadAsStringAsync();
 
-        await Assert.That(stringContent).IsEqualTo("pong");
+        Assert.Equal("pong", stringContent);
     }
 }

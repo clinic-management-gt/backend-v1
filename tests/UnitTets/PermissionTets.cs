@@ -2,26 +2,30 @@ using System;
 using System.Threading.Tasks;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace UnitTests.EntityFrameworkTests;
 
-public class PermissionTests : IAsyncDisposable
-
+public class PermissionTests : IAsyncLifetime
 {
-    private ApplicationDbContext _context;
+    private ApplicationDbContext _context = default!;
 
-    public PermissionTests()
+    public Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         _context = new ApplicationDbContext(options);
+        return Task.CompletedTask;
     }
 
-    [Test]
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
+
+    [Fact]
     public async Task AddPermission_ShouldAddPermissionToDatabase()
     {
         var role = new Role
@@ -59,11 +63,11 @@ public class PermissionTests : IAsyncDisposable
         await _context.Permissions.AddAsync(permission);
         await _context.SaveChangesAsync();
 
-        await Assert.That(await _context.Permissions.CountAsync()).IsEqualTo(1);
-        await Assert.That((await _context.Permissions.FirstAsync()).CanView).IsTrue();
+        Assert.Equal(1, await _context.Permissions.CountAsync());
+        Assert.True((await _context.Permissions.FirstAsync()).CanView);
     }
 
-    [Test]
+    [Fact]
     public async Task RetrievePermission_ShouldIncludeRoleAndModule()
     {
         var role = new Role
@@ -106,20 +110,8 @@ public class PermissionTests : IAsyncDisposable
             .Include(p => p.Module)
             .FirstOrDefaultAsync();
 
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result!.Role.Name).IsEqualTo("Doctor");
-        await Assert.That(result.Module.Name).IsEqualTo("Lab Results");
+        Assert.NotNull(result);
+        Assert.Equal("Doctor", result!.Role.Name);
+        Assert.Equal("Lab Results", result.Module.Name);
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_context != null)
-        {
-            await _context.DisposeAsync(); // Dispose DbContext asynchronously
-        }
-
-        GC.SuppressFinalize(this);
-    }
-
-
 }

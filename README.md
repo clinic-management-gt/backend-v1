@@ -28,6 +28,33 @@ Según tu sistema operativo puedes instalarlos con:
 
 Después de instalarlos, reinicia la terminal y valida nuevamente con `dotnet --info`.
 
+### Actualizar de .NET 8 a .NET 9.0.110
+
+Si tienes SDK y runtimes 8.x instalados, desinstalalos antes de instalar el SDK 9.0.110 para evitar conflictos. Usa el método adecuado según tu sistema operativo:
+
+- **Windows**
+  1. `winget list Microsoft.DotNet` para ver los paquetes instalados.
+  2. `winget uninstall Microsoft.DotNet.SDK.8` y `winget uninstall Microsoft.DotNet.AspNetCore.8` (usa `--scope machine` si lo instalaste para todos los usuarios).
+  3. Instala el nuevo SDK: `winget install Microsoft.DotNet.SDK.9 --version 9.0.110 --scope machine`.
+  4. Instala el nuevo runtime ASP.NET Core: `winget install Microsoft.DotNet.AspNetCore.9 --version 9.0.110 --scope machine`.
+
+- **macOS**
+  1. `sudo rm -rf /usr/local/share/dotnet/sdk/8.* /usr/local/share/dotnet/shared/Microsoft.NETCore.App/8.* /usr/local/share/dotnet/shared/Microsoft.AspNetCore.App/8.*`.
+  2. Instala el SDK 9.0.110 con el script oficial: `curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version 9.0.110 --install-dir /usr/local/share/dotnet`.
+  3. Asegura el symlink: `sudo ln -sf /usr/local/share/dotnet/dotnet /usr/local/bin/dotnet`.
+
+- **Ubuntu/Debian**
+  1. `sudo apt remove 'dotnet-*8.0*' 'aspnetcore-runtime-8.0'`.
+  2. Actualiza los repositorios y instala el SDK 9: `sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0 aspnetcore-runtime-9.0`.
+  3. Si la distro aún no ofrece 9.0.110, usa el script oficial: `curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version 9.0.110 --install-dir $HOME/dotnet`.
+
+- **Arch/Manjaro**
+  1. `sudo pacman -Rs dotnet-sdk aspnet-runtime` para quitar la versión 8.x.
+  2. Instala el SDK 9 con el paquete `dotnet-sdk-preview`: `sudo pacman -S dotnet-sdk-preview aspnet-runtime-preview`.
+  3. Alternativa: `curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version 9.0.110 --install-dir $HOME/dotnet` y añade `export PATH="$HOME/dotnet:$PATH"` a tu shell.
+
+Después de la instalación ejecuta `dotnet --list-sdks`, `dotnet --list-runtimes` y `dotnet --version` para comprobar que solo aparecen entradas 9.0.110.
+
 ---
 
 ## 📁 Configuration Files

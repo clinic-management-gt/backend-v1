@@ -1,41 +1,42 @@
+using System.Collections.Generic;
 using System.Net.Http.Json;
-using Clinica.Models;
+using System.Threading.Tasks;
 using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc.Testing;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace IntegrationTests.Controllers;
 
-public class PatientsControllerTests
+public class PatientsControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    [ClassDataSource<WebApplicationFactory<Program>>(Shared = SharedType.PerTestSession)]
-    public required WebApplicationFactory<Program> Factory { get; init; }
+    private readonly WebApplicationFactory<Program> _factory;
 
-    [Test]
+    public PatientsControllerTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
+    [Fact]
     public async Task GetAllPatients_ReturnsOk()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
-        // Act
         var response = await client.GetAsync("/patients");
 
-        // Assert
-        await Assert.That(response.IsSuccessStatusCode).IsTrue();
+        Assert.True(response.IsSuccessStatusCode);
 
         var patients = await response.Content.ReadFromJsonAsync<List<Patient>>();
 
-        await Assert.That(patients).IsNotNull();
+        Assert.NotNull(patients);
     }
 
-    [Test]
+    [Fact]
     public async Task GetPatientById_NotFound_WhenMissing()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/patients/99999");
 
-        await Assert.That(response.StatusCode)
-            .IsEqualTo(System.Net.HttpStatusCode.NotFound);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
 }

@@ -2,27 +2,30 @@ using System;
 using System.Threading.Tasks;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace UnitTests.EntityFrameworkTests;
 
-public class RoleTests : IAsyncDisposable
-
+public class RoleTests : IAsyncLifetime
 {
-    private ApplicationDbContext _context;
+    private ApplicationDbContext _context = default!;
 
-    public RoleTests()
+    public Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         _context = new ApplicationDbContext(options);
+        return Task.CompletedTask;
     }
 
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
 
-    [Test]
+    [Fact]
     public async Task AddRole_ShouldAddRoleToDatabase()
     {
         var role = new Role
@@ -37,11 +40,11 @@ public class RoleTests : IAsyncDisposable
         await _context.Roles.AddAsync(role);
         await _context.SaveChangesAsync();
 
-        await Assert.That(await _context.Roles.CountAsync()).IsEqualTo(1);
-        await Assert.That((await _context.Roles.FirstAsync()).Name).IsEqualTo("Manager");
+        Assert.Equal(1, await _context.Roles.CountAsync());
+        Assert.Equal("Manager", (await _context.Roles.FirstAsync()).Name);
     }
 
-    [Test]
+    [Fact]
     public async Task RetrieveRole_ShouldReturnCorrectRole()
     {
         var role = new Role
@@ -58,16 +61,7 @@ public class RoleTests : IAsyncDisposable
 
         var result = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Receptionist");
 
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result!.Type).IsEqualTo(2);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_context != null)
-        {
-            await _context.DisposeAsync(); // Dispose DbContext asynchronously
-        }
-
+        Assert.NotNull(result);
+        Assert.Equal(2, result!.Type);
     }
 }

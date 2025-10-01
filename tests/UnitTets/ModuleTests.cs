@@ -2,26 +2,30 @@ using System;
 using System.Threading.Tasks;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace UnitTests.EntityFrameworkTests;
 
-public class ModuleTests : IAsyncDisposable
-
+public class ModuleTests : IAsyncLifetime
 {
-    private ApplicationDbContext _context;
+    private ApplicationDbContext _context = default!;
 
-    public ModuleTests()
+    public Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         _context = new ApplicationDbContext(options);
+        return Task.CompletedTask;
     }
 
-    [Test]
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
+
+    [Fact]
     public async Task AddModule_ShouldAddModuleToDatabase()
     {
         var module = new Module
@@ -35,11 +39,11 @@ public class ModuleTests : IAsyncDisposable
         await _context.Modules.AddAsync(module);
         await _context.SaveChangesAsync();
 
-        await Assert.That(await _context.Modules.CountAsync()).IsEqualTo(1);
-        await Assert.That((await _context.Modules.FirstAsync()).Name).IsEqualTo("Patient Records");
+        Assert.Equal(1, await _context.Modules.CountAsync());
+        Assert.Equal("Patient Records", (await _context.Modules.FirstAsync()).Name);
     }
 
-    [Test]
+    [Fact]
     public async Task RetrieveModule_ShouldReturnCorrectModule()
     {
         var module = new Module
@@ -55,18 +59,7 @@ public class ModuleTests : IAsyncDisposable
 
         var result = await _context.Modules.FirstOrDefaultAsync(m => m.Name == "Billing");
 
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result!.Description).IsEqualTo("Handles invoicing");
+        Assert.NotNull(result);
+        Assert.Equal("Handles invoicing", result!.Description);
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_context != null)
-        {
-            await _context.DisposeAsync(); // Dispose DbContext asynchronously
-        }
-
-        GC.SuppressFinalize(this);
-    }
-
 }

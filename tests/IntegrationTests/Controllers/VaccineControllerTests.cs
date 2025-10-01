@@ -1,20 +1,24 @@
 using System.Net.Http.Json;
+using System.Threading.Tasks;
 using Clinica.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace IntegrationTests.Controllers;
 
-public class VaccinesControllerTests
+public class VaccinesControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    [ClassDataSource<WebApplicationFactory<Program>>(Shared = SharedType.PerTestSession)]
-    public required WebApplicationFactory<Program> Factory { get; init; }
+    private readonly WebApplicationFactory<Program> _factory;
 
-    [Test]
+    public VaccinesControllerTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
+    [Fact]
     public async Task PostVaccine_ReturnsCreated()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
         var vaccine = new VaccineDTO
         {
@@ -24,32 +28,30 @@ public class VaccinesControllerTests
 
         var response = await client.PostAsJsonAsync("/vaccines", vaccine);
 
-        await Assert.That(response.IsSuccessStatusCode).IsTrue();
+        Assert.True(response.IsSuccessStatusCode);
 
         var created = await response.Content.ReadFromJsonAsync<VaccineDTO>();
 
-        await Assert.That(created).IsNotNull();
-        await Assert.That(created!.Name).IsEqualTo("TestVaccine");
-        await Assert.That(created.Brand).IsEqualTo("TestBrand");
+        Assert.NotNull(created);
+        Assert.Equal("TestVaccine", created!.Name);
+        Assert.Equal("TestBrand", created.Brand);
     }
 
-    [Test]
+    [Fact]
     public async Task GetVaccine_NotFound_WhenMissing()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/vaccines/99999");
 
-        await Assert.That(response.StatusCode)
-            .IsEqualTo(System.Net.HttpStatusCode.NotFound);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Test]
+    [Fact]
     public async Task UpdateVaccine_ReturnsNoContent()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
-        // First, create a vaccine
         var vaccine = new VaccineDTO
         {
             Name = "Initial",
@@ -58,18 +60,21 @@ public class VaccinesControllerTests
         var createResponse = await client.PostAsJsonAsync("/vaccines", vaccine);
         var created = await createResponse.Content.ReadFromJsonAsync<VaccineDTO>();
 
-        // Update it
-        created!.Name = "Updated";
-        created.Brand = "BrandY";
+        Assert.NotNull(created);
+        var updated = new VaccineDTO
+        {
+            Id = created!.Id,
+            Name = "Updated",
+            Brand = "BrandY"
+        };
 
-        var updateResponse = await client.PatchAsJsonAsync($"/vaccines/{created.Id}", created);
+        var updateResponse = await client.PatchAsJsonAsync($"/vaccines/{created.Id}", updated);
 
-        await Assert.That(updateResponse.StatusCode)
-            .IsEqualTo(System.Net.HttpStatusCode.NoContent);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, updateResponse.StatusCode);
 
-        // Fetch it again and verify
         var getResponse = await client.GetFromJsonAsync<VaccineDTO>($"/vaccines/{created.Id}");
-        await Assert.That(getResponse!.Name).IsEqualTo("Updated");
-        await Assert.That(getResponse.Brand).IsEqualTo("BrandY");
+        Assert.NotNull(getResponse);
+        Assert.Equal("Updated", getResponse!.Name);
+        Assert.Equal("BrandY", getResponse.Brand);
     }
 }

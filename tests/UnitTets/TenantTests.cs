@@ -2,27 +2,30 @@ using System;
 using System.Threading.Tasks;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace UnitTests;
 
-public class TenantTests : IAsyncDisposable
-
+public class TenantTests : IAsyncLifetime
 {
-    private ApplicationDbContext _context;
+    private ApplicationDbContext _context = default!;
 
-    public TenantTests()
+    public Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         _context = new ApplicationDbContext(options);
+        return Task.CompletedTask;
     }
 
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
 
-    [Test]
+    [Fact]
     public async Task AddTenant_ShouldAddTenantToDatabase()
     {
         var tenant = new Tenant
@@ -38,10 +41,10 @@ public class TenantTests : IAsyncDisposable
         await _context.Tenants.AddAsync(tenant);
         await _context.SaveChangesAsync();
 
-        await Assert.That(_context.Tenants.CountAsync().Result).IsGreaterThan(0);
+        Assert.True(await _context.Tenants.CountAsync() > 0);
     }
 
-    [Test]
+    [Fact]
     public async Task RetrieveTenant_ShouldReturnCorrectTenant()
     {
         var tenant = new Tenant
@@ -59,19 +62,8 @@ public class TenantTests : IAsyncDisposable
 
         var result = await _context.Tenants.FirstOrDefaultAsync(t => t.DbName == "mydb");
 
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result!.DbName).IsEqualTo("mydb");
-        await Assert.That(result.DbHost).IsEqualTo("127.0.0.1");
+        Assert.NotNull(result);
+        Assert.Equal("mydb", result!.DbName);
+        Assert.Equal("127.0.0.1", result.DbHost);
     }
-
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_context != null)
-        {
-            await _context.DisposeAsync(); // Dispose DbContext asynchronously
-        }
-
-    }
-
 }

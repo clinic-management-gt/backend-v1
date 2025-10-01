@@ -2,30 +2,32 @@ using System;
 using System.Threading.Tasks;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace UnitTests;
 
-public class UserTests : IAsyncDisposable
+public class UserTests : IAsyncLifetime
 {
-    private ApplicationDbContext _context;
+    private ApplicationDbContext _context = default!;
 
-    // This constructor runs before each test to reset the in-memory database
-    public UserTests()
+    public Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Ensure isolation per test
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         _context = new ApplicationDbContext(options);
+        return Task.CompletedTask;
     }
 
-    // First test: check that a user is successfully added
-    [Test]
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
+
+    [Fact]
     public async Task AddUser_ShouldAddUserToDatabase()
     {
-        // Arrange: create a Role (required by User)
         var role = new Role
         {
             Id = 1,
@@ -52,12 +54,10 @@ public class UserTests : IAsyncDisposable
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
-        // : database should have at least one user
-        await Assert.That(_context.Users.CountAsync().Result).IsGreaterThan(0);
+        Assert.True(await _context.Users.CountAsync() > 0);
     }
 
-    // Second test: add and then retrieve the user
-    [Test]
+    [Fact]
     public async Task RetrieveUser_ShouldReturnCorrectUser()
     {
         var role = new Role
@@ -86,27 +86,10 @@ public class UserTests : IAsyncDisposable
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
-        // Act: try to retrieve user
         var result = await _context.Users.FirstOrDefaultAsync(u => u.Email == "hugo@example.com");
 
-        // Assert
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result!.Email).IsEqualTo("hugo@example.com");
-        await Assert.That(result.FirstName).IsEqualTo("Hugo");
+        Assert.NotNull(result);
+        Assert.Equal("hugo@example.com", result!.Email);
+        Assert.Equal("Hugo", result.FirstName);
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_context != null)
-        {
-            await _context.DisposeAsync(); // Dispose DbContext asynchronously
-        }
-
-    }
-
-
 }
-
-
-
-

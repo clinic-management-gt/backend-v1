@@ -11,23 +11,25 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'   
+          global-json-file: global.json
+          include-prerelease: true
+
+      - name: Restore dotnet tools
+        run: dotnet tool restore
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore backend-v1.sln
 
       - name: Run formatter check
-        run: |
-          dotnet tool install -g dotnet-format --version 5.1.250801
-          dotnet format --verify-no-changes --severity warn
+        run: dotnet format backend-v1.sln --verify-no-changes --severity warn
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build backend-v1.sln --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test --no-build --configuration Release --verbosity normal
+        run: dotnet test backend-v1.sln --no-build --configuration Release --verbosity normal

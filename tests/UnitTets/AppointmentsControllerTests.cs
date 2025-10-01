@@ -1,36 +1,39 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Clinica.Controllers;
 using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace UnitTests.Controllers;
 
-public class AppointmentsControllerTests : IAsyncDisposable
+public class AppointmentsControllerTests : IAsyncLifetime
 {
-    private readonly ApplicationDbContext _context;
-    private readonly AppointmentsController _controller;
+    private ApplicationDbContext _context = default!;
+    private AppointmentsController _controller = default!;
     private int _appointmentId;
     private int _patientId;
     private int _doctorId;
 
-    public AppointmentsControllerTests()
+    public async Task InitializeAsync()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         _context = new ApplicationDbContext(options);
-        SeedDataAsync().GetAwaiter().GetResult();
+        await SeedDataAsync();
         _controller = new AppointmentsController(_context);
     }
 
-    [Test]
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
+
+    [Fact]
     public async Task UpdateAppointment_WithAliasStatusAndNotes_ShouldPersistChanges()
     {
         var dto = new UpdateAppointmentDto
@@ -42,16 +45,15 @@ public class AppointmentsControllerTests : IAsyncDisposable
 
         var result = await _controller.UpdateAppointment(_appointmentId, dto);
 
-        var okResult = result as OkObjectResult;
-        await Assert.That(okResult).IsNotNull();
+        var okResult = Assert.IsType<OkObjectResult>(result);
 
         var updated = await _context.Appointments.FirstAsync(a => a.Id == _appointmentId);
-        await Assert.That(updated.Status).IsEqualTo(AppointmentStatus.Confirmado);
-        await Assert.That(updated.Reason).IsEqualTo("Paciente reagendado");
-        await Assert.That(updated.AppointmentDate.Date).IsEqualTo(dto.Date!.Value.Date);
+        Assert.Equal(AppointmentStatus.Confirmado, updated.Status);
+        Assert.Equal("Paciente reagendado", updated.Reason);
+        Assert.Equal(dto.Date!.Value.Date, updated.AppointmentDate.Date);
     }
 
-    [Test]
+    [Fact]
     public async Task UpdateAppointment_WithMissingPatient_ShouldReturnNotFound()
     {
         var dto = new UpdateAppointmentDto
@@ -61,12 +63,11 @@ public class AppointmentsControllerTests : IAsyncDisposable
 
         var result = await _controller.UpdateAppointment(_appointmentId, dto);
 
-        var notFound = result as NotFoundObjectResult;
-        await Assert.That(notFound).IsNotNull();
-        await Assert.That(notFound!.Value).IsEqualTo("No se encontró el paciente con ID 9999.");
+        var notFound = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.Equal("No se encontró el paciente con ID 9999.", notFound.Value);
     }
 
-    [Test]
+    [Fact]
     public async Task DeleteAppointment_ShouldRemoveDependencies()
     {
         var medicine = new Medicine
@@ -111,13 +112,12 @@ public class AppointmentsControllerTests : IAsyncDisposable
 
         var result = await _controller.DeleteAppointment(_appointmentId);
 
-        var okResult = result as OkObjectResult;
-        await Assert.That(okResult).IsNotNull();
+        Assert.IsType<OkObjectResult>(result);
 
-        await Assert.That(await _context.Appointments.AnyAsync(a => a.Id == _appointmentId)).IsFalse();
-        await Assert.That(await _context.Diagnoses.AnyAsync(d => d.AppointmentId == _appointmentId)).IsFalse();
-        await Assert.That(await _context.Treatments.AnyAsync(t => t.AppointmentId == _appointmentId)).IsFalse();
-        await Assert.That(await _context.Recipes.AnyAsync(r => r.TreatmentId == treatment.Id)).IsFalse();
+        Assert.False(await _context.Appointments.AnyAsync(a => a.Id == _appointmentId));
+        Assert.False(await _context.Diagnoses.AnyAsync(d => d.AppointmentId == _appointmentId));
+        Assert.False(await _context.Treatments.AnyAsync(t => t.AppointmentId == _appointmentId));
+        Assert.False(await _context.Recipes.AnyAsync(r => r.TreatmentId == treatment.Id));
     }
 
     private async Task SeedDataAsync()
@@ -165,10 +165,5 @@ public class AppointmentsControllerTests : IAsyncDisposable
         await _context.SaveChangesAsync();
 
         _appointmentId = appointment.Id;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _context.DisposeAsync();
     }
 }

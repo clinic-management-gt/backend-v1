@@ -1,22 +1,26 @@
 using System.Net.Http.Json;
+using System.Threading.Tasks;
 using Clinica.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
-using TUnit;
-using TUnit.Assertions;
+using Xunit;
 
 namespace IntegrationTests.Controllers;
 
-public class RecipesControllerTests
+public class RecipesControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    [ClassDataSource<WebApplicationFactory<Program>>(Shared = SharedType.PerTestSession)]
-    public required WebApplicationFactory<Program> Factory { get; init; }
+    private readonly WebApplicationFactory<Program> _factory;
 
-    [Test]
+    public RecipesControllerTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
+    [Fact]
     public async Task PostRecipe_ReturnsCreated()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
-        var recipe = new Recipes
+        var recipe = new RecipeDTO
         {
             TreatmentId = 1,
             Prescription = "Test prescription"
@@ -24,23 +28,21 @@ public class RecipesControllerTests
 
         var response = await client.PostAsJsonAsync("/recipes", recipe);
 
-        await Assert.That(response.IsSuccessStatusCode).IsTrue();
+        Assert.True(response.IsSuccessStatusCode);
 
-        var created = await response.Content.ReadFromJsonAsync<Recipes>();
+        var created = await response.Content.ReadFromJsonAsync<RecipeDTO>();
 
-        await Assert.That(created).IsNotNull();
-        await Assert.That(created!.Id).IsGreaterThan(0);
+        Assert.NotNull(created);
+        Assert.True(created!.Id > 0);
     }
 
-    [Test]
+    [Fact]
     public async Task GetRecipe_NotFound_WhenMissing()
     {
-        var client = Factory.CreateClient();
+        var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/recipes/99999");
 
-        await Assert.That(response.StatusCode)
-            .IsEqualTo(System.Net.HttpStatusCode.NotFound);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
 }
-
