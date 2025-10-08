@@ -78,7 +78,7 @@ public class Program
 
         builder.Services.Configure<FormOptions>(o =>
         {
-            o.MultipartBodyLengthLimit = 25_000_000; 
+            o.MultipartBodyLengthLimit = 25_000_000;
         });
 
         var app = builder.Build();
