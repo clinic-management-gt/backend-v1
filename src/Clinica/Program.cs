@@ -15,7 +15,6 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        // Detectar ruta real del .env (está en backend-v1/.env)
         var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
         Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
         if (File.Exists(envPath)) Env.Load(envPath);
@@ -79,12 +78,11 @@ public class Program
 
         builder.Services.Configure<FormOptions>(o =>
         {
-            o.MultipartBodyLengthLimit = 25_000_000; // 25 MB
+            o.MultipartBodyLengthLimit = 25_000_000; 
         });
 
         var app = builder.Build();
 
-        // Esperar a que la base de datos esté lista y aplicar migraciones (solo una vez, sin ciclo)
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -103,7 +101,9 @@ public class Program
         app.UseAuthorization();
 
         app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
-        app.MapControllers();
+
+        var apiGroup = app.MapGroup("/api");
+        apiGroup.MapControllers();
 
         Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
 
