@@ -5,7 +5,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using Clinica.Models.EntityFramework;
 using Clinica.Services;
-using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +14,6 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
-        Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
-        if (File.Exists(envPath)) Env.Load(envPath);
 
         var builder = WebApplication.CreateBuilder(args);
 
