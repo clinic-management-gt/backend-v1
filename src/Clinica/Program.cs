@@ -15,7 +15,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env"));
+        var envPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", ".env"));
         Console.WriteLine($"[BOOT] .env path => {envPath} Exists? {File.Exists(envPath)}");
         if (File.Exists(envPath)) Env.Load(envPath);
 
