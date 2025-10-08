@@ -179,7 +179,7 @@ public class PatientsController : ControllerBase
                 c.Type,
                 c.Name,
                 c.LastName,
-                Phones = c.Phones.Select(ph => ph.Phone1).ToList()
+                Phones = c.Phones.Select(ph => ph.Phone1).ToList(),
             }).ToList(),
             Insurances = patient.Insurances.Select(i => new
             {
@@ -779,7 +779,14 @@ public class PatientsController : ControllerBase
                         ContactId = p.ContactId,
                         PhoneNumber = p.Phone1,
                     })
-                    .ToList()
+                    .ToList(),
+                Emails = c.ContactEmails
+                    .Select(ce => new EmailDTO
+                    {
+                        EmailId = ce.EmailId,
+                        Email = ce.Email.Value,
+                    })
+                    .ToList(),
             })
             .ToListAsync();
 

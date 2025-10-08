@@ -22,4 +22,6 @@ public partial class Contact
     public virtual Patient Patient { get; set; } = null!;
 
     public virtual ICollection<Phone> Phones { get; set; } = new List<Phone>();
+
+    public virtual ICollection<ContactEmail> ContactEmails { get; set; } = new List<ContactEmail>();
 }
