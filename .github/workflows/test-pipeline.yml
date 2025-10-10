@@ -42,6 +42,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
           script: |
             cd ~/backend-v1
-            docker compose pull backend
-            docker compose up -d
+            docker-compose pull backend
+            docker-compose up -d
             docker image prune -f
+
