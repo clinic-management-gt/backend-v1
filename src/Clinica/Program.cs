@@ -96,7 +96,7 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapGet("/ping", () => Results.Json(new { message = "pong - segunda prueba de que haya funcionado" }));
+        app.MapGet("/ping", () => Results.Json(new { message = "pong -TERCER prueba" }));
 
         var apiGroup = app.MapGroup("/api");
         apiGroup.MapControllers();
