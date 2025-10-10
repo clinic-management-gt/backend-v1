@@ -7,20 +7,21 @@ services:
     ports:
       - "9000:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
 
-      # DB / JWT (ya los tienes)
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-      - Jwt__Key=h8G7d3F2jK9pQ5wZ1xR6tY4uV8oC0mN7
+      - Jwt__Key=
       - Jwt__Issuer=clinica
       - Jwt__Audience=clinica
 
       # === Cloudflare R2 ===
-      - Cloudflare__AccountId=63c7a9dd34c934119288a54d12acf776
-      - Cloudflare__R2AccessKey=PEDIR_A_ESTEBAN
-      - Cloudflare__R2SecretKey=PEDIR_A_ESTEBAN
+      - Cloudflare__AccountId=
+      - Cloudflare__R2AccessKey=
+      - Cloudflare__R2SecretKey=
       - Cloudflare__R2BucketName=clinic-software
       - Cloudflare__PublicBase=https://pub-54cce539098547e99d7b5abd3a935ceb.r2.dev
 
@@ -36,6 +37,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./bd/entry-point:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   adminer:
     image: adminer
