@@ -96,7 +96,7 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapGet("/ping", () => Results.Json(new { message = "pong - funcionó el GitHub Action!" }));
+        app.MapGet("/ping", () => Results.Json(new { message = "pong - segunda prueba de que haya funcionado" }));
 
         var apiGroup = app.MapGroup("/api");
         apiGroup.MapControllers();
