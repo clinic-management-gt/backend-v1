@@ -34,6 +34,29 @@ jobs:
           cache-from: type=registry,ref=escuarch/test-software:backend-latest
           cache-to: type=inline
 
+      - name: Clean old Docker Hub tags
+        run: |
+          # Instalar jq para procesar JSON
+          sudo apt-get update && sudo apt-get install -y jq curl
+
+          # Obtener token de Docker Hub
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKERHUB_USERNAME }}", "password": "${{ secrets.DOCKERHUB_TOKEN_TEST }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+
+          # Obtener todos los tags que empiezan con "backend-" (excluyendo "backend-latest")
+          TAGS=$(curl -s -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/escuarch/test-software/tags/?page_size=100 | jq -r '.results[] | select(.name | startswith("backend-") and . != "backend-latest") | .name' | sort -r)
+
+          # Contar tags
+          COUNT=$(echo "$TAGS" | wc -l)
+
+          # Si hay más de 2 tags (mantener solo los 2 más recientes), eliminar los viejos
+          if [ $COUNT -gt 2 ]; then
+            TAGS_TO_DELETE=$(echo "$TAGS" | tail -n +3)
+            for TAG in $TAGS_TO_DELETE; do
+              echo "Eliminando tag: $TAG"
+              curl -X DELETE -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/escuarch/test-software/tags/$TAG/
+            done
+          fi
+
       - name: Deploy to Test Server
         uses: appleboy/ssh-action@v1.0.0
         with:
