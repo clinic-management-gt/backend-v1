@@ -1,5 +1,6 @@
 services:
   backend:
+    image: escuarch/test-software:backend-latest
     build:
       context: ./src
       dockerfile: ./DockerFile
