@@ -96,9 +96,8 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapGet("/ping", () => Results.Json(new { message = "pong -TERCER prueba" }));
-
         var apiGroup = app.MapGroup("/api");
+        apiGroup.MapGet("/ping", () => Results.Json(new { message = "pong" }));
         apiGroup.MapControllers();
 
         Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
