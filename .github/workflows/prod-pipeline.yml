@@ -1,0 +1,81 @@
+name: Production Pipeline - Backend
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_PROD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src
+          file: ./src/DockerFile
+          push: true
+          tags: |
+            escuarch/prod-software:backend-latest
+            escuarch/prod-software:backend-${{ github.event.release.tag_name }}
+          cache-from: type=registry,ref=escuarch/prod-software:backend-latest
+          cache-to: type=inline
+
+      - name: Clean old Docker Hub tags
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq curl
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKERHUB_USERNAME }}", "password": "${{ secrets.DOCKERHUB_TOKEN_PROD }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+          TAGS=$(curl -s -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/escuarch/prod-software/tags/?page_size=100 | jq -r '.results[] | select(.name | startswith("backend-") and . != "backend-latest") | .name' | sort -r)
+          COUNT=$(echo "$TAGS" | wc -l)
+          if [ $COUNT -gt 2 ]; then
+            TAGS_TO_DELETE=$(echo "$TAGS" | tail -n +3)
+            for TAG in $TAGS_TO_DELETE; do
+              echo "Eliminando tag: $TAG"
+              curl -X DELETE -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/escuarch/prod-software/tags/$TAG/
+            done
+          fi
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 128.24.93.178
+          username: azureuser
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+          script: |
+            cd ~/backend-v1
+            git fetch --tags
+            git checkout ${{ github.event.release.tag_name }}
+            docker compose pull backend
+            docker compose up -d --force-recreate backend
+            
+            echo "Esperando a que el backend esté listo..."
+            sleep 10
+            
+            if curl -f http://localhost:9001/ping; then
+              echo "✅ Backend respondiendo correctamente"
+              docker image prune -f
+            else
+              echo "❌ Backend no responde, rollback necesario"
+              exit 1
+            fi
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deploy exitoso de ${{ github.event.release.tag_name }} a producción"
+          else
+            echo "❌ Deploy falló para ${{ github.event.release.tag_name }}"
+          fi

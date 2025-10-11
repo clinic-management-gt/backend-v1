@@ -97,7 +97,7 @@ public class Program
         app.UseAuthorization();
 
         var apiGroup = app.MapGroup("/api");
-        apiGroup.MapGet("/ping", () => Results.Json(new { message = "pong" }));
+        apiGroup.MapGet("/ping", () => Results.Json(new { message = "pong - PRUEBA EN PROD" }));
         apiGroup.MapControllers();
 
         Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
