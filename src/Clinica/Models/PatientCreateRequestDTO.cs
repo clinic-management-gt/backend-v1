@@ -12,8 +12,8 @@ namespace Clinica.Models
         public DateTime Birthdate { get; set; }
         public string Gender { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public bool HasAlergies { get; set; }
-        public bool HasSyndromes { get; set; }
+        public int[] Alergies { get; set; }
+        public int[] Syndromes { get; set; }
         public string Pediatrician { get; set; } = string.Empty;
         public string MotherInfo { get; set; } = string.Empty;
         public string FatherInfo { get; set; } = string.Empty;
