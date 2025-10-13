@@ -1,0 +1,71 @@
+name: Test Pipeline - Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_TEST }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src
+          file: ./src/DockerFile
+          push: true
+          tags: |
+            escuarch/test-software:backend-latest
+            escuarch/test-software:backend-${{ github.sha }}
+          cache-from: type=registry,ref=escuarch/test-software:backend-latest
+          cache-to: type=inline
+
+      - name: Clean old Docker Hub tags
+        run: |
+          # Instalar jq para procesar JSON
+          sudo apt-get update && sudo apt-get install -y jq curl
+
+          # Obtener token de Docker Hub
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKERHUB_USERNAME }}", "password": "${{ secrets.DOCKERHUB_TOKEN_TEST }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+
+          # Obtener todos los tags que empiezan con "backend-" (excluyendo "backend-latest")
+          TAGS=$(curl -s -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/escuarch/test-software/tags/?page_size=100 | jq -r '.results[] | select(.name | startswith("backend-") and . != "backend-latest") | .name' | sort -r)
+
+          # Contar tags
+          COUNT=$(echo "$TAGS" | wc -l)
+
+          # Si hay más de 2 tags (mantener solo los 2 más recientes), eliminar los viejos
+          if [ $COUNT -gt 2 ]; then
+            TAGS_TO_DELETE=$(echo "$TAGS" | tail -n +3)
+            for TAG in $TAGS_TO_DELETE; do
+              echo "Eliminando tag: $TAG"
+              curl -X DELETE -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/escuarch/test-software/tags/$TAG/
+            done
+          fi
+
+      - name: Deploy to Test Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 172.176.96.39
+          username: azureuser
+          key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
+          script: |
+            cd ~/backend-v1
+            git pull origin main
+            docker compose pull backend
+            docker compose up -d
+            docker image prune -f
