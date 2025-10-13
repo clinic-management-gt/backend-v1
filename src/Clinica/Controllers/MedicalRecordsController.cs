@@ -121,6 +121,16 @@ namespace Clinica.Controllers
                 };
 
                 _context.MedicalRecords.Add(medicalRecord);
+
+                Patient? patient = await _context.Patients.FindAsync(medicalRecordDTO.Id);
+
+                if (patient is null)
+                {
+                    return NotFound();
+                }
+
+                patient.LastVisit = DateOnly.FromDateTime(DateTime.UtcNow);
+
                 await _context.SaveChangesAsync();
 
                 Console.WriteLine($"✅ Medical record creado exitosamente con ID: {medicalRecord.Id}");
