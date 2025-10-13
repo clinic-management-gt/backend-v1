@@ -17,115 +17,282 @@ public class PatientsController : ControllerBase
         _r2 = r2;
     }
 
+
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> RegisterPatient([FromForm] PatientCreateRequestDTO request)
     {
-        // 1. Crear el paciente
-        var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction =
+            await _context.Database.BeginTransactionAsync();
 
-        var patient = new Patient
-        {
-            Name = request.Name,
-            LastName = request.LastName,
-            Birthdate = DateOnly.FromDateTime(request.Birthdate),
-            Gender = request.Gender,
-            Address = request.Address,
-            BloodTypeId = request.BloodTypeId,
-            PatientTypeId = request.PatientTypeId,
-            CreatedAt = now
-        };
-        _context.Patients.Add(patient);
-        await _context.SaveChangesAsync();
-
-        // 2. Guardar el archivo PDF como PatientDocument si se envió
-        string? fileUrl = null;
-        if (request.InfoSheetFile != null && request.InfoSheetFile.Length > 0)
-        {
-            fileUrl = await _r2.UploadDocumentToCloudflareR2(request.InfoSheetFile, patient.Id, "hoja_de_informacion", medicalRecordId: 0);
-            var doc = new PatientDocument
-            {
-                PatientId = patient.Id,
-                Type = "hoja_de_informacion",
-                Description = "Hoja de información del paciente",
-                FileUrl = fileUrl,
-                UploadedBy = null,
-                UploadedAt = DateTime.UtcNow,
-                Size = request.InfoSheetFile.Length,
-                ContentType = request.InfoSheetFile.ContentType,
-                MedicalRecordId = 0
-            };
-            _context.PatientDocuments.Add(doc);
-            await _context.SaveChangesAsync();
-        }
-
-        var contact = new Contact
-        {
-            PatientId = patient.Id,
-            Type = "Principal",
-            Name = patient.Name,
-            LastName = patient.LastName,
-            CreatedAt = now
-        };
-        _context.Contacts.Add(contact);
-        await _context.SaveChangesAsync();
-
-        // Guardar cada teléfono
-        foreach (var phone in request.ContactPhones)
-        {
-            var phoneEntity = new Phone
-            {
-                ContactId = contact.Id,
-                Phone1 = phone,
-                CreatedAt = now
-            };
-            _context.Phones.Add(phoneEntity);
-        }
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            message = "Paciente registrado exitosamente",
-            patientId = patient.Id,
-            infoSheetUrl = fileUrl
-        });
-    }
-
-    [HttpPost("basic")]
-    public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)
-    {
         try
         {
+            DateTime now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+            // 1. Create the patient
+            Patient patient = new Patient
+            {
+                Name = request.Name,
+                LastName = request.LastName,
+                Birthdate = DateOnly.FromDateTime(request.Birthdate),
+                Gender = request.Gender,
+                Address = request.Address,
+                BloodTypeId = request.BloodTypeId,
+                PatientTypeId = request.PatientTypeId,
+                CreatedAt = now
+            };
+
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync(); // Needed for patient.Id
+
+            // 2. File upload (unchanged)
+            string? fileUrl = null;
+            if (request.InfoSheetFile != null && request.InfoSheetFile.Length > 0)
+            {
+                fileUrl = await _r2.UploadDocumentToCloudflareR2(
+                    request.InfoSheetFile, patient.Id, "hoja_de_informacion", medicalRecordId: 0);
+
+                PatientDocument doc = new PatientDocument
+                {
+                    PatientId = patient.Id,
+                    Type = "hoja_de_informacion",
+                    Description = "Hoja de información del paciente",
+                    FileUrl = fileUrl,
+                    UploadedBy = null,
+                    UploadedAt = DateTime.UtcNow,
+                    Size = request.InfoSheetFile.Length,
+                    ContentType = request.InfoSheetFile.ContentType,
+                    MedicalRecordId = 0
+                };
+
+                _context.PatientDocuments.Add(doc);
+                await _context.SaveChangesAsync();
+            }
+
+            // 3. Allergies
+            if (request.Alergies != null && request.Alergies.Any())
+            {
+                foreach (int alergyId in request.Alergies.Distinct())
+                {
+                    PatientAlergy patientAlergy = new PatientAlergy
+                    {
+                        PatientId = patient.Id,
+                        AlergyId = alergyId
+                    };
+                    _context.PatientAlergies.Add(patientAlergy);
+                }
+            }
+
+            // 4. Syndromes (Chronic Diseases)
+            if (request.Syndromes != null && request.Syndromes.Any())
+            {
+                foreach (int chronicDiseaseId in request.Syndromes.Distinct())
+                {
+                    PatientChronicDisease chronicDisease = new PatientChronicDisease
+                    {
+                        PatientId = patient.Id,
+                        ChronicDiseaseId = chronicDiseaseId
+                    };
+                    _context.PatientChronicDiseases.Add(chronicDisease);
+                }
+            }
+
+            // 5. Insurance link
+            if (request.InsuranceId > 0)
+            {
+                Insurance? insurance = await _context.Insurances.FindAsync(request.InsuranceId);
+                if (insurance != null)
+                {
+                    patient.Insurances.Add(insurance);
+                }
+            }
+
+            // 6. Contacts
+            if (request.Contacts != null && request.Contacts.Any())
+            {
+                foreach (ContactCreateDTO contactDto in request.Contacts)
+                {
+                    Contact contact = new Contact
+                    {
+                        PatientId = patient.Id,
+                        Type = contactDto.Type,
+                        Name = contactDto.Name,
+                        LastName = contactDto.LastName,
+                        CreatedAt = now
+                    };
+
+                    _context.Contacts.Add(contact);
+                    await _context.SaveChangesAsync(); // Needed for contact.Id
+
+                    // Phones
+                    if (contactDto.Phones != null && contactDto.Phones.Any())
+                    {
+                        foreach (string phoneDto in contactDto.Phones)
+                        {
+                            Phone phone = new Phone
+                            {
+                                ContactId = contact.Id,
+                                Phone1 = phoneDto,
+                                CreatedAt = now
+                            };
+                            _context.Phones.Add(phone);
+                        }
+                    }
+
+                    if (contactDto.Emails != null && contactDto.Emails.Any())
+                    {
+                        foreach (string emailDto in contactDto.Emails)
+                        {
+
+                            Email emailEntity = new Email
+                            {
+                                Value = emailDto
+                            };
+
+                            _context.Emails.Add(emailEntity);
+
+                            await _context.SaveChangesAsync(); // Need Email.Id
+
+                            ContactEmail contactEmail = new ContactEmail
+                            {
+                                ContactId = contact.Id,
+                                EmailId = emailEntity.Id
+                            };
+                            _context.ContactEmails.Add(contactEmail);
+                        }
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(new
+            {
+                message = "Paciente registrado exitosamente",
+                patientId = patient.Id,
+            });
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Ocurrió un error al registrar el paciente." });
+        }
+
+    }
+
+    /*
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> RegisterPatient([FromForm] PatientCreateRequestDTO request)
+        {
+            // 1. Crear el paciente
             var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             var patient = new Patient
             {
                 Name = request.Name,
                 LastName = request.LastName,
-                Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
-                Gender = request.Gender, // Usar el género del DTO
-                Address = "", // Valor por defecto
-                BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
-                PatientTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
+                Birthdate = DateOnly.FromDateTime(request.Birthdate),
+                Gender = request.Gender,
+                Address = request.Address,
+                BloodTypeId = request.BloodTypeId,
+                PatientTypeId = request.PatientTypeId,
                 CreatedAt = now
             };
-
             _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
+
+            // 2. Guardar el archivo PDF como PatientDocument si se envió
+            string? fileUrl = null;
+            if (request.InfoSheetFile != null && request.InfoSheetFile.Length > 0)
+            {
+                fileUrl = await _r2.UploadDocumentToCloudflareR2(request.InfoSheetFile, patient.Id, "hoja_de_informacion", medicalRecordId: 0);
+                var doc = new PatientDocument
+                {
+                    PatientId = patient.Id,
+                    Type = "hoja_de_informacion",
+                    Description = "Hoja de información del paciente",
+                    FileUrl = fileUrl,
+                    UploadedBy = null,
+                    UploadedAt = DateTime.UtcNow,
+                    Size = request.InfoSheetFile.Length,
+                    ContentType = request.InfoSheetFile.ContentType,
+                    MedicalRecordId = 0
+                };
+                _context.PatientDocuments.Add(doc);
+                await _context.SaveChangesAsync();
+            }
+
+            var contact = new Contact
+            {
+                PatientId = patient.Id,
+                Type = "Principal",
+                Name = patient.Name,
+                LastName = patient.LastName,
+                CreatedAt = now
+            };
+            _context.Contacts.Add(contact);
+            await _context.SaveChangesAsync();
+
+            // Guardar cada teléfono
+            foreach (var phone in request.ContactPhones)
+            {
+                var phoneEntity = new Phone
+                {
+                    ContactId = contact.Id,
+                    Phone1 = phone,
+                    CreatedAt = now
+                };
+                _context.Phones.Add(phoneEntity);
+            }
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
-                id = patient.Id,
-                name = patient.Name,
-                lastName = patient.LastName,
-                message = "Paciente básico creado correctamente."
+                message = "Paciente registrado exitosamente",
+                patientId = patient.Id,
+                infoSheetUrl = fileUrl
             });
         }
-        catch (Exception ex)
+
+        [HttpPost("basic")]
+        public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)
         {
-            return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+            try
+            {
+                var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+                var patient = new Patient
+                {
+                    Name = request.Name,
+                    LastName = request.LastName,
+                    Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
+                    Gender = request.Gender, // Usar el género del DTO
+                    Address = "", // Valor por defecto
+                    BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
+                    PatientTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
+                    CreatedAt = now
+                };
+
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    id = patient.Id,
+                    name = patient.Name,
+                    lastName = patient.LastName,
+                    message = "Paciente básico creado correctamente."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+            }
         }
-    }
+    */
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Patient>>> GetAll([FromQuery] string? search)
