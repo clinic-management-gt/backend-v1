@@ -3,6 +3,7 @@ using System;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Clinica.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251013172736_PatientLastVisit")]
+    partial class PatientLastVisit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -205,27 +208,23 @@ namespace Clinica.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ContactId")
-                        .HasColumnType("integer")
-                        .HasColumnName("contact_id");
+                        .HasColumnType("integer");
 
                     b.Property<int>("EmailId")
-                        .HasColumnType("integer")
-                        .HasColumnName("email_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id")
-                        .HasName("contactemails_pkey");
+                    b.HasKey("Id");
 
                     b.HasIndex("ContactId");
 
                     b.HasIndex("EmailId");
 
-                    b.ToTable("contactemails", (string)null);
+                    b.ToTable("ContactEmail");
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.Diagnosis", b =>
@@ -267,21 +266,17 @@ namespace Clinica.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("value");
+                        .HasColumnType("text");
 
-                    b.HasKey("Id")
-                        .HasName("emails_pkey");
+                    b.HasKey("Id");
 
-                    b.ToTable("emails", (string)null);
+                    b.ToTable("Email");
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.Exam", b =>
@@ -1240,15 +1235,13 @@ namespace Clinica.Migrations
                         .WithMany("ContactEmails")
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("contactemails_contactid_fkey");
+                        .IsRequired();
 
                     b.HasOne("Clinica.Models.EntityFramework.Email", "Email")
                         .WithMany("ContactEmails")
                         .HasForeignKey("EmailId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("contactemails_emailid_fkey");
+                        .IsRequired();
 
                     b.Navigation("Contact");
 

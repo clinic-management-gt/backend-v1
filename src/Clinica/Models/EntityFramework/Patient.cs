@@ -13,6 +13,8 @@ public partial class Patient
 
     public DateOnly Birthdate { get; set; }
 
+    public DateOnly LastVisit { get; set; }
+
     public string Address { get; set; } = null!;
 
     public string Gender { get; set; } = null!;
