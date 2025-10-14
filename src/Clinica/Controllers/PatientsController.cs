@@ -182,117 +182,42 @@ public class PatientsController : ControllerBase
 
     }
 
-    /*
-        [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> RegisterPatient([FromForm] PatientCreateRequestDTO request)
+
+    [HttpPost("basic")]
+    public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)
+    {
+        try
         {
-            // 1. Crear el paciente
             var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
 
             var patient = new Patient
             {
                 Name = request.Name,
                 LastName = request.LastName,
-                Birthdate = DateOnly.FromDateTime(request.Birthdate),
-                Gender = request.Gender,
-                Address = request.Address,
-                BloodTypeId = request.BloodTypeId,
-                PatientTypeId = request.PatientTypeId,
+                Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
+                Gender = request.Gender, // Usar el género del DTO
+                Address = "", // Valor por defecto
+                BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
+                PatientTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
                 CreatedAt = now
             };
+
             _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
-
-            // 2. Guardar el archivo PDF como PatientDocument si se envió
-            string? fileUrl = null;
-            if (request.InfoSheetFile != null && request.InfoSheetFile.Length > 0)
-            {
-                fileUrl = await _r2.UploadDocumentToCloudflareR2(request.InfoSheetFile, patient.Id, "hoja_de_informacion", medicalRecordId: 0);
-                var doc = new PatientDocument
-                {
-                    PatientId = patient.Id,
-                    Type = "hoja_de_informacion",
-                    Description = "Hoja de información del paciente",
-                    FileUrl = fileUrl,
-                    UploadedBy = null,
-                    UploadedAt = DateTime.UtcNow,
-                    Size = request.InfoSheetFile.Length,
-                    ContentType = request.InfoSheetFile.ContentType,
-                    MedicalRecordId = 0
-                };
-                _context.PatientDocuments.Add(doc);
-                await _context.SaveChangesAsync();
-            }
-
-            var contact = new Contact
-            {
-                PatientId = patient.Id,
-                Type = "Principal",
-                Name = patient.Name,
-                LastName = patient.LastName,
-                CreatedAt = now
-            };
-            _context.Contacts.Add(contact);
-            await _context.SaveChangesAsync();
-
-            // Guardar cada teléfono
-            foreach (var phone in request.ContactPhones)
-            {
-                var phoneEntity = new Phone
-                {
-                    ContactId = contact.Id,
-                    Phone1 = phone,
-                    CreatedAt = now
-                };
-                _context.Phones.Add(phoneEntity);
-            }
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
-                message = "Paciente registrado exitosamente",
-                patientId = patient.Id,
-                infoSheetUrl = fileUrl
+                id = patient.Id,
+                name = patient.Name,
+                lastName = patient.LastName,
+                message = "Paciente básico creado correctamente."
             });
         }
-
-        [HttpPost("basic")]
-        public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)
+        catch (Exception ex)
         {
-            try
-            {
-                var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-
-                var patient = new Patient
-                {
-                    Name = request.Name,
-                    LastName = request.LastName,
-                    Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
-                    Gender = request.Gender, // Usar el género del DTO
-                    Address = "", // Valor por defecto
-                    BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
-                    PatientTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
-                    CreatedAt = now
-                };
-
-                _context.Patients.Add(patient);
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    id = patient.Id,
-                    name = patient.Name,
-                    lastName = patient.LastName,
-                    message = "Paciente básico creado correctamente."
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
-            }
+            return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
         }
-    */
+    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Patient>>> GetAll([FromQuery] string? search)
