@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
-[Route("patients")]
+[Route("api/patients")]
 public class PatientsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
