@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
+using Clinica;
 using Clinica.Models.EntityFramework;
 using Clinica.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,7 +30,10 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.MapEnum<AppointmentStatus>("appointment_status_enum")));
 
-        builder.Services.AddControllers()
+        builder.Services.AddControllers(options =>
+            {
+                options.Conventions.Add(new RoutePrefixConvention("api"));
+            })
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -85,20 +89,25 @@ public class Program
             await db.Database.MigrateAsync();
         }
 
+
+
+        app.UseHttpsRedirection();
+        app.UseCors("AllowFrontend");
+
+        app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+
+        app.MapGet("/ping", () => Results.Json(new { message = "pong" }));
+        app.MapControllers();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
-        app.UseHttpsRedirection();
-        app.UseCors("AllowFrontend");
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        var apiGroup = app.MapGroup("/api");
-        apiGroup.MapGet("/ping", () => Results.Json(new { message = "pong" }));
-        apiGroup.MapControllers();
 
         Console.WriteLine("CFG Cloudflare AccountId => " + (builder.Configuration["Cloudflare:AccountId"] ?? "NULL"));
 
