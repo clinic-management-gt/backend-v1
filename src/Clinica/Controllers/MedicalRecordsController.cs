@@ -122,7 +122,7 @@ namespace Clinica.Controllers
 
                 _context.MedicalRecords.Add(medicalRecord);
 
-                Patient? patient = await _context.Patients.FindAsync(medicalRecordDTO.Id);
+                Patient? patient = await _context.Patients.FindAsync(medicalRecordDTO.PatientId);
 
                 if (patient is null)
                 {
@@ -134,7 +134,20 @@ namespace Clinica.Controllers
                 await _context.SaveChangesAsync();
 
                 Console.WriteLine($"✅ Medical record creado exitosamente con ID: {medicalRecord.Id}");
-                return CreatedAtAction(nameof(GetById), new { id = medicalRecord.Id }, medicalRecord);
+
+                var response = new
+                {
+                    id = medicalRecord.Id,
+                    patientId = medicalRecord.PatientId,
+                    weight = medicalRecord.Weight,
+                    height = medicalRecord.Height,
+                    familyHistory = medicalRecord.FamilyHistory,
+                    notes = medicalRecord.Notes,
+                    createdAt = medicalRecord.CreatedAt,
+                    updatedAt = medicalRecord.UpdatedAt
+                };
+
+                return CreatedAtAction(nameof(GetById), new { id = medicalRecord.Id }, response);
             }
             catch (Exception ex)
             {
