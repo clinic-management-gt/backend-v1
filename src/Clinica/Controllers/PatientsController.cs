@@ -220,9 +220,10 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Patient>>> GetAll([FromQuery] string? search)
+    public async Task<ActionResult<IEnumerable<object>>> GetAll([FromQuery] string? search)
     {
-        IQueryable<Patient> query = _context.Patients;
+        IQueryable<Patient> query = _context.Patients
+            .Include(p => p.Contacts);
 
         if (!string.IsNullOrEmpty(search))
         {
@@ -230,7 +231,26 @@ public class PatientsController : ControllerBase
             query = query.Where(p => p.Name.ToLower().Contains(lowerSearch) || p.LastName.ToLower().Contains(lowerSearch));
         }
 
-        var patients = await query.ToListAsync();
+        var patients = await query
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.LastName,
+                p.Birthdate,
+                p.Address,
+                p.Gender,
+                p.BloodTypeId,
+                p.PatientTypeId,
+                p.CreatedAt,
+                p.UpdatedAt,
+                p.LastVisit,
+                date = p.LastVisit,
+                // Formatear los nombres de los padres/encargados
+                parents = string.Join(", ", p.Contacts.Select(c => c.Name + " " + c.LastName))
+            })
+            .ToListAsync();
+
         return Ok(patients);
     }
 

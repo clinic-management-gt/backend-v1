@@ -245,16 +245,94 @@ VALUES
 -- ========================================
 -- 14) Contacts
 INSERT INTO contacts (patient_id, type, name, last_name)
-VALUES 
-  (1, 'Padre', 'Carlos', 'Gómez');
+VALUES
+  (1, 'Padre', 'Carlos', 'Gómez'),
+  (1, 'Madre', 'Rosa', 'Hernández'),
+  (2, 'Padre', 'Roberto', 'Pérez'),
+  (2, 'Madre', 'Laura', 'Martínez'),
+  (3, 'Padre', 'Miguel', 'González'),
+  (3, 'Madre', 'Patricia', 'Rodríguez'),
+  (4, 'Padre', 'Antonio', 'Fernández'),
+  (4, 'Madre', 'Carmen', 'López'),
+  (5, 'Padre', 'José', 'Ramírez'),
+  (5, 'Madre', 'Elena', 'García'),
+  (6, 'Padre', 'Pedro', 'Martínez'),
+  (6, 'Madre', 'Isabel', 'Sánchez'),
+  (7, 'Padre', 'Fernando', 'López'),
+  (7, 'Madre', 'Marta', 'Díaz'),
+  (8, 'Padre', 'Ricardo', 'Torres'),
+  (8, 'Madre', 'Silvia', 'Morales'),
+  (9, 'Padre', 'Raúl', 'Castro'),
+  (9, 'Madre', 'Beatriz', 'Vargas'),
+  (10, 'Padre', 'Javier', 'Mendoza'),
+  (10, 'Madre', 'Gloria', 'Ortiz'),
+  (11, 'Padre', 'Sergio', 'Morales'),
+  (11, 'Madre', 'Diana', 'Ruiz'),
+  (12, 'Padre', 'Alberto', 'Silva'),
+  (12, 'Madre', 'Gabriela', 'Jiménez'),
+  (13, 'Padre', 'Héctor', 'Legister'),
+  (13, 'Madre', 'Victoria', 'Brown'),
+  (14, 'Padre', 'Daniel', 'Brook'),
+  (14, 'Madre', 'Mónica', 'White'),
+  (15, 'Padre', 'Andrés', 'Pierce'),
+  (15, 'Madre', 'Claudia', 'Taylor'),
+  (16, 'Padre', 'Gustavo', 'Orwell'),
+  (16, 'Madre', 'Lorena', 'Davis'),
+  (17, 'Padre', 'Leonardo', 'Emery'),
+  (17, 'Madre', 'Alejandra', 'Miller'),
+  (18, 'Padre', 'Mauricio', 'Woodwin'),
+  (18, 'Madre', 'Verónica', 'Wilson'),
+  (19, 'Padre', 'Rodrigo', 'Fortesquieu'),
+  (19, 'Madre', 'Paola', 'Moore'),
+  (20, 'Padre', 'Marcelo', 'Hancorn'),
+  (20, 'Madre', 'Carolina', 'Anderson');
 
 -- ========================================
 -- PHONES
 -- ========================================
 -- 15) Phones
 INSERT INTO phones (contact_id, phone)
-VALUES 
-  (1, '55512345');
+VALUES
+  (1, '55512345'),
+  (2, '55512346'),
+  (3, '55512347'),
+  (4, '55512348'),
+  (5, '55512349'),
+  (6, '55512350'),
+  (7, '55512351'),
+  (8, '55512352'),
+  (9, '55512353'),
+  (10, '55512354'),
+  (11, '55512355'),
+  (12, '55512356'),
+  (13, '55512357'),
+  (14, '55512358'),
+  (15, '55512359'),
+  (16, '55512360'),
+  (17, '55512361'),
+  (18, '55512362'),
+  (19, '55512363'),
+  (20, '55512364'),
+  (21, '55512365'),
+  (22, '55512366'),
+  (23, '55512367'),
+  (24, '55512368'),
+  (25, '55512369'),
+  (26, '55512370'),
+  (27, '55512371'),
+  (28, '55512372'),
+  (29, '55512373'),
+  (30, '55512374'),
+  (31, '55512375'),
+  (32, '55512376'),
+  (33, '55512377'),
+  (34, '55512378'),
+  (35, '55512379'),
+  (36, '55512380'),
+  (37, '55512381'),
+  (38, '55512382'),
+  (39, '55512383'),
+  (40, '55512384');
 
 -- ========================================
 -- EXAMS
