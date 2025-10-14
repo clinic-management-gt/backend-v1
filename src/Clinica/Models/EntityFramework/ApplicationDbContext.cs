@@ -116,6 +116,9 @@ public partial class ApplicationDbContext : DbContext
     /// <summary>Tabla de documentos de pacientes.</summary>
     public virtual DbSet<PatientDocument> PatientDocuments { get; set; }
 
+    /// <summary>Vista de pacientes pendientes de confirmación.</summary>
+    public virtual DbSet<PendingPatientView> PendingPatientsView { get; set; }
+
     /// <summary>
     /// Configura la conexión a la base de datos si no está configurada.
     /// </summary>
@@ -500,6 +503,9 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.ConfirmedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("confirmed_at");
 
             entity.HasOne(d => d.BloodType).WithMany(p => p.Patients)
                 .HasForeignKey(d => d.BloodTypeId)
@@ -843,6 +849,27 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");
+        });
+
+        // Configuración de la vista de pacientes pendientes
+        modelBuilder.Entity<PendingPatientView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("pending_patients_view");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.LastName)
+                .HasMaxLength(50)
+                .HasColumnName("last_name");
+            entity.Property(e => e.ContactPhone)
+                .HasMaxLength(15)
+                .HasColumnName("contact_phone");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
         });
 
         OnModelCreatingPartial(modelBuilder);
