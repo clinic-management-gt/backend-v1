@@ -12,17 +12,15 @@ namespace Clinica.Models
         public DateTime Birthdate { get; set; }
         public string Gender { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public bool HasAlergies { get; set; }
-        public bool HasSyndromes { get; set; }
+        public int[] Alergies { get; set; } = Array.Empty<int>();
+        public int[] Syndromes { get; set; } = Array.Empty<int>();
         public string Pediatrician { get; set; } = string.Empty;
-        public string MotherInfo { get; set; } = string.Empty;
-        public string FatherInfo { get; set; } = string.Empty;
-        public List<string> ContactPhones { get; set; } = new();
-        public string Insurance { get; set; } = string.Empty;
+        public List<ContactCreateDTO> Contacts { get; set; } = new();
+        public int InsuranceId { get; set; }
         public string ResidenceAddress { get; set; } = string.Empty;
-        public string ContactEmail { get; set; } = string.Empty;
         public IFormFile? InfoSheetFile { get; set; }
         public int BloodTypeId { get; set; }
         public int PatientTypeId { get; set; }
     }
+
 }

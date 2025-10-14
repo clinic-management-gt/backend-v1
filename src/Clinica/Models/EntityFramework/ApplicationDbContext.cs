@@ -41,6 +41,12 @@ public partial class ApplicationDbContext : DbContext
     /// <summary>Tabla de contactos de pacientes.</summary>
     public virtual DbSet<Contact> Contacts { get; set; }
 
+    /// <summary>Tabla de emails de contactos.</summary>
+    public virtual DbSet<Email> Emails { get; set; }
+
+    /// <summary>Tabla de cruce de emails de contactos.</summary>
+    public virtual DbSet<ContactEmail> ContactEmails { get; set; }
+
     /// <summary>Tabla de diagnósticos.</summary>
     public virtual DbSet<Diagnosis> Diagnoses { get; set; }
 
@@ -145,6 +151,47 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("alergy_code");
             entity.Property(e => e.AlergyDescription).HasColumnName("alergy_description");
+        });
+
+
+        modelBuilder.Entity<Email>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("emails_pkey");
+
+            entity.ToTable("emails");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.Property(e => e.Value)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("value");
+
+            entity.HasMany(e => e.ContactEmails)
+                .WithOne(ce => ce.Email)
+                .HasForeignKey(ce => ce.EmailId)
+                .HasConstraintName("contactemails_emailid_fkey");
+        });
+
+        modelBuilder.Entity<ContactEmail>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("contactemails_pkey");
+
+            entity.ToTable("contactemails");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ContactId).HasColumnName("contact_id");
+            entity.Property(e => e.EmailId).HasColumnName("email_id");
+
+            entity.HasOne(ce => ce.Contact)
+                .WithMany(c => c.ContactEmails)
+                .HasForeignKey(ce => ce.ContactId)
+                .HasConstraintName("contactemails_contactid_fkey");
+
+            entity.HasOne(ce => ce.Email)
+                .WithMany(e => e.ContactEmails)
+                .HasForeignKey(ce => ce.EmailId)
+                .HasConstraintName("contactemails_emailid_fkey");
         });
 
         modelBuilder.Entity<Appointment>(entity =>
