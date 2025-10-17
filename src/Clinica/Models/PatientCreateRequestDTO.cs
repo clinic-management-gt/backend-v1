@@ -17,7 +17,6 @@ namespace Clinica.Models
         public string Pediatrician { get; set; } = string.Empty;
         public List<ContactCreateDTO> Contacts { get; set; } = new();
         public int InsuranceId { get; set; }
-        public string ResidenceAddress { get; set; } = string.Empty;
         public IFormFile? InfoSheetFile { get; set; }
         public int BloodTypeId { get; set; }
         public int PatientTypeId { get; set; }
