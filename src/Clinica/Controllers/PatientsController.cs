@@ -39,7 +39,8 @@ public class PatientsController : ControllerBase
                 Address = request.Address,
                 BloodTypeId = request.BloodTypeId,
                 PatientTypeId = request.PatientTypeId,
-                CreatedAt = now
+                CreatedAt = now,
+                ConfirmedAt = now // Marcar como confirmado al crear con todos los datos
             };
 
             _context.Patients.Add(patient);
@@ -182,6 +183,155 @@ public class PatientsController : ControllerBase
 
     }
 
+
+    [HttpPost("pending")]
+    public async Task<IActionResult> CreatePendingPatient([FromBody] PendingPatientCreateDTO request)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+            // Crear paciente temporal con datos mínimos y confirmed_at en NULL
+            var patient = new Patient
+            {
+                Name = request.Name,
+                LastName = request.LastName,
+                Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor temporal
+                Gender = "No specified", // Valor temporal
+                Address = "", // Valor temporal
+                BloodTypeId = 1, // Valor temporal por defecto
+                PatientTypeId = 1, // Valor temporal por defecto
+                CreatedAt = now,
+                ConfirmedAt = null // NULL indica que está pendiente de confirmar
+            };
+
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync(); // Necesario para obtener patient.Id
+
+            // Crear contacto con información completa
+            var contact = new Contact
+            {
+                PatientId = patient.Id,
+                Type = request.Contact.Relationship, // Usar el parentesco como tipo
+                Name = request.Contact.Name,
+                LastName = "", // No tenemos apellido del contacto en el DTO
+                CreatedAt = now
+            };
+
+            _context.Contacts.Add(contact);
+            await _context.SaveChangesAsync(); // Necesario para obtener contact.Id
+
+            // Agregar el teléfono al contacto
+            var phone = new Phone
+            {
+                ContactId = contact.Id,
+                Phone1 = request.Contact.Phone,
+                CreatedAt = now
+            };
+
+            _context.Phones.Add(phone);
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            return Ok(new
+            {
+                message = "Pending patient created successfully. Must be confirmed before using all services.",
+                patientId = patient.Id,
+                name = patient.Name,
+                lastName = patient.LastName,
+                contact = new
+                {
+                    name = request.Contact.Name,
+                    relationship = request.Contact.Relationship,
+                    phone = request.Contact.Phone
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while creating the pending patient.", error = ex.Message });
+        }
+    }
+
+    [HttpGet("pending")]
+    public async Task<ActionResult<IEnumerable<PendingPatientResponseDTO>>> GetPendingPatients()
+    {
+        try
+        {
+            // Consultar directamente la tabla patients con confirmed_at IS NULL
+            // y obtener la información completa del contacto
+            var pendingPatients = await _context.Patients
+                .Where(p => p.ConfirmedAt == null)
+                .Select(p => new PendingPatientResponseDTO
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    LastName = p.LastName,
+                    Contact = new PendingPatientResponseDTO.ContactInfo
+                    {
+                        Name = p.Contacts.FirstOrDefault() != null ? p.Contacts.FirstOrDefault()!.Name : "",
+                        Relationship = p.Contacts.FirstOrDefault() != null ? p.Contacts.FirstOrDefault()!.Type : "",
+                        Phone = p.Contacts
+                            .SelectMany(c => c.Phones)
+                            .Select(ph => ph.Phone1)
+                            .FirstOrDefault() ?? ""
+                    },
+                    CreatedAt = p.CreatedAt
+                })
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                message = $"Found {pendingPatients.Count} pending patients awaiting confirmation",
+                total = pendingPatients.Count,
+                patients = pendingPatients
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while retrieving pending patients.", error = ex.Message });
+        }
+    }
+
+    [HttpPatch("pending/{id}/confirm")]
+    public async Task<IActionResult> ConfirmPendingPatient(int id)
+    {
+        try
+        {
+            var patient = await _context.Patients.FindAsync(id);
+
+            if (patient == null)
+                return NotFound(new { message = $"Patient with ID {id} not found." });
+
+            if (patient.ConfirmedAt != null)
+                return BadRequest(new { message = $"Patient with ID {id} is already confirmed." });
+
+            // Marcar como confirmado
+            patient.ConfirmedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            patient.UpdatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Patient confirmed successfully. Now you can complete their information.",
+                patientId = patient.Id,
+                confirmedAt = patient.ConfirmedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while confirming the patient.", error = ex.Message });
+        }
+    }
 
     [HttpPost("basic")]
     public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)

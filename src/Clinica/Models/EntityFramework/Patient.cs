@@ -27,6 +27,8 @@ public partial class Patient
 
     public DateTime? UpdatedAt { get; set; }
 
+    public DateTime? ConfirmedAt { get; set; }
+
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual BloodType BloodType { get; set; } = null!;
