@@ -74,6 +74,18 @@ public partial class ApplicationDbContext : DbContext
     /// <summary>Tabla de pacientes.</summary>
     public virtual DbSet<Patient> Patients { get; set; }
 
+    /// <summary>Tabla de pacientes pendientes.</summary>
+    public virtual DbSet<PendingPatient> PendingPatients { get; set; }
+
+    /// <summary>Tabla de contactos de pacientes pendientes.</summary>
+    public virtual DbSet<PendingPatientContact> PendingPatientContacts { get; set; }
+
+    /// <summary>Tabla de teléfonos de contactos de pacientes pendientes.</summary>
+    public virtual DbSet<PendingPatientPhone> PendingPatientPhones { get; set; }
+
+    /// <summary>Tabla de emails de contactos de pacientes pendientes.</summary>
+    public virtual DbSet<PendingPatientEmail> PendingPatientEmails { get; set; }
+
     /// <summary>Tabla de alergias de pacientes.</summary>
     public virtual DbSet<PatientAlergy> PatientAlergies { get; set; }
 
@@ -843,6 +855,117 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");
+        });
+
+        // Configuración de PendingPatient
+        modelBuilder.Entity<PendingPatient>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("pending_patients_pkey");
+
+            entity.ToTable("pending_patients");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.LastName)
+                .HasMaxLength(50)
+                .HasColumnName("last_name");
+            entity.Property(e => e.Birthdate).HasColumnName("birthdate");
+            entity.Property(e => e.Gender)
+                .HasMaxLength(50)
+                .HasColumnName("gender");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at");
+        });
+
+        // Configuración de PendingPatientContact
+        modelBuilder.Entity<PendingPatientContact>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("pending_patient_contacts_pkey");
+
+            entity.ToTable("pending_patient_contacts");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PendingPatientId).HasColumnName("pending_patient_id");
+            entity.Property(e => e.Type)
+                .HasMaxLength(20)
+                .HasColumnName("type");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+            entity.Property(e => e.LastName)
+                .HasMaxLength(255)
+                .HasColumnName("last_name");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.PendingPatient).WithMany(p => p.PendingPatientContacts)
+                .HasForeignKey(d => d.PendingPatientId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("pending_patient_contacts_pending_patient_id_fkey");
+        });
+
+        // Configuración de PendingPatientPhone
+        modelBuilder.Entity<PendingPatientPhone>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("pending_patient_phones_pkey");
+
+            entity.ToTable("pending_patient_phones");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PendingPatientContactId).HasColumnName("pending_patient_contact_id");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(15)
+                .HasColumnName("phone");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.PendingPatientContact).WithMany(p => p.PendingPatientPhones)
+                .HasForeignKey(d => d.PendingPatientContactId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("pending_patient_phones_pending_patient_contact_id_fkey");
+        });
+
+        // Configuración de PendingPatientEmail
+        modelBuilder.Entity<PendingPatientEmail>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("pending_patient_emails_pkey");
+
+            entity.ToTable("pending_patient_emails");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PendingPatientContactId).HasColumnName("pending_patient_contact_id");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.PendingPatientContact).WithMany(p => p.PendingPatientEmails)
+                .HasForeignKey(d => d.PendingPatientContactId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("pending_patient_emails_pending_patient_contact_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -885,4 +885,152 @@ public class PatientsController : ControllerBase
         return Ok(contacts);
     }
 
+    // ===================================================================
+    // PENDING PATIENTS ENDPOINTS
+    // ===================================================================
+
+    [HttpPost("pending")]
+    public async Task<IActionResult> CreatePendingPatient([FromBody] PendingPatientCreateDTO request)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var now = DateTime.UtcNow;
+
+            var pendingPatient = new PendingPatient
+            {
+                Name = request.Name,
+                LastName = request.LastName,
+                Birthdate = DateOnly.FromDateTime(request.Birthdate),
+                Gender = request.Gender,
+                CreatedAt = now
+            };
+
+            _context.PendingPatients.Add(pendingPatient);
+            await _context.SaveChangesAsync();
+
+            if (request.Contacts != null && request.Contacts.Any())
+            {
+                foreach (var contactDto in request.Contacts)
+                {
+                    var contact = new PendingPatientContact
+                    {
+                        PendingPatientId = pendingPatient.Id,
+                        Type = "Familiar",
+                        Name = contactDto.Name,
+                        LastName = contactDto.LastName,
+                        CreatedAt = now
+                    };
+
+                    _context.PendingPatientContacts.Add(contact);
+                    await _context.SaveChangesAsync();
+
+                    if (contactDto.Phones != null && contactDto.Phones.Any())
+                    {
+                        foreach (var phone in contactDto.Phones)
+                        {
+                            var phoneEntity = new PendingPatientPhone
+                            {
+                                PendingPatientContactId = contact.Id,
+                                Phone = phone,
+                                CreatedAt = now
+                            };
+                            _context.PendingPatientPhones.Add(phoneEntity);
+                        }
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(new
+            {
+                message = "Paciente pendiente creado exitosamente",
+                pendingPatientId = pendingPatient.Id,
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Ocurrió un error al crear el paciente pendiente.", error = ex.Message });
+        }
+    }
+
+    [HttpGet("pending")]
+    public async Task<ActionResult<IEnumerable<PendingPatientResponseDTO>>> GetPendingPatients([FromQuery] string? search)
+    {
+        try
+        {
+            IQueryable<PendingPatient> query = _context.PendingPatients
+                .Include(p => p.PendingPatientContacts)
+                    .ThenInclude(c => c.PendingPatientPhones);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                string lowerSearch = search.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(lowerSearch) || p.LastName.ToLower().Contains(lowerSearch));
+            }
+
+            var pendingPatients = await query.ToListAsync();
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var response = pendingPatients.Select(p => new PendingPatientResponseDTO
+            {
+                Id = p.Id,
+                Name = p.Name,
+                LastName = p.LastName,
+                Age = today.Year - p.Birthdate.Year - (today.DayOfYear < p.Birthdate.DayOfYear ? 1 : 0),
+                Gender = p.Gender,
+                CreatedAt = p.CreatedAt ?? DateTime.MinValue,
+                Contacts = p.PendingPatientContacts.Select(c => new PendingPatientContactResponseDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    LastName = c.LastName,
+                    Phones = c.PendingPatientPhones.Select(ph => ph.Phone).ToList()
+                }).ToList()
+            }).ToList();
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error al obtener pacientes pendientes.", error = ex.Message });
+        }
+    }
+
+    [HttpDelete("pending/{id}")]
+    public async Task<IActionResult> DeletePendingPatient(int id)
+    {
+        try
+        {
+            var pendingPatient = await _context.PendingPatients
+                .Include(p => p.PendingPatientContacts)
+                    .ThenInclude(c => c.PendingPatientPhones)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pendingPatient == null)
+                return NotFound($"Paciente pendiente con ID {id} no encontrado.");
+
+            _context.PendingPatients.Remove(pendingPatient);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Paciente pendiente eliminado exitosamente",
+                deletedId = id
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "Error al eliminar el paciente pendiente.", error = ex.Message });
+        }
+    }
+
 }
