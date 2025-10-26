@@ -1,5 +1,6 @@
 services:
   backend:
+    #solamente para el server, quitar el desarollo
     image: escuarch/test-software:backend-latest
     build:
       context: ./src
@@ -36,7 +37,6 @@ services:
       - "5438:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./bd/entry-point:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
