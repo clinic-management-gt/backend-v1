@@ -87,6 +87,9 @@ public class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             await db.Database.MigrateAsync();
+
+            // Seed database with initial data
+            await Clinica.Data.DatabaseSeeder.SeedAsync(db);
         }
 
 
