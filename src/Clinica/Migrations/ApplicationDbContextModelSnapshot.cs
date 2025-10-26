@@ -683,49 +683,59 @@ namespace Clinica.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ContentType")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("content_type");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<string>("FileUrl")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("file_url");
 
                     b.Property<int?>("MedicalRecordId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("medical_record_id");
 
                     b.Property<int>("PatientId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("patient_id");
 
                     b.Property<long?>("Size")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("type");
 
                     b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("uploaded_at");
 
                     b.Property<int?>("UploadedBy")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("uploaded_by");
 
-                    b.Property<int?>("UploadedByUserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("patient_documents_pkey");
 
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("UploadedByUserId");
+                    b.HasIndex("UploadedBy");
 
-                    b.ToTable("PatientDocuments");
+                    b.ToTable("patient_documents", (string)null);
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.PatientExam", b =>
@@ -1360,12 +1370,14 @@ namespace Clinica.Migrations
                     b.HasOne("Clinica.Models.EntityFramework.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("patient_documents_patient_id_fkey");
 
                     b.HasOne("Clinica.Models.EntityFramework.User", "UploadedByUser")
                         .WithMany()
-                        .HasForeignKey("UploadedByUserId");
+                        .HasForeignKey("UploadedBy")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("patient_documents_uploaded_by_fkey");
 
                     b.Navigation("Patient");
 
