@@ -12,8 +12,10 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      # Ambiente de ejecución (desde .env)
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
 
+      # Database connection
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - Jwt__Key=
       - Jwt__Issuer=clinica
