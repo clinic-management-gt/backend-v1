@@ -7,12 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Clinica.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDatabaseScaffold : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /*
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:Enum:appointment_status_enum", "Confirmado,Pendiente,Completado,Cancelado,Espera")
                 .Annotation("Npgsql:Enum:log_action_enum", "INSERT,UPDATE,DELETE")
@@ -60,6 +59,19 @@ namespace Clinica.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("chronic_diseases_pkey", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "emails",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("emails_pkey", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -200,6 +212,7 @@ namespace Clinica.Migrations
                     name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     last_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     birthdate = table.Column<DateOnly>(type: "date", nullable: false),
+                    LastVisit = table.Column<DateOnly>(type: "date", nullable: false),
                     address = table.Column<string>(type: "text", nullable: false),
                     gender = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     blood_type_id = table.Column<int>(type: "integer", nullable: false),
@@ -459,7 +472,8 @@ namespace Clinica.Migrations
                     appointment_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     reason = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, defaultValueSql: "now()"),
-                    updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                    updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    status = table.Column<AppointmentStatus>(type: "appointment_status_enum", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -496,6 +510,64 @@ namespace Clinica.Migrations
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "patient_documents",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    patient_id = table.Column<int>(type: "integer", nullable: false),
+                    type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    file_url = table.Column<string>(type: "text", nullable: false),
+                    uploaded_by = table.Column<int>(type: "integer", nullable: true),
+                    uploaded_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    medical_record_id = table.Column<int>(type: "integer", nullable: true),
+                    size = table.Column<long>(type: "bigint", nullable: true),
+                    content_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("patient_documents_pkey", x => x.id);
+                    table.ForeignKey(
+                        name: "patient_documents_patient_id_fkey",
+                        column: x => x.patient_id,
+                        principalTable: "patients",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "patient_documents_uploaded_by_fkey",
+                        column: x => x.uploaded_by,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "contactemails",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    contact_id = table.Column<int>(type: "integer", nullable: false),
+                    email_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("contactemails_pkey", x => x.id);
+                    table.ForeignKey(
+                        name: "contactemails_contactid_fkey",
+                        column: x => x.contact_id,
+                        principalTable: "contacts",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "contactemails_emailid_fkey",
+                        column: x => x.email_id,
+                        principalTable: "emails",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -553,7 +625,8 @@ namespace Clinica.Migrations
                     frequency = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     observaciones = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, defaultValueSql: "now()"),
-                    updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                    updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -601,6 +674,16 @@ namespace Clinica.Migrations
                 column: "patient_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_contactemails_contact_id",
+                table: "contactemails",
+                column: "contact_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_contactemails_email_id",
+                table: "contactemails",
+                column: "email_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_contacts_patient_id",
                 table: "contacts",
                 column: "patient_id");
@@ -644,6 +727,16 @@ namespace Clinica.Migrations
                 name: "IX_patient_chronic_diseases_patient_id",
                 table: "patient_chronic_diseases",
                 column: "patient_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_patient_documents_patient_id",
+                table: "patient_documents",
+                column: "patient_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_patient_documents_uploaded_by",
+                table: "patient_documents",
+                column: "uploaded_by");
 
             migrationBuilder.CreateIndex(
                 name: "IX_patient_exams_exam_id",
@@ -709,13 +802,14 @@ namespace Clinica.Migrations
                 name: "IX_users_role_id",
                 table: "users",
                 column: "role_id");
-            */
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            /*
+            migrationBuilder.DropTable(
+                name: "contactemails");
+
             migrationBuilder.DropTable(
                 name: "diagnosis");
 
@@ -738,6 +832,9 @@ namespace Clinica.Migrations
                 name: "patient_chronic_diseases");
 
             migrationBuilder.DropTable(
+                name: "patient_documents");
+
+            migrationBuilder.DropTable(
                 name: "patient_exams");
 
             migrationBuilder.DropTable(
@@ -754,6 +851,9 @@ namespace Clinica.Migrations
 
             migrationBuilder.DropTable(
                 name: "tenants");
+
+            migrationBuilder.DropTable(
+                name: "emails");
 
             migrationBuilder.DropTable(
                 name: "alergies");
@@ -796,7 +896,6 @@ namespace Clinica.Migrations
 
             migrationBuilder.DropTable(
                 name: "patient_types");
-            */
         }
     }
 }

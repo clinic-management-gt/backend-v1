@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Clinica.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250818231642_InitialDatabaseScaffold")]
-    partial class InitialDatabaseScaffold
+    [Migration("20251026183826_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -85,6 +85,10 @@ namespace Clinica.Migrations
                     b.Property<string>("Reason")
                         .HasColumnType("text")
                         .HasColumnName("reason");
+
+                    b.Property<AppointmentStatus>("Status")
+                        .HasColumnType("appointment_status_enum")
+                        .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
@@ -200,6 +204,33 @@ namespace Clinica.Migrations
                     b.ToTable("contacts", (string)null);
                 });
 
+            modelBuilder.Entity("Clinica.Models.EntityFramework.ContactEmail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContactId")
+                        .HasColumnType("integer")
+                        .HasColumnName("contact_id");
+
+                    b.Property<int>("EmailId")
+                        .HasColumnType("integer")
+                        .HasColumnName("email_id");
+
+                    b.HasKey("Id")
+                        .HasName("contactemails_pkey");
+
+                    b.HasIndex("ContactId");
+
+                    b.HasIndex("EmailId");
+
+                    b.ToTable("contactemails", (string)null);
+                });
+
             modelBuilder.Entity("Clinica.Models.EntityFramework.Diagnosis", b =>
                 {
                     b.Property<int>("Id")
@@ -233,6 +264,27 @@ namespace Clinica.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.ToTable("diagnosis", (string)null);
+                });
+
+            modelBuilder.Entity("Clinica.Models.EntityFramework.Email", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("emails_pkey");
+
+                    b.ToTable("emails", (string)null);
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.Exam", b =>
@@ -549,6 +601,9 @@ namespace Clinica.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("last_name");
 
+                    b.Property<DateOnly>("LastVisit")
+                        .HasColumnType("date");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -625,6 +680,65 @@ namespace Clinica.Migrations
                     b.HasIndex("PatientId");
 
                     b.ToTable("patient_chronic_diseases", (string)null);
+                });
+
+            modelBuilder.Entity("Clinica.Models.EntityFramework.PatientDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("content_type");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("file_url");
+
+                    b.Property<int?>("MedicalRecordId")
+                        .HasColumnType("integer")
+                        .HasColumnName("medical_record_id");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("integer")
+                        .HasColumnName("patient_id");
+
+                    b.Property<long?>("Size")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("uploaded_at");
+
+                    b.Property<int?>("UploadedBy")
+                        .HasColumnType("integer")
+                        .HasColumnName("uploaded_by");
+
+                    b.HasKey("Id")
+                        .HasName("patient_documents_pkey");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("UploadedBy");
+
+                    b.ToTable("patient_documents", (string)null);
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.PatientExam", b =>
@@ -994,6 +1108,11 @@ namespace Clinica.Migrations
                         .HasColumnType("text")
                         .HasColumnName("observaciones");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
@@ -1128,6 +1247,27 @@ namespace Clinica.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("Clinica.Models.EntityFramework.ContactEmail", b =>
+                {
+                    b.HasOne("Clinica.Models.EntityFramework.Contact", "Contact")
+                        .WithMany("ContactEmails")
+                        .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("contactemails_contactid_fkey");
+
+                    b.HasOne("Clinica.Models.EntityFramework.Email", "Email")
+                        .WithMany("ContactEmails")
+                        .HasForeignKey("EmailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("contactemails_emailid_fkey");
+
+                    b.Navigation("Contact");
+
+                    b.Navigation("Email");
+                });
+
             modelBuilder.Entity("Clinica.Models.EntityFramework.Diagnosis", b =>
                 {
                     b.HasOne("Clinica.Models.EntityFramework.Appointment", "Appointment")
@@ -1226,6 +1366,25 @@ namespace Clinica.Migrations
                     b.Navigation("ChronicDisease");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Clinica.Models.EntityFramework.PatientDocument", b =>
+                {
+                    b.HasOne("Clinica.Models.EntityFramework.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .IsRequired()
+                        .HasConstraintName("patient_documents_patient_id_fkey");
+
+                    b.HasOne("Clinica.Models.EntityFramework.User", "UploadedByUser")
+                        .WithMany()
+                        .HasForeignKey("UploadedBy")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("patient_documents_uploaded_by_fkey");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("UploadedByUser");
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.PatientExam", b =>
@@ -1361,7 +1520,14 @@ namespace Clinica.Migrations
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.Contact", b =>
                 {
+                    b.Navigation("ContactEmails");
+
                     b.Navigation("Phones");
+                });
+
+            modelBuilder.Entity("Clinica.Models.EntityFramework.Email", b =>
+                {
+                    b.Navigation("ContactEmails");
                 });
 
             modelBuilder.Entity("Clinica.Models.EntityFramework.Exam", b =>
