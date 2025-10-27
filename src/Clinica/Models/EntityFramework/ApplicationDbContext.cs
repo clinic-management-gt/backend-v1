@@ -845,6 +845,45 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("updated_at");
         });
 
+        modelBuilder.Entity<PatientDocument>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("patient_documents_pkey");
+
+            entity.ToTable("patient_documents");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PatientId).HasColumnName("patient_id");
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("type");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.FileUrl)
+                .IsRequired()
+                .HasColumnName("file_url");
+            entity.Property(e => e.UploadedBy).HasColumnName("uploaded_by");
+            entity.Property(e => e.UploadedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("uploaded_at");
+            entity.Property(e => e.MedicalRecordId).HasColumnName("medical_record_id");
+            entity.Property(e => e.Size).HasColumnName("size");
+            entity.Property(e => e.ContentType)
+                .HasMaxLength(100)
+                .HasColumnName("content_type");
+
+            entity.HasOne(d => d.Patient)
+                .WithMany()
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("patient_documents_patient_id_fkey");
+
+            entity.HasOne(d => d.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.UploadedBy)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("patient_documents_uploaded_by_fkey");
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
 

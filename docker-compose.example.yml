@@ -1,5 +1,6 @@
 services:
   backend:
+    #solamente para el server, quitar el desarollo
     image: escuarch/test-software:backend-latest
     build:
       context: ./src
@@ -11,8 +12,10 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      # Ambiente de ejecución (desde .env)
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
 
+      # Database connection
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - Jwt__Key=
       - Jwt__Issuer=clinica
@@ -36,7 +39,6 @@ services:
       - "5438:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./bd/entry-point:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s

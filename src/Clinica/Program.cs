@@ -86,7 +86,28 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // Aplicar migraciones
+            Console.WriteLine("📦 Applying database migrations...");
             await db.Database.MigrateAsync();
+            Console.WriteLine("✅ Migrations applied successfully!");
+
+            // Ejecutar seeder apropiado según el ambiente
+            var environment = app.Environment.EnvironmentName;
+            Console.WriteLine($"🌍 Environment: {environment}");
+
+            if (app.Environment.IsProduction())
+            {
+                // En producción: solo datos esenciales (usuarios, catálogos)
+                Console.WriteLine("🏭 Running PRODUCTION seeder (essential data only)...");
+                await Clinica.Data.ProductionSeeder.SeedAsync(db);
+            }
+            else
+            {
+                // En desarrollo/test: datos completos con 100 pacientes de prueba
+                Console.WriteLine("🧪 Running DEVELOPMENT seeder (with test data)...");
+                await Clinica.Data.DatabaseSeeder.SeedAsync(db);
+            }
         }
 
 
