@@ -116,6 +116,15 @@ public partial class ApplicationDbContext : DbContext
     /// <summary>Tabla de documentos de pacientes.</summary>
     public virtual DbSet<PatientDocument> PatientDocuments { get; set; }
 
+    /// <summary>Tabla de pacientes pendientes de confirmar.</summary>
+    public virtual DbSet<PendingPatient> PendingPatients { get; set; }
+
+    /// <summary>Tabla de contactos de pacientes pendientes.</summary>
+    public virtual DbSet<PendingPatientContact> PendingPatientContacts { get; set; }
+
+    /// <summary>Tabla de teléfonos de contactos de pacientes pendientes.</summary>
+    public virtual DbSet<PendingPatientPhone> PendingPatientPhones { get; set; }
+
     /// <summary>
     /// Configura la conexión a la base de datos si no está configurada.
     /// </summary>
@@ -882,6 +891,38 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.UploadedBy)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("patient_documents_uploaded_by_fkey");
+        });
+
+        modelBuilder.Entity<PendingPatient>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("pending_patients_pkey");
+
+            entity.ToTable("pending_patients");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.LastName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasColumnName("last_name");
+            entity.Property(e => e.Birthdate).HasColumnName("birthdate");
+            entity.Property(e => e.Gender)
+                .IsRequired()
+                .HasMaxLength(10)
+                .HasColumnName("gender");
+            entity.Property(e => e.ContactNumber)
+                .HasMaxLength(20)
+                .HasColumnName("contact_number");
+            entity.Property(e => e.ContactType)
+                .HasMaxLength(50)
+                .HasColumnName("contact_type");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
         });
 
         OnModelCreatingPartial(modelBuilder);
