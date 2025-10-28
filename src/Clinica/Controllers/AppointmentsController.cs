@@ -259,6 +259,7 @@ public class AppointmentsController : ControllerBase
                     Address = "",
                     BloodTypeId = 1, // Por defecto
                     PatientTypeId = 1, // Por defecto
+                    LastVisit = DateOnly.FromDateTime(DateTime.Now),
                     CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
                 };
 
