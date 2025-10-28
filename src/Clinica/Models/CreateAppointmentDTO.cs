@@ -11,6 +11,11 @@ public class CreateAppointmentDTO
     public int PatientId { get; set; }
 
     /// <summary>
+    /// Indica si el paciente viene de la tabla pending_patients (true) o patients (false)
+    /// </summary>
+    public bool IsPendingPatient { get; set; } = false;
+
+    /// <summary>
     /// Fecha y hora de la cita
     /// </summary>
     public DateTime AppointmentDate { get; set; }

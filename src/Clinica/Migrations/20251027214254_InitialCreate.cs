@@ -153,6 +153,25 @@ namespace Clinica.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "pending_patients",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    birthdate = table.Column<DateOnly>(type: "date", nullable: false),
+                    gender = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    contact_number = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    contact_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pending_patients_pkey", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "roles",
                 columns: table => new
                 {
@@ -839,6 +858,9 @@ namespace Clinica.Migrations
 
             migrationBuilder.DropTable(
                 name: "patient_vaccines");
+
+            migrationBuilder.DropTable(
+                name: "pending_patients");
 
             migrationBuilder.DropTable(
                 name: "permissions");

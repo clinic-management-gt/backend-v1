@@ -236,10 +236,53 @@ public class AppointmentsController : ControllerBase
     {
         try
         {
-            // Verificar que el paciente existe
-            var patient = await _context.Patients.FindAsync(dto.PatientId);
-            if (patient == null)
-                return NotFound("No se encontró el paciente.");
+            int finalPatientId;
+
+            if (dto.IsPendingPatient)
+            {
+                // El paciente viene de pending_patients, necesitamos confirmarlo
+                var pendingPatient = await _context.PendingPatients
+                    .Include(p => p.PendingPatientContacts)
+                        .ThenInclude(c => c.PendingPatientPhones)
+                    .FirstOrDefaultAsync(p => p.Id == dto.PatientId);
+
+                if (pendingPatient == null)
+                    return NotFound("No se encontró el paciente pendiente.");
+
+                // Crear paciente confirmado desde el pendiente
+                var newPatient = new Patient
+                {
+                    Name = pendingPatient.Name,
+                    LastName = pendingPatient.LastName,
+                    Birthdate = pendingPatient.Birthdate,
+                    Gender = pendingPatient.Gender,
+                    Address = "",
+                    BloodTypeId = 1, // Por defecto
+                    PatientTypeId = 1, // Por defecto
+                    LastVisit = DateOnly.FromDateTime(DateTime.Now),
+                    CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+                };
+
+                _context.Patients.Add(newPatient);
+                await _context.SaveChangesAsync();
+
+                finalPatientId = newPatient.Id;
+
+                // Eliminar el paciente pendiente después de confirmarlo
+                // (los contactos y teléfonos se eliminan automáticamente por CASCADE)
+                _context.PendingPatients.Remove(pendingPatient);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                // El paciente viene de la tabla patients (paciente existente)
+                var patient = await _context.Patients.FindAsync(dto.PatientId);
+
+                if (patient == null)
+                    return NotFound("No se encontró el paciente.");
+
+                finalPatientId = patient.Id;
+            }
 
             // Obtener el primer doctor disponible (por simplicidad)
             var doctor = await _context.Users.FirstOrDefaultAsync();
@@ -248,9 +291,9 @@ public class AppointmentsController : ControllerBase
 
             var appointment = new Appointment
             {
-                PatientId = dto.PatientId,
+                PatientId = finalPatientId,
                 DoctorId = doctor.Id,
-                AppointmentDate = dto.AppointmentDate,
+                AppointmentDate = DateTime.SpecifyKind(dto.AppointmentDate, DateTimeKind.Unspecified),
                 Status = Enum.TryParse<AppointmentStatus>(dto.Status, true, out var status)
                     ? status
                     : AppointmentStatus.Pendiente,
