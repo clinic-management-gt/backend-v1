@@ -250,6 +250,7 @@ public class PatientsController : ControllerBase
                 Contacts = p.PendingPatientContacts.Select(c => new
                 {
                     Type = c.Type,
+                    Name = c.Name,  // Nombre del contacto
                     PhoneNumbers = c.PendingPatientPhones.Select(ph => ph.Phone).ToList()
                 }).ToList(),
                 p.CreatedAt
@@ -294,8 +295,8 @@ public class PatientsController : ControllerBase
                 {
                     PendingPatientId = pendingPatient.Id,
                     Type = contactDto.Type,
-                    Name = "",  // No tenemos nombre del contacto, solo del paciente
-                    LastName = "",
+                    Name = contactDto.Name ?? "",  // Nombre completo del contacto
+                    LastName = "",  // Por ahora solo usamos Name para el nombre completo
                     CreatedAt = nowUtc  // pending_patient_contacts usa timestamp with time zone
                 };
 

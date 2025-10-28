@@ -764,5 +764,56 @@ public static class DatabaseSeeder
         await context.Recipes.AddRangeAsync(recipes);
         await context.SaveChangesAsync();
         Console.WriteLine($"✓ Seeded {recipes.Count} recipes");
+
+        // Resetear las secuencias de autoincremento después del seeding
+        await ResetSequences(context);
+    }
+
+    /// <summary>
+    /// Resetea todas las secuencias de autoincremento para evitar conflictos de ID.
+    /// Esto es necesario cuando se insertan datos con IDs explícitos.
+    /// </summary>
+    private static async Task ResetSequences(ApplicationDbContext context)
+    {
+        Console.WriteLine("Resetting database sequences...");
+
+        var sequencesToReset = new[]
+        {
+            "appointments",
+            "diagnoses",
+            "treatments",
+            "recipes",
+            "patients",
+            "patient_contacts",
+            "patient_phones",
+            "patient_emails",
+            "medical_records",
+            "alergies",
+            "syndromes",
+            "vaccines",
+            "chronic_diseases"
+        };
+
+        foreach (var tableName in sequencesToReset)
+        {
+            try
+            {
+                var sql = $@"
+                    SELECT setval(
+                        pg_get_serial_sequence('{tableName}', 'id'),
+                        COALESCE((SELECT MAX(id) FROM {tableName}), 0) + 1,
+                        false
+                    );";
+
+                await context.Database.ExecuteSqlRawAsync(sql);
+                Console.WriteLine($"  ✓ Reset sequence for {tableName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  ⚠ Warning: Could not reset sequence for {tableName}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine("✓ Database sequences reset completed");
     }
 }

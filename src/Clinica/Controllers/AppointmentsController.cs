@@ -268,10 +268,6 @@ public class AppointmentsController : ControllerBase
 
                 finalPatientId = newPatient.Id;
 
-                // Eliminar el paciente pendiente después de confirmarlo
-                // (los contactos y teléfonos se eliminan automáticamente por CASCADE)
-                _context.PendingPatients.Remove(pendingPatient);
-                await _context.SaveChangesAsync();
             }
             else
             {
