@@ -32,6 +32,9 @@ namespace Clinica.Models
         /// <summary>Tipo de contacto (Padre, Madre, Tutor, etc.)</summary>
         public string Type { get; set; } = string.Empty;
 
+        /// <summary>Nombre completo del contacto</summary>
+        public string Name { get; set; } = string.Empty;
+
         /// <summary>Número de teléfono del contacto</summary>
         public string PhoneNumber { get; set; } = string.Empty;
     }
