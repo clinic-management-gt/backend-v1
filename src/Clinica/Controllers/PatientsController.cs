@@ -17,7 +17,6 @@ public class PatientsController : ControllerBase
         _r2 = r2;
     }
 
-
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> RegisterPatient([FromForm] PatientCreateRequestDTO request)
@@ -182,7 +181,6 @@ public class PatientsController : ControllerBase
 
     }
 
-
     [HttpPost("basic")]
     public async Task<IActionResult> CreateBasicPatient([FromBody] CreateBasicPatientDTO request)
     {
@@ -232,6 +230,128 @@ public class PatientsController : ControllerBase
 
         var patients = await query.ToListAsync();
         return Ok(patients);
+    }
+
+    [HttpGet("pending")]
+    public async Task<ActionResult> GetPendingPatients()
+    {
+        var pendingPatients = await _context.PendingPatients
+            .Include(p => p.PendingPatientContacts)
+                .ThenInclude(c => c.PendingPatientPhones)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.LastName,
+                p.Birthdate,
+                p.Gender,
+                // Devolver array de contactos con todos los teléfonos
+                Contacts = p.PendingPatientContacts.Select(c => new
+                {
+                    Type = c.Type,
+                    PhoneNumbers = c.PendingPatientPhones.Select(ph => ph.Phone).ToList()
+                }).ToList(),
+                p.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(new { patients = pendingPatients });
+    }
+
+    /// <summary>
+    /// POST: /api/patients/pending
+    /// Crea un nuevo paciente pendiente de confirmar con sus contactos
+    /// </summary>
+    [HttpPost("pending")]
+    public async Task<IActionResult> CreatePendingPatient([FromBody] CreatePendingPatientDTO request)
+    {
+        var nowUnspecified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+        var nowUtc = DateTime.UtcNow;
+
+        // Crear el paciente pendiente
+        var pendingPatient = new PendingPatient
+        {
+            Name = request.Name,
+            LastName = request.LastName,
+            Birthdate = DateOnly.FromDateTime(request.Birthdate),
+            Gender = request.Gender,
+            // Mantener compatibilidad con campos legacy (primer contacto)
+            ContactNumber = request.Contacts?.FirstOrDefault()?.PhoneNumber,
+            ContactType = request.Contacts?.FirstOrDefault()?.Type,
+            CreatedAt = nowUnspecified  // pending_patients usa timestamp without time zone
+        };
+
+        _context.PendingPatients.Add(pendingPatient);
+        await _context.SaveChangesAsync();
+
+        // Crear contactos en tablas relacionadas
+        if (request.Contacts != null && request.Contacts.Any())
+        {
+            foreach (var contactDto in request.Contacts)
+            {
+                var contact = new PendingPatientContact
+                {
+                    PendingPatientId = pendingPatient.Id,
+                    Type = contactDto.Type,
+                    Name = "",  // No tenemos nombre del contacto, solo del paciente
+                    LastName = "",
+                    CreatedAt = nowUtc  // pending_patient_contacts usa timestamp with time zone
+                };
+
+                _context.PendingPatientContacts.Add(contact);
+                await _context.SaveChangesAsync();
+
+                // Agregar teléfono al contacto
+                if (!string.IsNullOrEmpty(contactDto.PhoneNumber))
+                {
+                    var phone = new PendingPatientPhone
+                    {
+                        PendingPatientContactId = contact.Id,
+                        Phone = contactDto.PhoneNumber,
+                        CreatedAt = nowUtc  // pending_patient_phones usa timestamp with time zone
+                    };
+
+                    _context.PendingPatientPhones.Add(phone);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(new
+        {
+            id = pendingPatient.Id,
+            name = pendingPatient.Name,
+            lastName = pendingPatient.LastName,
+            message = "Paciente pendiente creado correctamente."
+        });
+    }
+
+    // DELETE /api/patients/pending/{id}
+    [HttpDelete("pending/{id}")]
+    public async Task<ActionResult> DeletePendingPatient(int id)
+    {
+        try
+        {
+            var pendingPatient = await _context.PendingPatients
+                .Include(p => p.PendingPatientContacts)
+                    .ThenInclude(c => c.PendingPatientPhones)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pendingPatient == null)
+                return NotFound("No se encontró el paciente pendiente.");
+
+            // Los contactos y teléfonos se eliminan automáticamente por CASCADE
+            _context.PendingPatients.Remove(pendingPatient);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Paciente pendiente eliminado correctamente." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al eliminar el paciente pendiente: {ex.Message}");
+        }
     }
 
     [HttpGet("{id}")]
@@ -313,7 +433,6 @@ public class PatientsController : ControllerBase
 
         return Ok(response);
     }
-
 
     [HttpPatch("{id}")]
     public async Task<IActionResult> UpdatePatient(int id, [FromBody] Patient updatedPatient)
@@ -500,6 +619,7 @@ public class PatientsController : ControllerBase
 
         return Ok(vaccines);
     }
+
     [HttpGet("{id}/medicalrecords/full")]
     public async Task<IActionResult> GetFullMedicalRecords(int id)
     {
@@ -845,8 +965,6 @@ public class PatientsController : ControllerBase
         return Ok(alergies);
     }
 
-
-
     [HttpGet("{id}/contact_info")]
     public async Task<ActionResult<List<ContactResponseDTO>>> GetPatientContactInformationByPatientId(int id)
     {
@@ -884,5 +1002,4 @@ public class PatientsController : ControllerBase
 
         return Ok(contacts);
     }
-
 }
