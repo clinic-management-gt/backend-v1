@@ -1,4 +1,5 @@
 using Clinica.Models.EntityFramework;
+using Clinica.Models.EntityFramework.Enums;
 using Clinica.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -41,8 +42,8 @@ namespace Clinica.Controllers
 
             if (request.File != null && request.File.Length > 0)
             {
-
-                var url = await _r2.UploadDocumentToCloudflareR2(request.File, request.PatientId, request.Type, request.MedicalRecordId);
+                var typeString = request.Type.ToString();
+                var url = await _r2.UploadDocumentToCloudflareR2(request.File, request.PatientId, typeString, request.MedicalRecordId);
                 var doc = new PatientDocument
                 {
                     PatientId = request.PatientId,
@@ -81,13 +82,20 @@ namespace Clinica.Controllers
         /// </summary>
         /// <param name="PatientId">Id del paciente.</param>
         /// <param name="Type">Tipo de documento.</param>
-        /// <param name="MedicalRecordId">Id del expediente médico.</param>
+        /// <param name="MedicalRecordId">Id del expediente médico (opcional).</param>
         /// <returns>Lista de archivos encontrados.</returns>
         [HttpGet("download")]
-        public async Task<IActionResult> GetPatientDocuments([FromQuery] int PatientId, [FromQuery] string Type, [FromQuery] int MedicalRecordId)
+        public async Task<IActionResult> GetPatientDocuments([FromQuery] int PatientId, [FromQuery] FileType Type, [FromQuery] int? MedicalRecordId = null)
         {
-            var docs = await _context.PatientDocuments
-                .Where(d => d.PatientId == PatientId && d.Type == Type && d.MedicalRecordId == MedicalRecordId)
+            var query = _context.PatientDocuments
+                .Where(d => d.PatientId == PatientId && d.Type == Type);
+
+            if (MedicalRecordId.HasValue)
+            {
+                query = query.Where(d => d.MedicalRecordId == MedicalRecordId);
+            }
+
+            var docs = await query
                 .OrderByDescending(d => d.UploadedAt)
                 .Select(d => new FileDTO
                 {
