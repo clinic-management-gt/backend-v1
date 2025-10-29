@@ -89,6 +89,9 @@ public partial class ApplicationDbContext : DbContext
     /// <summary>Tabla de vacunas aplicadas a pacientes.</summary>
     public virtual DbSet<PatientVaccine> PatientVaccines { get; set; }
 
+    /// <summary>Tabla de cruce entre pacientes y seguros.</summary>
+    public virtual DbSet<PatientInsurance> PatientInsurances { get; set; }
+
     /// <summary>Tabla de permisos.</summary>
     public virtual DbSet<Permission> Permissions { get; set; }
 
@@ -364,7 +367,6 @@ public partial class ApplicationDbContext : DbContext
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
-            entity.Property(e => e.PatientId).HasColumnName("patient_id");
             entity.Property(e => e.PolicyNumber)
                 .HasMaxLength(50)
                 .HasColumnName("policy_number");
@@ -374,11 +376,6 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");
-
-            entity.HasOne(d => d.Patient).WithMany(p => p.Insurances)
-                .HasForeignKey(d => d.PatientId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("insurance_patient_id_fkey");
         });
 
         modelBuilder.Entity<Log>(entity =>
@@ -603,6 +600,9 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+            entity.Property(e => e.Color)
+                .HasMaxLength(7)
+                .HasColumnName("color");
         });
 
         modelBuilder.Entity<PatientVaccine>(entity =>
@@ -633,6 +633,31 @@ public partial class ApplicationDbContext : DbContext
                 .HasForeignKey(d => d.VaccineId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("patient_vaccines_vaccine_id_fkey");
+        });
+
+        modelBuilder.Entity<PatientInsurance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("patient_insurance_pkey");
+
+            entity.ToTable("patient_insurance");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PatientId).HasColumnName("patient_id");
+            entity.Property(e => e.InsuranceId).HasColumnName("insurance_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Patient).WithMany(p => p.PatientInsurances)
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("patient_insurance_patient_id_fkey");
+
+            entity.HasOne(d => d.Insurance).WithMany(p => p.PatientInsurances)
+                .HasForeignKey(d => d.InsuranceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("patient_insurance_insurance_id_fkey");
         });
 
         modelBuilder.Entity<Permission>(entity =>

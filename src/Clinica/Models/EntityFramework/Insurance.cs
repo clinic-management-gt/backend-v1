@@ -7,8 +7,6 @@ public partial class Insurance
 {
     public int Id { get; set; }
 
-    public int PatientId { get; set; }
-
     public string ProviderName { get; set; } = null!;
 
     public string PolicyNumber { get; set; } = null!;
@@ -19,5 +17,5 @@ public partial class Insurance
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual Patient Patient { get; set; } = null!;
+    public virtual ICollection<PatientInsurance> PatientInsurances { get; set; } = new List<PatientInsurance>();
 }
