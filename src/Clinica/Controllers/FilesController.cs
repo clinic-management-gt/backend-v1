@@ -100,8 +100,8 @@ namespace Clinica.Controllers
                     Size = d.Size,
                     ContentType = d.ContentType,
                     Message = "Archivo encontrado",
-                    Patient = "Id del paciente: " + d.PatientId,
-                    MedicalRecordId = "Id del medical record: " + d.MedicalRecordId
+                    PatientId = d.PatientId,
+                    MedicalRecordId = d.MedicalRecordId.HasValue ? d.MedicalRecordId.Value.ToString() : null
                 })
                 .ToListAsync();
 
