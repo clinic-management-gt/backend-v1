@@ -62,7 +62,7 @@ namespace Clinica.Controllers
                     Size = request.File.Length,
                     ContentType = request.File.ContentType,
                     MedicalRecordId = request.MedicalRecordId?.ToString(),
-                    Patient = $"Id del paciente: {request.PatientId}"
+                    PatientId = request.PatientId
                 });
             }
             else
