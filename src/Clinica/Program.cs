@@ -28,7 +28,11 @@ public class Program
         builder.Services.AddSingleton<CloudflareR2Service>();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.MapEnum<AppointmentStatus>("appointment_status_enum")));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o =>
+            {
+                o.MapEnum<AppointmentStatus>("appointment_status_enum");
+                o.MapEnum<Clinica.Models.EntityFramework.Enums.FileType>("file_type_enum");
+            }));
 
         builder.Services.AddControllers(options =>
             {

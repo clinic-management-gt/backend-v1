@@ -135,7 +135,8 @@ public partial class ApplicationDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection");
+            optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection", o =>
+                o.MapEnum<Enums.FileType>("file_type_enum"));
         }
     }
 
