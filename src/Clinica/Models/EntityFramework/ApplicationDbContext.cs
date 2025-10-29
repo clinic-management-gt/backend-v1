@@ -149,6 +149,7 @@ public partial class ApplicationDbContext : DbContext
             .HasPostgresEnum("appointment_status_enum", new[] { "Confirmado", "Pendiente", "Completado", "Cancelado", "Espera" })
             .HasPostgresEnum("log_action_enum", new[] { "INSERT", "UPDATE", "DELETE" })
             .HasPostgresEnum("treatment_status_enum", new[] { "Terminado", "No Terminado" })
+            .HasPostgresEnum("file_type_enum", new[] { "receta", "hoja_de_informacion", "examen", "laboratorio", "radiografia", "resultado_de_laboratorio", "consentimiento", "otro" })
             .HasPostgresExtension("pgcrypto")
             .HasPostgresExtension("unaccent");
 
@@ -889,8 +890,8 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.PatientId).HasColumnName("patient_id");
             entity.Property(e => e.Type)
                 .IsRequired()
-                .HasMaxLength(100)
-                .HasColumnName("type");
+                .HasColumnName("type")
+                .HasColumnType("file_type_enum");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.FileUrl)
                 .IsRequired()
