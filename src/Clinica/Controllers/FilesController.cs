@@ -51,7 +51,7 @@ namespace Clinica.Controllers
                     Description = request.Description,
                     FileUrl = url,
                     UploadedBy = null,
-                    UploadedAt = DateTime.UtcNow,
+                    UploadedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                     Size = request.File.Length,
                     ContentType = request.File.ContentType,
                     MedicalRecordId = request.MedicalRecordId
