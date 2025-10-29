@@ -102,7 +102,13 @@ public class PatientsController : ControllerBase
                 Insurance? insurance = await _context.Insurances.FindAsync(request.InsuranceId);
                 if (insurance != null)
                 {
-                    patient.Insurances.Add(insurance);
+                    var patientInsurance = new PatientInsurance
+                    {
+                        PatientId = patient.Id,
+                        InsuranceId = insurance.Id,
+                        CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+                    };
+                    _context.PatientInsurances.Add(patientInsurance);
                 }
             }
 
@@ -218,9 +224,14 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Patient>>> GetAll([FromQuery] string? search)
+    public async Task<ActionResult> GetAll([FromQuery] string? search)
     {
-        IQueryable<Patient> query = _context.Patients;
+        IQueryable<Patient> query = _context.Patients
+            .Include(p => p.BloodType)
+            .Include(p => p.PatientType)
+            .Include(p => p.Contacts)
+            .Include(p => p.PatientInsurances)
+                .ThenInclude(pi => pi.Insurance);
 
         if (!string.IsNullOrEmpty(search))
         {
@@ -228,7 +239,40 @@ public class PatientsController : ControllerBase
             query = query.Where(p => p.Name.ToLower().Contains(lowerSearch) || p.LastName.ToLower().Contains(lowerSearch));
         }
 
-        var patients = await query.ToListAsync();
+        var patients = await query
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.LastName,
+                p.Birthdate,
+                p.LastVisit,
+                p.Address,
+                p.Gender,
+                p.BloodTypeId,
+                BloodType = p.BloodType != null ? p.BloodType.Type : null,
+                p.PatientTypeId,
+                PatientType = p.PatientType != null ? p.PatientType.Name : null,
+                p.CreatedAt,
+                p.UpdatedAt,
+                Contacts = p.Contacts.Select(c => new
+                {
+                    c.Id,
+                    c.Type,
+                    c.Name,
+                    c.LastName
+                }).ToList(),
+                PatientInsurances = p.PatientInsurances.Select(pi => new
+                {
+                    InsuranceId = pi.Insurance.Id,
+                    ProviderName = pi.Insurance.ProviderName,
+                    PolicyNumber = pi.Insurance.PolicyNumber,
+                    CoverageDetails = pi.Insurance.CoverageDetails,
+                    AssignedAt = pi.CreatedAt
+                }).ToList()
+            })
+            .ToListAsync();
+
         return Ok(patients);
     }
 
@@ -362,7 +406,7 @@ public class PatientsController : ControllerBase
             .Include(p => p.Contacts).ThenInclude(c => c.Phones)
             .Include(p => p.BloodType)
             .Include(p => p.PatientType)
-            .Include(p => p.Insurances)
+            .Include(p => p.PatientInsurances).ThenInclude(pi => pi.Insurance)
             .Include(p => p.PatientAlergies).ThenInclude(pa => pa.Alergy)
             .Include(p => p.PatientVaccines).ThenInclude(pv => pv.Vaccine)
             .Include(p => p.PatientChronicDiseases).ThenInclude(pc => pc.ChronicDisease)
@@ -394,12 +438,13 @@ public class PatientsController : ControllerBase
                 c.LastName,
                 Phones = c.Phones.Select(ph => ph.Phone1).ToList(),
             }).ToList(),
-            Insurances = patient.Insurances.Select(i => new
+            Insurances = patient.PatientInsurances.Select(pi => new
             {
-                i.Id,
-                i.ProviderName,
-                i.PolicyNumber,
-                i.CoverageDetails
+                pi.Insurance.Id,
+                pi.Insurance.ProviderName,
+                pi.Insurance.PolicyNumber,
+                pi.Insurance.CoverageDetails,
+                AssignedAt = pi.CreatedAt
             }).ToList(),
             Alergies = patient.PatientAlergies.Select(pa => new
             {

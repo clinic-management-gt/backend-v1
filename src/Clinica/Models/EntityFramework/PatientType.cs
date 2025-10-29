@@ -11,5 +11,7 @@ public partial class PatientType
 
     public string? Description { get; set; }
 
+    public string? Color { get; set; }
+
     public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();
 }
