@@ -562,29 +562,89 @@ public static class DatabaseSeeder
 
     private static async Task SeedInsuranceForAll(ApplicationDbContext context, List<int> patientIds)
     {
-        var insurance = new List<Insurance>();
-        var providers = new[] { "Seguros Universales", "MediCare Plus", "Salud Total", "Protección Familiar", "Vida Sana Seguros", "Cobertura Integral" };
-        var coverages = new[] { "Cobertura completa", "Cobertura básica", "Plan premium", "Plan familiar", "Cobertura de emergencias" };
+        var insurances = new List<Insurance>();
+        var patientInsurances = new List<PatientInsurance>();
+        var providers = new[] 
+        { 
+            "Seguros Universales", 
+            "MediCare Plus", 
+            "Salud Total", 
+            "Protección Familiar", 
+            "Vida Sana Seguros", 
+            "Cobertura Integral",
+            "Aseguradora Nacional",
+            "Seguro Médico Total"
+        };
+        var coverages = new[] 
+        { 
+            "Cobertura completa", 
+            "Cobertura básica", 
+            "Plan premium", 
+            "Plan familiar", 
+            "Cobertura de emergencias",
+            "Plan individual",
+            "Cobertura pediátrica especializada"
+        };
 
+        // Paso 1: Crear un catálogo de seguros disponibles (30 seguros diferentes)
+        Console.WriteLine("  Creating insurance catalog...");
+        for (int i = 1; i <= 30; i++)
+        {
+            insurances.Add(new Insurance
+            {
+                Id = i,
+                ProviderName = providers[Random.Next(providers.Length)],
+                PolicyNumber = $"POL-{Random.Next(100000, 999999):D6}",
+                CoverageDetails = coverages[Random.Next(coverages.Length)],
+                CreatedAt = DateTime.Now.AddDays(-Random.Next(30, 730)) // 30 días a 2 años
+            });
+        }
+
+        await context.Insurances.AddRangeAsync(insurances);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"✓ Seeded {insurances.Count} insurance records");
+
+        // Paso 2: Asignar seguros a pacientes (puede haber seguros compartidos)
+        Console.WriteLine("  Assigning insurances to patients...");
         foreach (var patientId in patientIds)
         {
-            // 80% de pacientes tienen seguro
-            if (Random.Next(100) < 80)
+            // 85% de pacientes tienen al menos un seguro
+            if (Random.Next(100) < 85)
             {
-                insurance.Add(new Insurance
+                // Mayoría tiene 1 seguro, algunos tienen 2
+                var insuranceCount = Random.Next(100) < 70 ? 1 : 2;
+                var assignedInsurances = new HashSet<int>();
+
+                for (int i = 0; i < insuranceCount; i++)
                 {
-                    PatientId = patientId,
-                    ProviderName = providers[Random.Next(providers.Length)],
-                    PolicyNumber = $"POL-{Random.Next(100000, 999999)}",
-                    CoverageDetails = coverages[Random.Next(coverages.Length)],
-                    CreatedAt = DateTime.Now.AddDays(-Random.Next(30, 365))
-                });
+                    // Seleccionar un seguro aleatorio del catálogo
+                    var insuranceId = Random.Next(1, 31); // IDs del 1 al 30
+                    
+                    // Evitar asignar el mismo seguro dos veces al mismo paciente
+                    if (assignedInsurances.Add(insuranceId))
+                    {
+                        patientInsurances.Add(new PatientInsurance
+                        {
+                            PatientId = patientId,
+                            InsuranceId = insuranceId,
+                            CreatedAt = DateTime.Now.AddDays(-Random.Next(7, 365))
+                        });
+                    }
+                }
             }
         }
 
-        await context.Insurances.AddRangeAsync(insurance);
+        await context.PatientInsurances.AddRangeAsync(patientInsurances);
         await context.SaveChangesAsync();
-        Console.WriteLine($"✓ Seeded {insurance.Count} insurance records");
+        Console.WriteLine($"✓ Seeded {patientInsurances.Count} patient-insurance relationships");
+        Console.WriteLine($"  → Average: {(double)patientInsurances.Count / patientIds.Count:F2} insurances per patient");
+        
+        // Mostrar estadísticas de seguros compartidos
+        var sharedInsurances = patientInsurances
+            .GroupBy(pi => pi.InsuranceId)
+            .Where(g => g.Count() > 1)
+            .Count();
+        Console.WriteLine($"  → {sharedInsurances} insurances are shared by multiple patients");
     }
 
     private static async Task SeedPatientVaccinesForAll(ApplicationDbContext context, List<int> patientIds)
