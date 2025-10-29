@@ -15,15 +15,77 @@ public class InsuranceController : ControllerBase
         _context = context;
     }
 
-
     [HttpGet]
-    public async Task<ActionResult<List<Insurance>>> GetAllInsurances()
+    public async Task<ActionResult> GetAllInsurances()
     {
-        var insurances = await _context.Insurances
-        .Include(i => i.Patient)
-        .ToListAsync();
+        try
+        {
+            var insurances = await _context.Insurances
+                .Include(i => i.PatientInsurances)
+                    .ThenInclude(pi => pi.Patient)
+                .Select(i => new
+                {
+                    i.Id,
+                    i.ProviderName,
+                    i.PolicyNumber,
+                    i.CoverageDetails,
+                    i.CreatedAt,
+                    i.UpdatedAt,
+                    Patients = i.PatientInsurances.Select(pi => new
+                    {
+                        pi.Patient.Id,
+                        pi.Patient.Name,
+                        pi.Patient.LastName,
+                        pi.Patient.Birthdate,
+                        AssignedAt = pi.CreatedAt
+                    }).ToList()
+                })
+                .ToListAsync();
 
-        return Ok(insurances);
+            return Ok(insurances);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al consultar los seguros: {ex.Message}");
+        }
+    }
 
+    [HttpGet("{id}")]
+    public async Task<ActionResult> GetInsuranceById(int id)
+    {
+        try
+        {
+            var insurance = await _context.Insurances
+                .Include(i => i.PatientInsurances)
+                    .ThenInclude(pi => pi.Patient)
+                .Where(i => i.Id == id)
+                .Select(i => new
+                {
+                    i.Id,
+                    i.ProviderName,
+                    i.PolicyNumber,
+                    i.CoverageDetails,
+                    i.CreatedAt,
+                    i.UpdatedAt,
+                    Patients = i.PatientInsurances.Select(pi => new
+                    {
+                        pi.Patient.Id,
+                        pi.Patient.Name,
+                        pi.Patient.LastName,
+                        pi.Patient.Birthdate,
+                        AssignedAt = pi.CreatedAt
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (insurance == null)
+                return NotFound($"No se encontró el seguro con ID {id}.");
+
+            return Ok(insurance);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al consultar el seguro: {ex.Message}");
+        }
     }
 }
