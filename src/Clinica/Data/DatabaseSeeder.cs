@@ -564,23 +564,23 @@ public static class DatabaseSeeder
     {
         var insurances = new List<Insurance>();
         var patientInsurances = new List<PatientInsurance>();
-        var providers = new[] 
-        { 
-            "Seguros Universales", 
-            "MediCare Plus", 
-            "Salud Total", 
-            "Protección Familiar", 
-            "Vida Sana Seguros", 
+        var providers = new[]
+        {
+            "Seguros Universales",
+            "MediCare Plus",
+            "Salud Total",
+            "Protección Familiar",
+            "Vida Sana Seguros",
             "Cobertura Integral",
             "Aseguradora Nacional",
             "Seguro Médico Total"
         };
-        var coverages = new[] 
-        { 
-            "Cobertura completa", 
-            "Cobertura básica", 
-            "Plan premium", 
-            "Plan familiar", 
+        var coverages = new[]
+        {
+            "Cobertura completa",
+            "Cobertura básica",
+            "Plan premium",
+            "Plan familiar",
             "Cobertura de emergencias",
             "Plan individual",
             "Cobertura pediátrica especializada"
@@ -619,7 +619,7 @@ public static class DatabaseSeeder
                 {
                     // Seleccionar un seguro aleatorio del catálogo
                     var insuranceId = Random.Next(1, 31); // IDs del 1 al 30
-                    
+
                     // Evitar asignar el mismo seguro dos veces al mismo paciente
                     if (assignedInsurances.Add(insuranceId))
                     {
@@ -638,7 +638,7 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
         Console.WriteLine($"✓ Seeded {patientInsurances.Count} patient-insurance relationships");
         Console.WriteLine($"  → Average: {(double)patientInsurances.Count / patientIds.Count:F2} insurances per patient");
-        
+
         // Mostrar estadísticas de seguros compartidos
         var sharedInsurances = patientInsurances
             .GroupBy(pi => pi.InsuranceId)
