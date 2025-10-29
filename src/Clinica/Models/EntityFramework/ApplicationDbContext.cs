@@ -600,6 +600,9 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+            entity.Property(e => e.Color)
+                .HasMaxLength(7)
+                .HasColumnName("color");
         });
 
         modelBuilder.Entity<PatientVaccine>(entity =>
