@@ -28,11 +28,6 @@ namespace Clinica.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Sube un archivo de paciente al sistema y lo almacena en Cloudflare R2.
-        /// </summary>
-        /// <param name="request">Datos del archivo y metadatos.</param>
-        /// <returns>Información del archivo subido o error.</returns>
         [HttpPost("upload")]
         [RequestSizeLimit(25_000_000)] // 25 MB ejemplo
         [Consumes("multipart/form-data")]
@@ -66,6 +61,8 @@ namespace Clinica.Controllers
                     Url = url,
                     Size = request.File.Length,
                     ContentType = request.File.ContentType,
+                    MedicalRecordId = request.MedicalRecordId?.ToString(),
+                    Patient = $"Id del paciente: {request.PatientId}"
                 });
             }
             else
