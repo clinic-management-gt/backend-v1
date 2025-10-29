@@ -176,14 +176,14 @@ public static class ProductionSeeder
     {
         var patientTypes = new List<PatientType>
         {
-            new PatientType { Name = "Regular", Description = "Paciente pediátrico general" },
-            new PatientType { Name = "Emergencia", Description = "Paciente pediátrico en situación de emergencia" },
-            new PatientType { Name = "Crónico", Description = "Paciente pediátrico con enfermedades crónicas" },
-            new PatientType { Name = "Control de Crecimiento", Description = "Paciente en seguimiento desarrollo y crecimiento" },
-            new PatientType { Name = "Vacunación", Description = "Paciente en programa de vacunación pediátrica" },
-            new PatientType { Name = "Neonatal", Description = "Paciente recién nacido en control" },
-            new PatientType { Name = "Adolescente", Description = "Paciente adolescente en transición a medicina de adultos" },
-            new PatientType { Name = "Especialidad", Description = "Paciente pediátrico atendido en especialidades" }
+            new PatientType { Name = "Regular", Description = "Paciente pediátrico general", Color = "#9CA3AF" },
+            new PatientType { Name = "Emergencia", Description = "Paciente pediátrico en situación de emergencia", Color = "#EAB308" },
+            new PatientType { Name = "Crónico", Description = "Paciente pediátrico con enfermedades crónicas", Color = "#F87171" },
+            new PatientType { Name = "Control de Crecimiento", Description = "Paciente en seguimiento desarrollo y crecimiento", Color = "#4ADE80" },
+            new PatientType { Name = "Vacunación", Description = "Paciente en programa de vacunación pediátrica", Color = "#60A5FA" },
+            new PatientType { Name = "Neonatal", Description = "Paciente recién nacido en control", Color = "#C084FC" },
+            new PatientType { Name = "Adolescente", Description = "Paciente adolescente en transición a medicina de adultos", Color = "#818CF8" },
+            new PatientType { Name = "Especialidad", Description = "Paciente pediátrico atendido en especialidades", Color = "#F472B6" }
         };
 
         await context.PatientTypes.AddRangeAsync(patientTypes);
