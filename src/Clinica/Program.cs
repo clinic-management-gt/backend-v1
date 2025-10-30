@@ -63,6 +63,9 @@ public class Program
                 Version = "v1",
                 Description = "API documentation for Clinica system"
             });
+
+            // Configurar para mostrar enums como strings con sus valores
+            options.UseInlineDefinitionsForEnums();
         });
 
         builder.Services.AddAuthentication("Bearer")
