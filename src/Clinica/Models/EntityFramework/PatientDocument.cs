@@ -1,4 +1,5 @@
 using System;
+using Clinica.Models.EntityFramework.Enums;
 
 namespace Clinica.Models.EntityFramework
 {
@@ -14,7 +15,7 @@ namespace Clinica.Models.EntityFramework
         public int PatientId { get; set; }
 
         /// <summary>Tipo de documento (ejemplo: receta, examen).</summary>
-        public string Type { get; set; } = string.Empty;
+        public FileType Type { get; set; }
 
         /// <summary>Descripción opcional del documento.</summary>
         public string? Description { get; set; }

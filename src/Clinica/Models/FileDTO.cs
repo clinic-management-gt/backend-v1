@@ -7,7 +7,7 @@ public class FileDTO
     public long? Size { get; set; }
     public string? ContentType { get; set; }
     public string? MedicalRecordId { get; set; }
-    public string? Patient { get; set; }
+    public int? PatientId { get; set; }
 }
 
 

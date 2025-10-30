@@ -1,3 +1,4 @@
+using Clinica.Models.EntityFramework.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Clinica.Models.EntityFramework
@@ -15,7 +16,7 @@ namespace Clinica.Models.EntityFramework
         /// <summary>
         /// Tipo de documento (ejemplo: receta, examen, etc).
         /// </summary>
-        public string Type { get; set; } = string.Empty;
+        public FileType Type { get; set; }
 
         /// <summary>
         /// Descripción opcional del archivo.
@@ -28,8 +29,8 @@ namespace Clinica.Models.EntityFramework
         public IFormFile File { get; set; } = null!;
 
         /// <summary>
-        /// Identificador del expediente médico relacionado.
+        /// Identificador del expediente médico relacionado (opcional).
         /// </summary>
-        public int MedicalRecordId { get; set; }
+        public int? MedicalRecordId { get; set; }
     }
 }
