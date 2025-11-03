@@ -55,7 +55,7 @@ namespace Clinica.Controllers
                 _context.PatientDocuments.Add(doc);
                 await _context.SaveChangesAsync();
 
-                result = Ok(new FileDTO
+                result = Ok(new FileResponseDto
                 {
                     Message = "Archivo subido",
                     Url = url,
@@ -92,9 +92,9 @@ namespace Clinica.Controllers
                 query = query.Where(d => d.MedicalRecordId == MedicalRecordId);
             }
 
-            var docs = await query
+            List<FileResponseDto> docs = await query
                 .OrderByDescending(d => d.UploadedAt)
-                .Select(d => new FileDTO
+                .Select(d => new FileResponseDto
                 {
                     Url = d.FileUrl,
                     Size = d.Size,

@@ -46,14 +46,14 @@ namespace Clinica.Services
 
         public async Task<string> UploadDocumentToCloudflareR2(IFormFile file, int patientId, string tipo, int? medicalRecordId)
         {
-            var ext = Path.GetExtension(file.FileName);
-            var fecha = DateTime.UtcNow.ToString("yyyy/MM/dd");
-            var guid = Guid.NewGuid().ToString("N");
-            var tipoSafe = tipo.Replace(" ", "_").ToLower();
+            string ext = Path.GetExtension(file.FileName);
+            string fecha = DateTime.UtcNow.ToString("yyyy/MM/dd");
+            string guid = Guid.NewGuid().ToString("N");
+            string tipoSafe = tipo.Replace(" ", "_").ToLower();
 
-            var medicalRecordPart = medicalRecordId.HasValue ? $"medicalRecordId_{medicalRecordId.Value}/" : "";
-            var key = $"{fecha}/patientID_{patientId}/{medicalRecordPart}tipo_{tipoSafe}/{guid}{ext}";
-            var safeKeyForUrl = Uri.EscapeDataString(key);
+            string medicalRecordPart = medicalRecordId.HasValue ? $"medicalRecordId_{medicalRecordId.Value}/" : "";
+            string key = $"{fecha}/patientID_{patientId}/{medicalRecordPart}tipo_{tipoSafe}/{guid}{ext}";
+            string safeKeyForUrl = Uri.EscapeDataString(key);
 
 
             try
@@ -69,8 +69,8 @@ namespace Clinica.Services
                 }
 
                 // Crear solicitud HTTP directa en lugar de usar AWS SDK
-                var endpoint = $"https://{_accountId}.r2.cloudflarestorage.com/{_bucketName}/{key}";
-                var request = new HttpRequestMessage(HttpMethod.Put, endpoint);
+                string endpoint = $"https://{_accountId}.r2.cloudflarestorage.com/{_bucketName}/{key}";
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, endpoint);
 
                 // Configurar headers básicos
                 request.Content = new ByteArrayContent(fileBytes);
@@ -78,42 +78,42 @@ namespace Clinica.Services
                 request.Content.Headers.ContentLength = fileBytes.Length;
 
                 // Agregar fecha para la firma
-                var timestamp = DateTime.UtcNow;
-                var dateString = timestamp.ToString("yyyyMMddTHHmmssZ");
-                var shortDate = timestamp.ToString("yyyyMMdd");
+                DateTime timestamp = DateTime.UtcNow;
+                string dateString = timestamp.ToString("yyyyMMddTHHmmssZ");
+                string shortDate = timestamp.ToString("yyyyMMdd");
 
                 // Agregar encabezados de autenticación AWS4
                 request.Headers.Add("x-amz-date", dateString);
                 request.Headers.Add("x-amz-content-sha256", "UNSIGNED-PAYLOAD");
 
                 // Crear firma AWS v4 simplificada
-                var region = "auto";
-                var service = "s3";
+                string region = "auto";
+                string service = "s3";
 
                 // Scope para la firma
-                var scope = $"{shortDate}/{region}/{service}/aws4_request";
+                string scope = $"{shortDate}/{region}/{service}/aws4_request";
 
                 // Crear firma para la solicitud
-                var canonicalRequest = $"PUT\n/{_bucketName}/{key}\n\nhost:{_accountId}.r2.cloudflarestorage.com\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:{dateString}\n\nhost;x-amz-content-sha256;x-amz-date\nUNSIGNED-PAYLOAD";
-                var stringToSign = $"AWS4-HMAC-SHA256\n{dateString}\n{scope}\n{HexHash(canonicalRequest)}";
+                string canonicalRequest = $"PUT\n/{_bucketName}/{key}\n\nhost:{_accountId}.r2.cloudflarestorage.com\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:{dateString}\n\nhost;x-amz-content-sha256;x-amz-date\nUNSIGNED-PAYLOAD";
+                string stringToSign = $"AWS4-HMAC-SHA256\n{dateString}\n{scope}\n{HexHash(canonicalRequest)}";
 
                 // Derivar claves
-                var kSecret = Encoding.UTF8.GetBytes($"AWS4{_secretKey}");
-                var kDate = HmacSha256(kSecret, shortDate);
-                var kRegion = HmacSha256(kDate, region);
-                var kService = HmacSha256(kRegion, service);
-                var kSigning = HmacSha256(kService, "aws4_request");
+                byte[] kSecret = Encoding.UTF8.GetBytes($"AWS4{_secretKey}");
+                byte[] kDate = HmacSha256(kSecret, shortDate);
+                byte[] kRegion = HmacSha256(kDate, region);
+                byte[] kService = HmacSha256(kRegion, service);
+                byte[] kSigning = HmacSha256(kService, "aws4_request");
 
                 // Calcular firma
-                var signature = HexEncode(HmacSha256(kSigning, stringToSign));
+                string signature = HexEncode(HmacSha256(kSigning, stringToSign));
 
                 // Añadir header de autorización
-                var authHeader = $"AWS4-HMAC-SHA256 Credential={_accessKey}/{scope}, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature={signature}";
+                string authHeader = $"AWS4-HMAC-SHA256 Credential={_accessKey}/{scope}, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature={signature}";
                 request.Headers.TryAddWithoutValidation("Authorization", authHeader);
 
                 // Hacer la solicitud PUT
                 Console.WriteLine("[R2] Enviando solicitud PUT directa...");
-                var response = await _httpClient.SendAsync(request);
+                HttpResponseMessage response = await _httpClient.SendAsync(request);
 
                 // Verificar respuesta
                 if (response.IsSuccessStatusCode)
@@ -121,7 +121,7 @@ namespace Clinica.Services
                     Console.WriteLine($"[R2] Archivo subido con éxito. Status: {response.StatusCode}");
 
                     // Construir URL pública corregida
-                    var url = !string.IsNullOrEmpty(_publicBase)
+                    string url = !string.IsNullOrEmpty(_publicBase)
                         ? $"{_publicBase.TrimEnd('/')}/{safeKeyForUrl}"
                         : $"https://{_accountId}.r2.cloudflarestorage.com/{_bucketName}/{safeKeyForUrl}";
 
@@ -129,7 +129,7 @@ namespace Clinica.Services
                 }
                 else
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
+                    string errorContent = await response.Content.ReadAsStringAsync();
                     Console.WriteLine($"[R2] Error al subir: {response.StatusCode}. {errorContent}");
                     throw new Exception($"Error al subir archivo a R2: {response.StatusCode}. {errorContent}");
                 }
@@ -144,21 +144,21 @@ namespace Clinica.Services
         #region Métodos auxiliares para firma AWS v4
         private static string HexHash(string data)
         {
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
+            using SHA256 sha256 = SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
             return HexEncode(bytes);
         }
 
         private static byte[] HmacSha256(byte[] key, string data)
         {
-            using var hmac = new HMACSHA256(key);
+            using HMACSHA256 hmac = new HMACSHA256(key);
             return hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
         }
 
         private static string HexEncode(byte[] bytes)
         {
             StringBuilder builder = new StringBuilder();
-            foreach (var b in bytes)
+            foreach (byte b in bytes)
             {
                 builder.Append(b.ToString("x2"));
             }
