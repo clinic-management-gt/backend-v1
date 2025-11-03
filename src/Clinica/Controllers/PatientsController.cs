@@ -49,19 +49,19 @@ public class PatientsController : ControllerBase
             if (request.InfoSheetFile != null && request.InfoSheetFile.Length > 0)
             {
                 fileUrl = await _r2.UploadDocumentToCloudflareR2(
-                    request.InfoSheetFile, patient.Id, "hoja_de_informacion", medicalRecordId: 0);
+                    request.InfoSheetFile, patient.Id, "hoja_de_informacion", medicalRecordId: null);
 
                 PatientDocument doc = new PatientDocument
                 {
                     PatientId = patient.Id,
-                    Type = "hoja_de_informacion",
+                    Type = Clinica.Models.EntityFramework.Enums.FileType.HojaDeInformacion,
                     Description = "Hoja de información del paciente",
                     FileUrl = fileUrl,
                     UploadedBy = null,
                     UploadedAt = DateTime.UtcNow,
                     Size = request.InfoSheetFile.Length,
                     ContentType = request.InfoSheetFile.ContentType,
-                    MedicalRecordId = 0
+                    MedicalRecordId = null
                 };
 
                 _context.PatientDocuments.Add(doc);
