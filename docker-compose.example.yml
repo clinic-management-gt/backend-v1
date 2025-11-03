@@ -5,11 +5,22 @@ services:
     build:
       context: ./src
       dockerfile: ./DockerFile
+      # EN DEVELOPMENT COLOCAR development
+      target: production
     ports:
       - "9000:8080"
     depends_on:
       db:
         condition: service_healthy
+
+    #### UNICAMENTE PARA DEVELOPMENT YA QUE MEJORA LA VELOCIDAD
+    #### NO SE DEBE UTILIZAR EN PRODUCTION
+  # volumes: 
+    # - ./src/Clinica:/app/Clinica
+    # - /app/Clinica/obj
+    # - /app/Clinica/bin
+
+    #PARA FACILITAR DEBUGGING EN DEVELOPMENT COLOCAR on-failure
     restart: unless-stopped
     environment:
       # Ambiente de ejecución (desde .env)
@@ -17,16 +28,16 @@ services:
 
       # Database connection
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-      - Jwt__Key=
-      - Jwt__Issuer=clinica
-      - Jwt__Audience=clinica
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
 
       # === Cloudflare R2 ===
-      - Cloudflare__AccountId=
-      - Cloudflare__R2AccessKey=
-      - Cloudflare__R2SecretKey=
-      - Cloudflare__R2BucketName=clinic-software
-      - Cloudflare__PublicBase=https://pub-54cce539098547e99d7b5abd3a935ceb.r2.dev
+      - Cloudflare__AccountId=${CLOUDFLARE_ACCOUNT_ID}
+      - Cloudflare__R2AccessKey=${CLOUDFLARE_R2_ACCESS_KEY}
+      - Cloudflare__R2SecretKey=${CLOUDFLARE_R2_SECRET_KEY}
+      - Cloudflare__R2BucketName=${CLOUDFLARE_R2_BUCKET_NAME}
+      - Cloudflare__PublicBase=${CLOUDFLARE_PUBLIC_BASE}
 
   db:
     image: postgres:17
