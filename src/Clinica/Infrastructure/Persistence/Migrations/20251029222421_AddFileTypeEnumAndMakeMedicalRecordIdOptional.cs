@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Clinica.Migrations
+namespace Clinica.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class AddFileTypeEnumAndMakeMedicalRecordIdOptional : Migration

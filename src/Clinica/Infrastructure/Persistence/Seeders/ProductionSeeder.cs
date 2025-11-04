@@ -1,9 +1,8 @@
 using BCrypt.Net;
-using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Entities;
 
-namespace Clinica.Data;
+namespace Clinica.Infrastructure.Persistence.Seeders;
 
 /// <summary>
 /// Seeder de producción - Solo datos esenciales necesarios para que la aplicación funcione.

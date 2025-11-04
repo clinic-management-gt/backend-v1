@@ -4,8 +4,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using Clinica;
-using Clinica.Models.EntityFramework;
-using Clinica.Services;
+using Clinica.Infrastructure.Persistence;
+using Clinica.Infrastructure.ExternalServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -108,13 +108,13 @@ public class Program
             {
                 // En producción: solo datos esenciales (usuarios, catálogos)
                 Console.WriteLine("🏭 Running PRODUCTION seeder (essential data only)...");
-                await Clinica.Data.ProductionSeeder.SeedAsync(db);
+                await Clinica.Infrastructure.Persistence.Seeders.ProductionSeeder.SeedAsync(db);
             }
             else
             {
                 // En desarrollo/test: datos completos con 100 pacientes de prueba
                 Console.WriteLine("🧪 Running DEVELOPMENT seeder (with test data)...");
-                await Clinica.Data.DatabaseSeeder.SeedAsync(db);
+                await Clinica.Infrastructure.Persistence.Seeders.DatabaseSeeder.SeedAsync(db);
             }
         }
 

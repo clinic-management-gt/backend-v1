@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
-namespace Clinica.Services
+namespace Clinica.Infrastructure.ExternalServices
 {
     public class CloudflareR2Service
     {

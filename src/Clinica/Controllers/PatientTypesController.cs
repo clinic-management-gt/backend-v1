@@ -1,4 +1,4 @@
-using Clinica.Models.EntityFramework;
+using Clinica.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

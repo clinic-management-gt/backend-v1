@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
 
-namespace Clinica.Models.EntityFramework;
+namespace Clinica.Infrastructure.Persistence;
 
 /// <summary>
 /// Contexto principal de la base de datos para la clínica.

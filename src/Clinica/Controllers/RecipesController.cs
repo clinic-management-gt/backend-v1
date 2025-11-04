@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Clinica.Models;
-using Clinica.Models.EntityFramework;
+using Clinica.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Clinica.Domain.Entities;
 using Clinica.Application.DTOs.Responses;

@@ -1,10 +1,9 @@
 using BCrypt.Net;
-using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
 
-namespace Clinica.Data;
+namespace Clinica.Infrastructure.Persistence.Seeders;
 
 /// <summary>
 /// Seeder de base de datos para poblar con datos iniciales y de prueba.

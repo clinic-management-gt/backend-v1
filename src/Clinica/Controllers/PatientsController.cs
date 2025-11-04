@@ -1,8 +1,7 @@
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
-using Clinica.Models;
-using Clinica.Models.EntityFramework;
-using Clinica.Services;
+using Clinica.Infrastructure.Persistence;
+using Clinica.Infrastructure.ExternalServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Clinica.Application.DTOs.Requests;

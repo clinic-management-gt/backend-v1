@@ -1,5 +1,4 @@
-using Clinica.Models;
-using Clinica.Models.EntityFramework;
+using Clinica.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

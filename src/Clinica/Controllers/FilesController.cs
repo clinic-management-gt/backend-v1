@@ -1,7 +1,7 @@
-using Clinica.Models.EntityFramework;
+using Clinica.Infrastructure.Persistence;
 using Clinica.Domain.Enums;
 using Clinica.Domain.Entities;
-using Clinica.Services;
+using Clinica.Infrastructure.ExternalServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
