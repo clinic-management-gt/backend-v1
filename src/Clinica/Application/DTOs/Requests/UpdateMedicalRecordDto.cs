@@ -1,5 +1,4 @@
-namespace Clinica.Models
-{
+namespace Clinica.Application.DTOs.Requests;
     public class UpdateMedicalRecordDto
     {
         public decimal? Weight { get; set; }
@@ -7,4 +6,4 @@ namespace Clinica.Models
         public string? FamilyHistory { get; set; }
         public string? Notes { get; set; }
     }
-}
+

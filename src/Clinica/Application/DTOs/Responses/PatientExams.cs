@@ -1,6 +1,4 @@
-
-namespace Clinica.Models
-{
+namespace Clinica.Application.DTOs.Responses;
     public class PatientExams
     {
         public int Id { get; set; }
@@ -10,4 +8,4 @@ namespace Clinica.Models
         public string ResultFilePath { get; set; } = String.Empty;
         public DateTime CreatedAt { get; set; }
     }
-}
+

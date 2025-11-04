@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Enums;
 using Clinica.Domain.Entities;
+using Clinica.Application.DTOs.Requests;
+using Clinica.Application.DTOs.Responses;
 
 namespace Clinica.Controllers;
 

@@ -1,4 +1,4 @@
-namespace Clinica.Models.EntityFramework;
+namespace Clinica.Application.DTOs.Responses;
 
 public class FileResponseDto
 {

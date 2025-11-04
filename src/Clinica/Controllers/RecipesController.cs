@@ -3,6 +3,7 @@ using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
 using Clinica.Domain.Entities;
+using Clinica.Application.DTOs.Responses;
 using Npgsql;
 
 namespace Clinica.Controllers;

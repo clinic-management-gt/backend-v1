@@ -1,6 +1,4 @@
-namespace Clinica.Models
-
-{
+namespace Clinica.Application.DTOs.Responses;
     public class VaccineDTO
     {
         public int? Id { get; set; }
@@ -8,5 +6,5 @@ namespace Clinica.Models
         public required string Brand { get; set; }
 
     }
-}
+
 

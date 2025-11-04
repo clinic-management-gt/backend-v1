@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Clinica.Models;
+namespace Clinica.Application.DTOs.Requests;
 
 /// <summary>
 /// DTO para actualizar parcialmente una cita médica.

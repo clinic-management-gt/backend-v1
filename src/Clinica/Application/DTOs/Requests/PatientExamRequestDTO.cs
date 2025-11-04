@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Clinica.Models
-{
+namespace Clinica.Application.DTOs.Requests;
     public class PatientExamRequest
     {
         [Required]
@@ -15,4 +14,4 @@ namespace Clinica.Models
         [Required]
         public required IFormFile File { get; set; } = default!;
     }
-}
+

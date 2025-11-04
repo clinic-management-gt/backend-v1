@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
+namespace Clinica.Application.DTOs.Requests;
 
-namespace Clinica.Models
-{
     /// <summary>
     /// DTO para crear un paciente pendiente de confirmar
     /// </summary>
@@ -38,4 +35,4 @@ namespace Clinica.Models
         /// <summary>Número de teléfono del contacto</summary>
         public string PhoneNumber { get; set; } = string.Empty;
     }
-}
+

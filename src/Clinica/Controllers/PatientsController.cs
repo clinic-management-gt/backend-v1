@@ -5,6 +5,8 @@ using Clinica.Models.EntityFramework;
 using Clinica.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Application.DTOs.Requests;
+using Clinica.Application.DTOs.Responses;
 
 [ApiController]
 [Route("patients")]

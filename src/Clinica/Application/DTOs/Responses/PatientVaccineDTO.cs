@@ -1,3 +1,4 @@
+namespace Clinica.Application.DTOs.Responses;
 public class PatientVaccineDTO
 {
     public int Id { get; set; }                      // de patient_vaccines

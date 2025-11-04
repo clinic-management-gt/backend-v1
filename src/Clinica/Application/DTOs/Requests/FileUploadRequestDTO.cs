@@ -1,8 +1,8 @@
 using Clinica.Domain.Enums;
-using Microsoft.AspNetCore.Http;
 
-namespace Clinica.Models.EntityFramework
-{
+
+namespace Clinica.Application.DTOs.Requests;
+
     /// <summary>
     /// Modelo para recibir los datos de la solicitud de subida de archivos de pacientes.
     /// </summary>
@@ -33,4 +33,4 @@ namespace Clinica.Models.EntityFramework
         /// </summary>
         public int? MedicalRecordId { get; set; }
     }
-}
+

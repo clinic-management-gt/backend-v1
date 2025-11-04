@@ -1,4 +1,4 @@
-namespace Clinica.Models;
+namespace Clinica.Application.DTOs.Requests;
 
 public class ContactCreateDTO
 {

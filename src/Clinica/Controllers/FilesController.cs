@@ -5,6 +5,8 @@ using Clinica.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Application.DTOs.Requests;
+using Clinica.Application.DTOs.Responses;
 
 namespace Clinica.Controllers
 {

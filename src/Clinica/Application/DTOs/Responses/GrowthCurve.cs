@@ -1,7 +1,5 @@
 
-namespace Clinica.Models
-{
-
+namespace Clinica.Application.DTOs.Responses;
 
     public class GrowthCurveDTO
     {
@@ -43,4 +41,4 @@ namespace Clinica.Models
         public decimal? BodyMassIndex { set; get; }
         public int AgeInDays { set; get; }
     }
-}
+

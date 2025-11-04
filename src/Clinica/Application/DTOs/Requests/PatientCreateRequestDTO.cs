@@ -1,7 +1,4 @@
-using Microsoft.AspNetCore.Http;
-
-namespace Clinica.Models
-{
+namespace Clinica.Application.DTOs.Requests;
     /// <summary>
     /// Modelo para la creación de un paciente y su hoja de información.
     /// </summary>
@@ -22,4 +19,3 @@ namespace Clinica.Models
         public int PatientTypeId { get; set; }
     }
 
-}

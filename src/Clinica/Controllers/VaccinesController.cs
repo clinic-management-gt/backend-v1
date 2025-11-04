@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Clinica.Domain.Entities;
+using Clinica.Application.DTOs.Requests;
+using Clinica.Application.DTOs.Responses;
 
 namespace Clinica.Controllers
 {

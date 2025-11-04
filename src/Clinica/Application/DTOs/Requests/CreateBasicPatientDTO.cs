@@ -1,4 +1,4 @@
-namespace Clinica.Models;
+namespace Clinica.Application.DTOs.Requests;
 
 /// <summary>
 /// DTO para crear un paciente básico (solo nombre, apellido y género)
