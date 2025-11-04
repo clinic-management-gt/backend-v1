@@ -2,10 +2,10 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using Clinica;
-using Clinica.Models.EntityFramework;
-using Clinica.Services;
+using Clinica.Domain.Enums;
+using Clinica.Infrastructure.ExternalServices;
+using Clinica.Infrastructure.Persistence;
+using Clinica.Presentation.Conventions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,7 @@ public class Program
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o =>
             {
                 o.MapEnum<AppointmentStatus>("appointment_status_enum");
-                o.MapEnum<Clinica.Models.EntityFramework.Enums.FileType>("file_type_enum");
+                o.MapEnum<Clinica.Domain.Enums.FileType>("file_type_enum");
             }));
 
         builder.Services.AddControllers(options =>
@@ -107,13 +107,13 @@ public class Program
             {
                 // En producción: solo datos esenciales (usuarios, catálogos)
                 Console.WriteLine("🏭 Running PRODUCTION seeder (essential data only)...");
-                await Clinica.Data.ProductionSeeder.SeedAsync(db);
+                await Clinica.Infrastructure.Persistence.Seeders.ProductionSeeder.SeedAsync(db);
             }
             else
             {
                 // En desarrollo/test: datos completos con 100 pacientes de prueba
                 Console.WriteLine("🧪 Running DEVELOPMENT seeder (with test data)...");
-                await Clinica.Data.DatabaseSeeder.SeedAsync(db);
+                await Clinica.Infrastructure.Persistence.Seeders.DatabaseSeeder.SeedAsync(db);
             }
         }
 

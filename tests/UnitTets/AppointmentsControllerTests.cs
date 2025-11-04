@@ -2,10 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Clinica.Controllers;
-using Clinica.Models;
-using Clinica.Models.EntityFramework;
+using Clinica.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
+using Clinica.Application.DTOs.Requests;
+using Clinica.Application.DTOs.Responses;
 using TUnit;
 using TUnit.Assertions;
 

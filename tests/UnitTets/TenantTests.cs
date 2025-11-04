@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Clinica.Models.EntityFramework;
+using Clinica.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using TUnit;
 using TUnit.Assertions;
+using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
 
 namespace UnitTests;
 
