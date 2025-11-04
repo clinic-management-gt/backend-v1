@@ -234,6 +234,7 @@ public class PatientsController : ControllerBase
             .Include(p => p.BloodType)
             .Include(p => p.PatientType)
             .Include(p => p.Contacts)
+                .ThenInclude(c => c.Phones)
             .Include(p => p.PatientInsurances)
                 .ThenInclude(pi => pi.Insurance);
 
@@ -261,10 +262,9 @@ public class PatientsController : ControllerBase
                 p.UpdatedAt,
                 Contacts = p.Contacts.Select(c => new
                 {
-                    c.Id,
-                    c.Type,
-                    c.Name,
-                    c.LastName
+                    Type = c.Type,
+                    FullName = $"{c.Name} {c.LastName}".Trim(),
+                    PhoneNumbers = c.Phones.Select(ph => ph.Phone1).ToList()
                 }).ToList(),
                 PatientInsurances = p.PatientInsurances.Select(pi => new
                 {
@@ -298,7 +298,7 @@ public class PatientsController : ControllerBase
                 Contacts = p.PendingPatientContacts.Select(c => new
                 {
                     Type = c.Type,
-                    Name = c.Name,  // Nombre del contacto
+                    FullName = $"{c.Name} {c.LastName}".Trim(),
                     PhoneNumbers = c.PendingPatientPhones.Select(ph => ph.Phone).ToList()
                 }).ToList(),
                 p.CreatedAt

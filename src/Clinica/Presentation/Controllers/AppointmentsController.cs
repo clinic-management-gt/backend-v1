@@ -28,6 +28,7 @@ public class AppointmentsController : ControllerBase
         {
             var query = _context.Appointments
                 .Include(a => a.Patient)
+                    .ThenInclude(p => p.PatientType)
                 .Include(a => a.Doctor)
                 .AsQueryable();
 
@@ -44,7 +45,10 @@ public class AppointmentsController : ControllerBase
                     PatientName = a.Patient.Name + " " + a.Patient.LastName,
                     DoctorName = a.Doctor.FirstName + " " + a.Doctor.LastName,
                     Status = a.Status,
-                    Date = a.AppointmentDate
+                    Date = a.AppointmentDate,
+                    PatientTypeId = a.Patient.PatientTypeId,
+                    PatientTypeName = a.Patient.PatientType != null ? a.Patient.PatientType.Name : null,
+                    PatientTypeColor = a.Patient.PatientType != null ? a.Patient.PatientType.Color : null
                 })
                 .ToListAsync();
 
@@ -66,6 +70,7 @@ public class AppointmentsController : ControllerBase
 
             var query = _context.Appointments
                 .Include(a => a.Patient)
+                    .ThenInclude(p => p.PatientType)
                 .Include(a => a.Doctor)
                 .Where(a => a.AppointmentDate.Date == today)
                 .AsQueryable();
@@ -84,7 +89,10 @@ public class AppointmentsController : ControllerBase
                     PatientName = a.Patient.Name + " " + a.Patient.LastName,
                     DoctorName = a.Doctor.FirstName + " " + a.Doctor.LastName,
                     Status = a.Status,
-                    Date = a.AppointmentDate
+                    Date = a.AppointmentDate,
+                    PatientTypeId = a.Patient.PatientTypeId,
+                    PatientTypeName = a.Patient.PatientType != null ? a.Patient.PatientType.Name : null,
+                    PatientTypeColor = a.Patient.PatientType != null ? a.Patient.PatientType.Color : null
                 })
                 .ToListAsync();
 
