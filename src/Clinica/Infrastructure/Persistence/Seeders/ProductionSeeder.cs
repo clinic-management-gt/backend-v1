@@ -1,6 +1,6 @@
 using BCrypt.Net;
-using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Infrastructure.Persistence.Seeders;
 

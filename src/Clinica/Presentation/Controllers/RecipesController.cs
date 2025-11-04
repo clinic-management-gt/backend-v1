@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using Clinica.Application.DTOs.Responses;
+using Clinica.Domain.Entities;
 using Clinica.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
-using Clinica.Domain.Entities;
-using Clinica.Application.DTOs.Responses;
 using Npgsql;
 
 namespace Clinica.Presentation.Controllers;

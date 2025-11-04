@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Infrastructure.Persistence;
 

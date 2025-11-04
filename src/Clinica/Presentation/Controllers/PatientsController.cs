@@ -1,10 +1,10 @@
-using Clinica.Domain.Entities;
-using Clinica.Infrastructure.Persistence;
-using Clinica.Infrastructure.ExternalServices;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Clinica.Application.DTOs.Requests;
 using Clinica.Application.DTOs.Responses;
+using Clinica.Domain.Entities;
+using Clinica.Infrastructure.ExternalServices;
+using Clinica.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Presentation.Controllers;
 

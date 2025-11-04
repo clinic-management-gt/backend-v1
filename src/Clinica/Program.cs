@@ -2,14 +2,14 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Clinica.Infrastructure.Persistence;
+using Clinica.Domain.Enums;
 using Clinica.Infrastructure.ExternalServices;
+using Clinica.Infrastructure.Persistence;
+using Clinica.Presentation.Conventions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Clinica.Domain.Enums;
-using Clinica.Presentation.Conventions;
 
 public class Program
 {

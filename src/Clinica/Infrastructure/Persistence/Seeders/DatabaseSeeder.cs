@@ -1,7 +1,7 @@
 using BCrypt.Net;
-using Microsoft.EntityFrameworkCore;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Infrastructure.Persistence.Seeders;
 
