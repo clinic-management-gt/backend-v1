@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Clinica.Domain.Enums;
 
 public class Program
 {
@@ -31,7 +32,7 @@ public class Program
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o =>
             {
                 o.MapEnum<AppointmentStatus>("appointment_status_enum");
-                o.MapEnum<Clinica.Models.EntityFramework.Enums.FileType>("file_type_enum");
+                o.MapEnum<Clinica.Domain.Enums.FileType>("file_type_enum");
             }));
 
         builder.Services.AddControllers(options =>

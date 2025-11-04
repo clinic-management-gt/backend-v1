@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
 
 namespace Clinica.Models.EntityFramework;
 
@@ -136,7 +138,7 @@ public partial class ApplicationDbContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection", o =>
-                o.MapEnum<Enums.FileType>("file_type_enum"));
+                o.MapEnum<FileType>("file_type_enum"));
         }
     }
 

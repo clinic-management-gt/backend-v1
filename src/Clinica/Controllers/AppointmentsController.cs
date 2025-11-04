@@ -3,6 +3,8 @@ using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Domain.Enums;
+using Clinica.Domain.Entities;
 
 namespace Clinica.Controllers;
 

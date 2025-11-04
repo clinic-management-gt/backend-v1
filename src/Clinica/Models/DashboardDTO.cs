@@ -1,5 +1,7 @@
+using Clinica.Domain.Enums;
 
 namespace Clinica.Models;
+
 public class DashBoardDTO
 {
     public int Id { get; set; }

@@ -4,6 +4,8 @@ using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using TUnit;
 using TUnit.Assertions;
+using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
 
 namespace UnitTests.EntityFrameworkTests;
 

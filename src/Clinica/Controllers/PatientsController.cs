@@ -1,3 +1,5 @@
+using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
 using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Clinica.Services;
@@ -54,7 +56,7 @@ public class PatientsController : ControllerBase
                 PatientDocument doc = new PatientDocument
                 {
                     PatientId = patient.Id,
-                    Type = Clinica.Models.EntityFramework.Enums.FileType.HojaDeInformacion,
+                    Type = Clinica.Domain.Enums.FileType.HojaDeInformacion,
                     Description = "Hoja de información del paciente",
                     FileUrl = fileUrl,
                     UploadedBy = null,

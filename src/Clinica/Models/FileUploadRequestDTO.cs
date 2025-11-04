@@ -1,4 +1,4 @@
-using Clinica.Models.EntityFramework.Enums;
+using Clinica.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Clinica.Models.EntityFramework

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Clinica.Models;
 using Clinica.Models.EntityFramework;
 using Microsoft.AspNetCore.Mvc;
+using Clinica.Domain.Entities;
 using Npgsql;
 
 namespace Clinica.Controllers;

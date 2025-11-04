@@ -1,6 +1,8 @@
 using BCrypt.Net;
 using Clinica.Models.EntityFramework;
 using Microsoft.EntityFrameworkCore;
+using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
 
 namespace Clinica.Data;
 

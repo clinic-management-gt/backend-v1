@@ -492,7 +492,7 @@ namespace Clinica.Migrations
                     reason = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    status = table.Column<AppointmentStatus>(type: "appointment_status_enum", nullable: false)
+                    status = table.Column<Domain.Enums.AppointmentStatus>(type: "appointment_status_enum", nullable: false)
                 },
                 constraints: table =>
                 {
