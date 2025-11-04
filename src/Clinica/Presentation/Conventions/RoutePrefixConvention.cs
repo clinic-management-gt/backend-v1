@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-namespace Clinica;
+
+namespace Clinica.Presentation.Conventions;
 
 public class RoutePrefixConvention : IApplicationModelConvention
 {

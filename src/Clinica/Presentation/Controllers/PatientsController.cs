@@ -1,11 +1,12 @@
 using Clinica.Domain.Entities;
-using Clinica.Domain.Enums;
 using Clinica.Infrastructure.Persistence;
 using Clinica.Infrastructure.ExternalServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Clinica.Application.DTOs.Requests;
 using Clinica.Application.DTOs.Responses;
+
+namespace Clinica.Presentation.Controllers;
 
 [ApiController]
 [Route("patients")]

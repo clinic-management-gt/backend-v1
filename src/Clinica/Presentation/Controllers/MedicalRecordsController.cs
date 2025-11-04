@@ -5,8 +5,8 @@ using Clinica.Domain.Entities;
 using Clinica.Application.DTOs.Requests;
 using Clinica.Application.DTOs.Responses;
 
-namespace Clinica.Controllers
-{
+namespace Clinica.Presentation.Controllers;
+
     [ApiController]
     [Route("[controller]")]
     public class MedicalRecordsController : ControllerBase
@@ -313,4 +313,4 @@ namespace Clinica.Controllers
             }
         }
     }
-}
+

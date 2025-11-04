@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 
-namespace Clinica.Controllers;
+namespace Clinica.Presentation.Controllers;
 
 [ApiController]
 [Route("auth")]

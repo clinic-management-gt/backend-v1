@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Clinica.Application.DTOs.Requests;
 using Clinica.Application.DTOs.Responses;
 
-namespace Clinica.Controllers
-{
+namespace Clinica.Presentation.Controllers;
+
     /// <summary>
     /// Controlador para gestionar la subida y descarga de archivos de pacientes.
     /// </summary>
@@ -111,4 +111,4 @@ namespace Clinica.Controllers
             return Ok(docs);
         }
     }
-}
+

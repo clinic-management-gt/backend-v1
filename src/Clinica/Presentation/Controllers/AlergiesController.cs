@@ -2,7 +2,7 @@ using Clinica.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Clinica.Controllers;
+namespace Clinica.Presentation.Controllers;
 
 [ApiController]
 [Route("[controller]")]

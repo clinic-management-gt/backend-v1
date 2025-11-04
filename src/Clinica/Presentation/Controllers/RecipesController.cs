@@ -5,7 +5,7 @@ using Clinica.Domain.Entities;
 using Clinica.Application.DTOs.Responses;
 using Npgsql;
 
-namespace Clinica.Controllers;
+namespace Clinica.Presentation.Controllers;
 
 [ApiController]
 [Route("[controller]")]
