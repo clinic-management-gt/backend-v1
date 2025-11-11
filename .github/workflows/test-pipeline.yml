@@ -60,8 +60,8 @@ jobs:
       - name: Deploy to Test Server
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 172.176.96.39
-          username: azureuser
+          host: ${{ secrets.SERVER_IP_TEST }}
+          username: ${{ secrets.SERVER_USER_TEST }}
           key: ${{ secrets.SSH_PRIVATE_KEY_TEST }}
           script: |
             cd ~/backend-v1
