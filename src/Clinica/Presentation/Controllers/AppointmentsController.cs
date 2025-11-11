@@ -66,13 +66,13 @@ public class AppointmentsController : ControllerBase
     {
         try
         {
-            var today = DateTime.Today;
+            var todayUtc = DateTime.UtcNow.Date;
 
             var query = _context.Appointments
                 .Include(a => a.Patient)
                     .ThenInclude(p => p.PatientType)
                 .Include(a => a.Doctor)
-                .Where(a => a.AppointmentDate.Date == today)
+                .Where(a => a.AppointmentDate.Date == todayUtc)
                 .AsQueryable();
 
             if (status != null)
@@ -155,7 +155,7 @@ public class AppointmentsController : ControllerBase
             var requestedDate = dto.AppointmentDate ?? dto.Date;
             if (requestedDate.HasValue)
             {
-                appointment.AppointmentDate = DateTime.SpecifyKind(requestedDate.Value, DateTimeKind.Unspecified);
+                appointment.AppointmentDate = DateTime.SpecifyKind(requestedDate.Value, DateTimeKind.Utc);
                 updated = true;
             }
 
@@ -300,7 +300,7 @@ public class AppointmentsController : ControllerBase
             {
                 PatientId = finalPatientId,
                 DoctorId = doctor.Id,
-                AppointmentDate = DateTime.SpecifyKind(dto.AppointmentDate, DateTimeKind.Unspecified),
+                AppointmentDate = DateTime.SpecifyKind(dto.AppointmentDate, DateTimeKind.Utc),
                 Status = Enum.TryParse<AppointmentStatus>(dto.Status, true, out var status)
                     ? status
                     : AppointmentStatus.Pendiente,
