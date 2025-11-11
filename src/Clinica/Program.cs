@@ -48,11 +48,16 @@ public class Program
 
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowFrontend", policy =>
+             options.AddPolicy("AllowFrontend", policy =>
             {
-                policy.WithOrigins("http://localhost:5173", "http://172.176.96.39")
+                policy.WithOrigins(
+                        "http://localhost:5173", 
+                        "http://localhost:5178", 
+                        "https://gastropedia.kairosaid.com",
+                        "https://test.kairosaid.com")
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
 
