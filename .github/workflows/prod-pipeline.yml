@@ -50,8 +50,8 @@ jobs:
       - name: Deploy to Production Server
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 128.24.93.178
-          username: azureuser
+          host: ${{ secrets.SERVER_IP_PROD }}
+          username: ${{ secrets.SERVER_USER_PROD }}
           key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
           script: |
             cd ~/backend-v1
