@@ -42,6 +42,8 @@ public class Program
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                // Asegurar que las fechas se serialicen en formato UTC con 'Z'
+                options.JsonSerializerOptions.Converters.Add(new Clinica.Infrastructure.Converters.UtcDateTimeConverter());
             });
 
         builder.Services.AddCors(options =>
