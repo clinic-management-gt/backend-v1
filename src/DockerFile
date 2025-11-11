@@ -35,7 +35,6 @@ COPY ./Clinica ./Clinica
 WORKDIR /src/Clinica
 
 RUN dotnet publish -c Release -o /app/publish \
-    --no-restore \
     /p:UseAppHost=false
 
 
