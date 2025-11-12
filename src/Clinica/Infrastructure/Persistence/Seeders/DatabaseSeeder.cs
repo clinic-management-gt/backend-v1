@@ -58,7 +58,7 @@ public static class DatabaseSeeder
                 DbHost = "localhost",
                 DbUser = "sudo",
                 DbPassword = "root",
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             }
         };
 
@@ -71,9 +71,9 @@ public static class DatabaseSeeder
     {
         var roles = new List<Role>
         {
-            new Role { Type = 1, Name = "Admin", CanEdit = true, CreatedAt = DateTime.Now },
-            new Role { Type = 2, Name = "Doctor", CanEdit = false, CreatedAt = DateTime.Now },
-            new Role { Type = 3, Name = "Secretaria", CanEdit = true, CreatedAt = DateTime.Now }
+            new Role { Type = 1, Name = "Admin", CanEdit = true, CreatedAt = DateTime.UtcNow },
+            new Role { Type = 2, Name = "Doctor", CanEdit = false, CreatedAt = DateTime.UtcNow },
+            new Role { Type = 3, Name = "Secretaria", CanEdit = true, CreatedAt = DateTime.UtcNow }
         };
 
         await context.Roles.AddRangeAsync(roles);
@@ -85,10 +85,10 @@ public static class DatabaseSeeder
     {
         var modules = new List<Module>
         {
-            new Module { Name = "Pacientes", Description = "Gestión de pacientes", CreatedAt = DateTime.Now },
-            new Module { Name = "Citas", Description = "Gestión de citas médicas", CreatedAt = DateTime.Now },
-            new Module { Name = "Expedientes", Description = "Gestión de expedientes médicos", CreatedAt = DateTime.Now },
-            new Module { Name = "Usuarios", Description = "Gestión de usuarios del sistema", CreatedAt = DateTime.Now }
+            new Module { Name = "Pacientes", Description = "Gestión de pacientes", CreatedAt = DateTime.UtcNow },
+            new Module { Name = "Citas", Description = "Gestión de citas médicas", CreatedAt = DateTime.UtcNow },
+            new Module { Name = "Expedientes", Description = "Gestión de expedientes médicos", CreatedAt = DateTime.UtcNow },
+            new Module { Name = "Usuarios", Description = "Gestión de usuarios del sistema", CreatedAt = DateTime.UtcNow }
         };
 
         await context.Modules.AddRangeAsync(modules);
@@ -108,7 +108,7 @@ public static class DatabaseSeeder
                 CanView = true,
                 CanEdit = true,
                 CanDelete = true,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             });
             permissions.Add(new Permission
             {
@@ -117,7 +117,7 @@ public static class DatabaseSeeder
                 CanView = true,
                 CanEdit = moduleId != 4, // Doctors can't edit users
                 CanDelete = false,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             });
             permissions.Add(new Permission
             {
@@ -126,7 +126,7 @@ public static class DatabaseSeeder
                 CanView = true,
                 CanEdit = moduleId == 2, // Only can edit appointments
                 CanDelete = false,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             });
         }
 
@@ -140,18 +140,18 @@ public static class DatabaseSeeder
         var users = new List<User>
         {
             // Main users
-            new User { FirstName = "Flor", LastName = "Ramírez", Email = "flor.ramirez@example.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctoraPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "María", LastName = "Secretaria", Email = "secretaria@example.com", RoleId = 3, PasswordHash = BCrypt.Net.BCrypt.HashPassword("secretariaPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Ernesto", LastName = "Ascencio", Email = "asc23009@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("ernestoPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Esteban", LastName = "Cárcamo", Email = "car23016@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("estebanPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Nico", LastName = "Concua", Email = "con23197@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("nicoPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Hugo", LastName = "Barillas", Email = "bar23556@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("hugoPass"), CreatedAt = DateTime.Now },
+            new User { FirstName = "Flor", LastName = "Ramírez", Email = "flor.ramirez@example.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctoraPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "María", LastName = "Secretaria", Email = "secretaria@example.com", RoleId = 3, PasswordHash = BCrypt.Net.BCrypt.HashPassword("secretariaPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Ernesto", LastName = "Ascencio", Email = "asc23009@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("ernestoPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Esteban", LastName = "Cárcamo", Email = "car23016@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("estebanPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Nico", LastName = "Concua", Email = "con23197@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("nicoPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Hugo", LastName = "Barillas", Email = "bar23556@uvg.edu.gt", RoleId = 1, PasswordHash = BCrypt.Net.BCrypt.HashPassword("hugoPass"), CreatedAt = DateTime.UtcNow },
 
             // Additional doctors
-            new User { FirstName = "Carlos", LastName = "Mendoza", Email = "carlos.mendoza@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Ana", LastName = "Torres", Email = "ana.torres@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Luis", LastName = "Fernández", Email = "luis.fernandez@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.Now },
-            new User { FirstName = "Patricia", LastName = "Gómez", Email = "patricia.gomez@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.Now }
+            new User { FirstName = "Carlos", LastName = "Mendoza", Email = "carlos.mendoza@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Ana", LastName = "Torres", Email = "ana.torres@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Luis", LastName = "Fernández", Email = "luis.fernandez@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.UtcNow },
+            new User { FirstName = "Patricia", LastName = "Gómez", Email = "patricia.gomez@clinica.com", RoleId = 2, PasswordHash = BCrypt.Net.BCrypt.HashPassword("doctorPass"), CreatedAt = DateTime.UtcNow }
         };
 
         await context.Users.AddRangeAsync(users);
@@ -276,16 +276,16 @@ public static class DatabaseSeeder
     {
         var medicines = new List<Medicine>
         {
-            new Medicine { Name = "Paracetamol", Provider = "Farmacias Unidas", Type = "Analgésico/Antipirético", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Ibuprofeno", Provider = "Laboratorios XYZ", Type = "Antiinflamatorio", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Amoxicilina", Provider = "Antibioticos SA", Type = "Antibiótico", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Loratadina", Provider = "Farma Plus", Type = "Antihistamínico", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Salbutamol", Provider = "Respiratorios Lab", Type = "Broncodilatador", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Cetirizina", Provider = "Alergia Med", Type = "Antihistamínico", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Azitromicina", Provider = "Antibioticos SA", Type = "Antibiótico", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Omeprazol", Provider = "Gastro Lab", Type = "Protector gástrico", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Prednisolona", Provider = "Corticoides Med", Type = "Corticoide", CreatedAt = DateTime.Now },
-            new Medicine { Name = "Vitamina D3", Provider = "Suplementos Vita", Type = "Vitamina", CreatedAt = DateTime.Now }
+            new Medicine { Name = "Paracetamol", Provider = "Farmacias Unidas", Type = "Analgésico/Antipirético", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Ibuprofeno", Provider = "Laboratorios XYZ", Type = "Antiinflamatorio", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Amoxicilina", Provider = "Antibioticos SA", Type = "Antibiótico", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Loratadina", Provider = "Farma Plus", Type = "Antihistamínico", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Salbutamol", Provider = "Respiratorios Lab", Type = "Broncodilatador", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Cetirizina", Provider = "Alergia Med", Type = "Antihistamínico", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Azitromicina", Provider = "Antibioticos SA", Type = "Antibiótico", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Omeprazol", Provider = "Gastro Lab", Type = "Protector gástrico", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Prednisolona", Provider = "Corticoides Med", Type = "Corticoide", CreatedAt = DateTime.UtcNow },
+            new Medicine { Name = "Vitamina D3", Provider = "Suplementos Vita", Type = "Vitamina", CreatedAt = DateTime.UtcNow }
         };
 
         await context.Medicines.AddRangeAsync(medicines);
@@ -297,18 +297,18 @@ public static class DatabaseSeeder
     {
         var vaccines = new List<Vaccine>
         {
-            new Vaccine { Name = "BCG", Brand = "Laboratorios XYZ", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Hepatitis B", Brand = "VacuLab", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Pentavalente (DPT+Hib+HepB)", Brand = "Inmunizaciones SA", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Rotavirus", Brand = "GastroVac", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Neumococo", Brand = "RespiraVax", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Influenza", Brand = "FluProtect", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "SRP (Sarampión, Rubéola, Paperas)", Brand = "TripleViral Lab", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Varicela", Brand = "VariVax", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Hepatitis A", Brand = "HepA Lab", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "VPH (Virus Papiloma Humano)", Brand = "CerviVax", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Meningococo", Brand = "MeningoProtect", CreatedAt = DateTime.Now },
-            new Vaccine { Name = "Fiebre Amarilla", Brand = "TropicVax", CreatedAt = DateTime.Now }
+            new Vaccine { Name = "BCG", Brand = "Laboratorios XYZ", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Hepatitis B", Brand = "VacuLab", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Pentavalente (DPT+Hib+HepB)", Brand = "Inmunizaciones SA", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Rotavirus", Brand = "GastroVac", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Neumococo", Brand = "RespiraVax", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Influenza", Brand = "FluProtect", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "SRP (Sarampión, Rubéola, Paperas)", Brand = "TripleViral Lab", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Varicela", Brand = "VariVax", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Hepatitis A", Brand = "HepA Lab", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "VPH (Virus Papiloma Humano)", Brand = "CerviVax", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Meningococo", Brand = "MeningoProtect", CreatedAt = DateTime.UtcNow },
+            new Vaccine { Name = "Fiebre Amarilla", Brand = "TropicVax", CreatedAt = DateTime.UtcNow }
         };
 
         await context.Vaccines.AddRangeAsync(vaccines);
@@ -347,7 +347,7 @@ public static class DatabaseSeeder
                 Gender = gender,
                 BloodTypeId = random.Next(1, 9),
                 PatientTypeId = random.Next(1, 9),
-                CreatedAt = DateTime.Now.AddDays(-random.Next(1, 365))
+                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 365))
             });
         }
 
@@ -433,8 +433,8 @@ public static class DatabaseSeeder
                 Height = (decimal)(Random.Next(500, 1800) / 1000.0), // 0.5 - 1.8 m
                 FamilyHistory = familyHistories[Random.Next(familyHistories.Length)],
                 Notes = notes[Random.Next(notes.Length)],
-                CreatedAt = DateTime.Now.AddDays(-Random.Next(1, 180)),
-                UpdatedAt = DateTime.Now.AddDays(-Random.Next(0, 30))
+                CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 180)),
+                UpdatedAt = DateTime.UtcNow.AddDays(-Random.Next(0, 30))
             });
         }
 
@@ -471,7 +471,7 @@ public static class DatabaseSeeder
                     Type = contactTypes[Random.Next(contactTypes.Length)],
                     Name = firstNames[Random.Next(firstNames.Length)],
                     LastName = lastNames[Random.Next(lastNames.Length)],
-                    CreatedAt = DateTime.Now.AddDays(-Random.Next(1, 365))
+                    CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 365))
                 };
                 contacts.Add(contact);
 
@@ -503,7 +503,7 @@ public static class DatabaseSeeder
                     {
                         ContactId = contactId,
                         Phone1 = $"{Random.Next(2000, 9999)}-{Random.Next(1000, 9999)}",
-                        CreatedAt = DateTime.Now.AddDays(-Random.Next(1, 365))
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 365))
                     });
                 }
 
@@ -550,7 +550,7 @@ public static class DatabaseSeeder
                         ExamId = examId,
                         ResultText = resultTexts[Random.Next(resultTexts.Length)],
                         ResultFilePath = $"/exams/patient_{patientId}_exam_{examId}.pdf",
-                        CreatedAt = DateTime.Now.AddDays(-Random.Next(1, 180))
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 180))
                     });
                 }
             }
@@ -597,7 +597,7 @@ public static class DatabaseSeeder
                 ProviderName = providers[Random.Next(providers.Length)],
                 PolicyNumber = $"POL-{Random.Next(100000, 999999):D6}",
                 CoverageDetails = coverages[Random.Next(coverages.Length)],
-                CreatedAt = DateTime.Now.AddDays(-Random.Next(30, 730)) // 30 días a 2 años
+                CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(30, 730)) // 30 días a 2 años
             });
         }
 
@@ -628,7 +628,7 @@ public static class DatabaseSeeder
                         {
                             PatientId = patientId,
                             InsuranceId = insuranceId,
-                            CreatedAt = DateTime.Now.AddDays(-Random.Next(7, 365))
+                            CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(7, 365))
                         });
                     }
                 }
@@ -674,7 +674,7 @@ public static class DatabaseSeeder
                         Dosis = dosisOptions[Random.Next(dosisOptions.Length)],
                         AgeAtApplication = ageAtApplication,
                         ApplicationDate = applicationDate,
-                        CreatedAt = DateTime.Now.AddDays(-Random.Next(1, 365))
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 365))
                     });
                 }
             }
@@ -726,7 +726,7 @@ public static class DatabaseSeeder
                     AppointmentDate = today.AddDays(-daysAgo).AddHours(hour).AddMinutes(minute),
                     Reason = reasons[Random.Next(reasons.Length)],
                     Status = status,
-                    CreatedAt = DateTime.Now.AddDays(-daysAgo - 5)
+                    CreatedAt = DateTime.UtcNow.AddDays(-daysAgo - 5)
                 };
                 appointments.Add(appointment);
 
@@ -802,7 +802,7 @@ public static class DatabaseSeeder
                         AppointmentDate = today.AddDays(daysAhead).AddHours(hour).AddMinutes(minute),
                         Reason = reasons[Random.Next(reasons.Length)],
                         Status = futureStatuses[Random.Next(futureStatuses.Length)],
-                        CreatedAt = DateTime.Now.AddDays(-Random.Next(1, 7))
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 7))
                     });
 
                     appointmentId++;

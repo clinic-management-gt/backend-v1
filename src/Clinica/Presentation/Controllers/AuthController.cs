@@ -107,7 +107,7 @@ public class AuthController : ControllerBase
             issuer: _config["Jwt:Issuer"] ?? "clinica",
             audience: _config["Jwt:Audience"] ?? "clinica",
             claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: creds
         );
 

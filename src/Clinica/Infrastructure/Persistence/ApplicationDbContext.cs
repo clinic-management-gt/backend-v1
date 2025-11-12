@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
+using Clinica.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Infrastructure.Persistence;
@@ -992,6 +993,7 @@ public partial class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("growth_measurements_medical_record_id_fkey");
         });
+        modelBuilder.ApplyUtcDateTimeConverter();
 
         OnModelCreatingPartial(modelBuilder);
     }

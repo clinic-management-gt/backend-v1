@@ -30,7 +30,7 @@ public class PatientsController : ControllerBase
 
         try
         {
-            DateTime now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            DateTime now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
             // 1. Create the patient
             Patient patient = new Patient
@@ -110,7 +110,7 @@ public class PatientsController : ControllerBase
                     {
                         PatientId = patient.Id,
                         InsuranceId = insurance.Id,
-                        CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+                        CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                     };
                     _context.PatientInsurances.Add(patientInsurance);
                 }
@@ -196,13 +196,13 @@ public class PatientsController : ControllerBase
     {
         try
         {
-            var now = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
             var patient = new Patient
             {
                 Name = request.Name,
                 LastName = request.LastName,
-                Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-30)), // Valor por defecto
+                Birthdate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)), // Valor por defecto
                 Gender = request.Gender, // Usar el género del DTO
                 Address = "", // Valor por defecto
                 BloodTypeId = 1, // Valor por defecto (deberías ajustar según tu DB)
@@ -315,7 +315,7 @@ public class PatientsController : ControllerBase
     [HttpPost("pending")]
     public async Task<IActionResult> CreatePendingPatient([FromBody] CreatePendingPatientDTO request)
     {
-        var nowUnspecified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+        var nowUnspecified = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
         var nowUtc = DateTime.UtcNow;
 
         // Crear el paciente pendiente
