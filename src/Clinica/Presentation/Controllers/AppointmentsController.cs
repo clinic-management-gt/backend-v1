@@ -182,7 +182,7 @@ public class AppointmentsController : ControllerBase
                 return BadRequest("No se detectaron cambios en la cita.");
             }
 
-            appointment.UpdatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            appointment.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Cita actualizada correctamente." });
@@ -270,8 +270,8 @@ public class AppointmentsController : ControllerBase
                     Address = "",
                     BloodTypeId = 1, // Por defecto
                     PatientTypeId = 1, // Por defecto
-                    LastVisit = DateOnly.FromDateTime(DateTime.Now),
-                    CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+                    LastVisit = DateOnly.FromDateTime(DateTime.UtcNow),
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
                 _context.Patients.Add(newPatient);
@@ -305,7 +305,7 @@ public class AppointmentsController : ControllerBase
                     ? status
                     : AppointmentStatus.Pendiente,
                 Reason = dto.Reason,
-                CreatedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             };
 
             _context.Appointments.Add(appointment);

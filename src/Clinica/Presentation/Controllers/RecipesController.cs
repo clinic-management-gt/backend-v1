@@ -27,7 +27,7 @@ public class RecipesController : ControllerBase
         {
             TreatmentId = recipe.TreatmentId,
             Prescription = recipe.Prescription ?? string.Empty,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
         };
 
         var recipesSet = _context.Recipes;

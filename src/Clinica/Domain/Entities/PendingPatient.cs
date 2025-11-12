@@ -39,9 +39,8 @@ public partial class PendingPatient
     public string? ContactType { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Relación de navegación con contactos
     public virtual ICollection<PendingPatientContact> PendingPatientContacts { get; set; } = new List<PendingPatientContact>();
 }
-

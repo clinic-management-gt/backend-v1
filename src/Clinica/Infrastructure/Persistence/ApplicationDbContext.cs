@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
+using Clinica.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Infrastructure.Persistence;
@@ -953,6 +954,8 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
         });
+
+        modelBuilder.ApplyUtcDateTimeConverter();
 
         OnModelCreatingPartial(modelBuilder);
     }
