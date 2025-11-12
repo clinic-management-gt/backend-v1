@@ -1,10 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Clinica.Controllers;
-using Clinica.Models.EntityFramework;
+using Clinica.Domain.Entities;
+using Clinica.Infrastructure.ExternalServices;
+using Clinica.Infrastructure.Persistence;
+using Clinica.Presentation.Controllers;
+using Clinica.Tests.TestDoubles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Clinica.Tests.Controllers
@@ -44,7 +48,7 @@ namespace Clinica.Tests.Controllers
             // Act: obtener la receta por paciente
             using (var context = new ApplicationDbContext(options))
             {
-                var controller = new PatientsController(context);
+                var controller = new PatientsController(context, BuildCloudflareService());
                 var result = await controller.GetAllRecipesByPatientID(1);
 
                 // Assert - ajustado para ActionResult<IEnumerable<Recipe>>
@@ -70,7 +74,7 @@ namespace Clinica.Tests.Controllers
             // Act: intentar obtener recetas de un paciente que no existe
             using (var context = new ApplicationDbContext(options))
             {
-                var controller = new PatientsController(context);
+                var controller = new PatientsController(context, BuildCloudflareService());
                 var result = await controller.GetAllRecipesByPatientID(999); // ID que no existe
 
                 // Assert
@@ -80,6 +84,12 @@ namespace Clinica.Tests.Controllers
                 var recipes = Assert.IsAssignableFrom<IEnumerable<Recipe>>(okResult.Value);
                 Assert.Empty(recipes); // Verifica que la lista está vacía
             }
+        }
+
+        private static CloudflareR2Service BuildCloudflareService()
+        {
+            var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+            return new CloudflareR2Service(config, new TestHttpClientFactory());
         }
     }
 }

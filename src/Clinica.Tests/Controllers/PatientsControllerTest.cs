@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Clinica.Controllers;
-using Clinica.Models.EntityFramework;
+using Clinica.Domain.Entities;
+using Clinica.Infrastructure.ExternalServices;
+using Clinica.Infrastructure.Persistence;
+using Clinica.Presentation.Controllers;
+using Clinica.Tests.TestDoubles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Clinica.Tests.Controllers
@@ -90,7 +94,7 @@ namespace Clinica.Tests.Controllers
       // Act - Usar una nueva instancia de contexto para probar
       using (var context = new ApplicationDbContext(options))
       {
-            var controller = new PatientsController(context);
+            var controller = new PatientsController(context, BuildCloudflareService());
             var result = await controller.GetFullMedicalRecords(1);
 
             // Assert
@@ -112,5 +116,11 @@ namespace Clinica.Tests.Controllers
             Assert.Equal("Test Prescription", (string)recipeType.GetProperty("Prescription").GetValue(recipeObj));
       }
       }
+
+      private static CloudflareR2Service BuildCloudflareService()
+      {
+          var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+          return new CloudflareR2Service(config, new TestHttpClientFactory());
       }
+   }
 }
