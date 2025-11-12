@@ -36,7 +36,7 @@ public class VaccinesController : ControllerBase
         {
             Name = vaccine.Name,
             Brand = vaccine.Brand,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         vaccinesSet.Add(newVaccine);

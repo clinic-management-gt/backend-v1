@@ -21,7 +21,7 @@ namespace Clinica.Tests.Controllers
             // Arrange: poblar la base de datos en memoria
             using (var context = new ApplicationDbContext(options))
             {
-                var patient = new Patient { Id = 1, Name = "Test", LastName = "Patient", Address = "Test", Gender = "M", Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-10)), CreatedAt = DateTime.UtcNow };
+                var patient = new Patient { Id = 1, Name = "Test", LastName = "Patient", Address = "Test", Gender = "M", Birthdate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10)), CreatedAt = DateTime.UtcNow };
                 context.Patients.Add(patient);
 
                 var appointment = new Appointment { Id = 1, PatientId = 1, AppointmentDate = DateTime.UtcNow, Reason = "Test" };

@@ -31,7 +31,7 @@ namespace Clinica.Tests.Controllers
                   LastName = "Patient",
                   Address = "123 Test St.",
                   Gender = "M",
-                  Birthdate = DateOnly.FromDateTime(DateTime.Now.AddYears(-10)), // Fecha de nacimiento
+                  Birthdate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-10)), // Fecha de nacimiento
                   CreatedAt = DateTime.UtcNow
             };
             context.Patients.Add(patient);
