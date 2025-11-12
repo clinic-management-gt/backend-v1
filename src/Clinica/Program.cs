@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 
 public class Program
 {
@@ -27,12 +28,24 @@ public class Program
 
         builder.Services.AddSingleton<CloudflareR2Service>();
 
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o =>
-            {
-                o.MapEnum<AppointmentStatus>("appointment_status_enum");
-                o.MapEnum<Clinica.Domain.Enums.FileType>("file_type_enum");
-            }));
+        var useInMemoryDatabase = builder.Environment.IsEnvironment("Testing") ||
+                                  builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+
+        if (useInMemoryDatabase)
+        {
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase("ClinicaTests"));
+        }
+        else
+        {
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o =>
+                {
+                    o.MapEnum<AppointmentStatus>("appointment_status_enum");
+                    o.MapEnum<Clinica.Domain.Enums.FileType>("file_type_enum");
+                    o.MapEnum<MeasurementType>("measurement_type_enum");
+                }));
+        }
 
         builder.Services.AddControllers(options =>
             {
@@ -101,10 +114,17 @@ public class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            // Aplicar migraciones
-            Console.WriteLine("📦 Applying database migrations...");
-            await db.Database.MigrateAsync();
-            Console.WriteLine("✅ Migrations applied successfully!");
+            if (useInMemoryDatabase)
+            {
+                Console.WriteLine("📦 Using in-memory database; ensuring it is created...");
+                await db.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                Console.WriteLine("📦 Applying database migrations...");
+                await db.Database.MigrateAsync();
+                Console.WriteLine("✅ Migrations applied successfully!");
+            }
 
             // Ejecutar seeder apropiado según el ambiente
             var environment = app.Environment.EnvironmentName;
@@ -149,4 +169,3 @@ public class Program
         app.Run();
     }
 }
-

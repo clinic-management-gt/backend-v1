@@ -25,76 +25,84 @@ public class GraphController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> RecordGrowthMeasurements([FromBody] GraphMeasurementRequestDTO request)
     {
+        IActionResult result;
+
         if (request.Weight <= 0 || request.Height <= 0 || request.HeadCircumference <= 0)
         {
-            return BadRequest(new { message = "Peso, altura y perímetro cefálico deben ser mayores a cero." });
+            result = BadRequest(new { message = "Peso, altura y perímetro cefálico deben ser mayores a cero." });
         }
-
-        var patient = await _context.Patients.FindAsync(request.PatientId);
-        if (patient == null)
+        else
         {
-            return NotFound(new { message = $"Paciente con id {request.PatientId} no encontrado." });
-        }
-
-        var measuredAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-        var heightInMeters = request.Height / 100m;
-
-        List<GrowthMeasurement> measurements = new()
-        {
-            new GrowthMeasurement
+            var patient = await _context.Patients.FindAsync(request.PatientId);
+            if (patient == null)
             {
-                PatientId = request.PatientId,
-                MeasurementType = MeasurementType.Weight,
-                Value = decimal.Round(request.Weight, 2),
-                MeasuredAt = measuredAt,
-                CreatedAt = measuredAt
-            },
-            new GrowthMeasurement
-            {
-                PatientId = request.PatientId,
-                MeasurementType = MeasurementType.Height,
-                Value = decimal.Round(request.Height, 2),
-                MeasuredAt = measuredAt,
-                CreatedAt = measuredAt
-            },
-            new GrowthMeasurement
-            {
-                PatientId = request.PatientId,
-                MeasurementType = MeasurementType.HeadCircumference,
-                Value = decimal.Round(request.HeadCircumference, 2),
-                MeasuredAt = measuredAt,
-                CreatedAt = measuredAt
+                result = NotFound(new { message = $"Paciente con id {request.PatientId} no encontrado." });
             }
-        };
-
-        if (heightInMeters > 0)
-        {
-            decimal bmiValue = request.Weight / (heightInMeters * heightInMeters);
-            bmiValue = decimal.Round(bmiValue, 2, MidpointRounding.AwayFromZero);
-            measurements.Add(new GrowthMeasurement
+            else
             {
-                PatientId = request.PatientId,
-                MeasurementType = MeasurementType.BodyMassIndex,
-                Value = bmiValue,
-                MeasuredAt = measuredAt,
-                CreatedAt = measuredAt
-            });
+                var measuredAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                var heightInMeters = request.Height / 100m;
+
+                List<GrowthMeasurement> measurements = new()
+                {
+                    new GrowthMeasurement
+                    {
+                        PatientId = request.PatientId,
+                        MeasurementType = MeasurementType.Weight,
+                        Value = decimal.Round(request.Weight, 2),
+                        MeasuredAt = measuredAt,
+                        CreatedAt = measuredAt
+                    },
+                    new GrowthMeasurement
+                    {
+                        PatientId = request.PatientId,
+                        MeasurementType = MeasurementType.Height,
+                        Value = decimal.Round(request.Height, 2),
+                        MeasuredAt = measuredAt,
+                        CreatedAt = measuredAt
+                    },
+                    new GrowthMeasurement
+                    {
+                        PatientId = request.PatientId,
+                        MeasurementType = MeasurementType.HeadCircumference,
+                        Value = decimal.Round(request.HeadCircumference, 2),
+                        MeasuredAt = measuredAt,
+                        CreatedAt = measuredAt
+                    }
+                };
+
+                if (heightInMeters > 0)
+                {
+                    decimal bmiValue = request.Weight / (heightInMeters * heightInMeters);
+                    bmiValue = decimal.Round(bmiValue, 2, MidpointRounding.AwayFromZero);
+                    measurements.Add(new GrowthMeasurement
+                    {
+                        PatientId = request.PatientId,
+                        MeasurementType = MeasurementType.BodyMassIndex,
+                        Value = bmiValue,
+                        MeasuredAt = measuredAt,
+                        CreatedAt = measuredAt
+                    });
+                }
+
+                patient.LastVisit = DateOnly.FromDateTime(measuredAt);
+
+                await _context.GrowthMeasurements.AddRangeAsync(measurements);
+                await _context.SaveChangesAsync();
+
+                var response = new
+                {
+                    message = "Mediciones guardadas correctamente.",
+                    patientId = patient.Id,
+                    recordedAt = measuredAt,
+                    registeredMeasurements = measurements.Count
+                };
+
+                result = Ok(response);
+            }
         }
 
-        patient.LastVisit = DateOnly.FromDateTime(measuredAt);
-
-        await _context.GrowthMeasurements.AddRangeAsync(measurements);
-        await _context.SaveChangesAsync();
-
-        var response = new
-        {
-            message = "Mediciones guardadas correctamente.",
-            patientId = patient.Id,
-            recordedAt = measuredAt,
-            registeredMeasurements = measurements.Count
-        };
-
-        return Ok(response);
+        return result;
     }
 
     /// <summary>
@@ -106,52 +114,57 @@ public class GraphController : ControllerBase
         ChartRange chartRange,
         ChartType chartType)
     {
+        ActionResult<GraphResponseDTO> response;
         var patient = await _context.Patients.FindAsync(patientId);
         if (patient == null)
         {
-            return NotFound(new { message = $"Paciente con id {patientId} no encontrado." });
+            response = NotFound(new { message = $"Paciente con id {patientId} no encontrado." });
+        }
+        else
+        {
+            MeasurementType measurementType = MapChartTypeToMeasurementType(chartType);
+            (int MinDays, int MaxDays) ageRange = GetAgeRange(chartRange);
+            DateTime birthDateTime = patient.Birthdate.ToDateTime(TimeOnly.MinValue);
+
+            var measurements = await _context.GrowthMeasurements
+                .Where(m => m.PatientId == patientId && m.MeasurementType == measurementType)
+                .OrderBy(m => m.MeasuredAt)
+                .ToListAsync();
+
+            var data = measurements
+                .Select(measurement =>
+                {
+                    int ageInDays = Math.Max(0, (int)Math.Round((measurement.MeasuredAt.Date - birthDateTime.Date).TotalDays));
+                    return new
+                    {
+                        measurement,
+                        AgeInDays = ageInDays
+                    };
+                })
+                .Where(entry => entry.AgeInDays >= ageRange.MinDays && entry.AgeInDays <= ageRange.MaxDays)
+                .Select(entry => new GraphDataPointDTO
+                {
+                    X = entry.AgeInDays,
+                    Y = decimal.Round(entry.measurement.Value, 2, MidpointRounding.AwayFromZero),
+                    MeasuredAt = DateTime.SpecifyKind(entry.measurement.MeasuredAt, DateTimeKind.Unspecified)
+                })
+                .ToList();
+
+            var graphResponse = new GraphResponseDTO
+            {
+                PatientId = patient.Id,
+                PatientName = $"{patient.Name} {patient.LastName}".Trim(),
+                Age = FormatAgeDescription(patient.Birthdate, DateTime.UtcNow),
+                Gender = patient.Gender,
+                RequestedRange = chartRange,
+                RequestedType = chartType,
+                Data = data
+            };
+
+            response = Ok(graphResponse);
         }
 
-        MeasurementType measurementType = MapChartTypeToMeasurementType(chartType);
-        (int MinDays, int MaxDays) ageRange = GetAgeRange(chartRange);
-        DateTime birthDateTime = patient.Birthdate.ToDateTime(TimeOnly.MinValue);
-
-        var measurements = await _context.GrowthMeasurements
-            .Where(m => m.PatientId == patientId && m.MeasurementType == measurementType)
-            .OrderBy(m => m.MeasuredAt)
-            .ToListAsync();
-
-        var data = measurements
-            .Select(measurement =>
-            {
-                int ageInDays = Math.Max(0, (int)Math.Round((measurement.MeasuredAt.Date - birthDateTime.Date).TotalDays));
-                return new
-                {
-                    measurement,
-                    AgeInDays = ageInDays
-                };
-            })
-            .Where(entry => entry.AgeInDays >= ageRange.MinDays && entry.AgeInDays <= ageRange.MaxDays)
-            .Select(entry => new GraphDataPointDTO
-            {
-                X = entry.AgeInDays,
-                Y = decimal.Round(entry.measurement.Value, 2, MidpointRounding.AwayFromZero),
-                MeasuredAt = DateTime.SpecifyKind(entry.measurement.MeasuredAt, DateTimeKind.Unspecified)
-            })
-            .ToList();
-
-        var response = new GraphResponseDTO
-        {
-            PatientId = patient.Id,
-            PatientName = $"{patient.Name} {patient.LastName}".Trim(),
-            Age = FormatAgeDescription(patient.Birthdate, DateTime.UtcNow),
-            Gender = patient.Gender,
-            RequestedRange = chartRange,
-            RequestedType = chartType,
-            Data = data
-        };
-
-        return Ok(response);
+        return response;
     }
 
     private static (int MinDays, int MaxDays) GetAgeRange(ChartRange chartRange)
