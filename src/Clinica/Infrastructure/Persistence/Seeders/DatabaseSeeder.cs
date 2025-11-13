@@ -328,7 +328,7 @@ public static class DatabaseSeeder
 
         patients.Add(new Patient
         {
-            Name = "Alisson",
+            Name = "Paulina",
             LastName = "Aquino",
             Birthdate = new DateOnly(2025, 6, 11),
             LastVisit = new DateOnly(2025, 8, 11),
