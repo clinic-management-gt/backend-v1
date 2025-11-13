@@ -343,6 +343,7 @@ public static class DatabaseSeeder
                 Name = firstName,
                 LastName = lastName,
                 Birthdate = new DateOnly(birthYear, birthMonth, birthDay),
+                LastVisit = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-random.Next(1, 365))),
                 Address = $"{street} #{number}",
                 Gender = gender,
                 BloodTypeId = random.Next(1, 9),
