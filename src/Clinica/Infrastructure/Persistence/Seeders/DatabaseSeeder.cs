@@ -326,13 +326,27 @@ public static class DatabaseSeeder
         var patients = new List<Patient>();
         var random = Random;
 
+        patients.Add(new Patient
+        {
+            Name = "Alisson",
+            LastName = "Aquino",
+            Birthdate = new DateOnly(2025, 6, 11),
+            LastVisit = new DateOnly(2025, 8, 11),
+            Address = "3 Calle 22-34 Casa Z3 Cuarta los Robles",
+            Gender = genders[1],
+            BloodTypeId = random.Next(1, 9),
+            PatientTypeId = random.Next(1, 9),
+            CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 365))
+
+        });
+
         // Generar 100 pacientes
         for (int i = 1; i <= 100; i++)
         {
             var firstName = firstNames[random.Next(firstNames.Length)];
             var lastName = lastNames[random.Next(lastNames.Length)];
             var gender = genders[random.Next(genders.Length)];
-            var birthYear = random.Next(1990, 2024);
+            var birthYear = random.Next(2019, 2024);
             var birthMonth = random.Next(1, 13);
             var birthDay = random.Next(1, 29);
             var street = streets[random.Next(streets.Length)];
