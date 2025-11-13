@@ -246,6 +246,7 @@ public static class DatabaseSeeder
         Console.WriteLine($"✓ Seeded {chronicDiseases.Count} chronic diseases");
     }
 
+
     private static async Task SeedExams(ApplicationDbContext context)
     {
         var exams = new List<Exam>
@@ -375,12 +376,13 @@ public static class DatabaseSeeder
 
         await SeedPatientAlergiesForAll(context, allPatientIds);
         await SeedPatientChronicDiseasesForAll(context, allPatientIds);
-        await SeedMedicalRecordsForAll(context, allPatientIds);
+        var medicalRecordDates = await SeedMedicalRecordsForAll(context, allPatientIds);
         await SeedContactsForAll(context, allPatientIds);
-        await SeedPatientExamsForAll(context, allPatientIds);
+        await SeedPatientExamsForAll(context, medicalRecordDates);
         await SeedInsuranceForAll(context, allPatientIds);
         await SeedPatientVaccinesForAll(context, allPatientIds);
-        await SeedAppointmentsForAll(context, allPatientIds);
+        await SeedAppointmentsForAll(context, medicalRecordDates);
+        await SeedPatientDocumentsForAll(context, medicalRecordDates);
     }
 
     private static async Task SeedPatientAlergiesForAll(ApplicationDbContext context, List<int> patientIds)
@@ -433,8 +435,9 @@ public static class DatabaseSeeder
         Console.WriteLine($"✓ Seeded {patientChronicDiseases.Count} patient chronic diseases");
     }
 
-    private static async Task SeedMedicalRecordsForAll(ApplicationDbContext context, List<int> patientIds)
+    private static async Task<Dictionary<int, DateTime>> SeedMedicalRecordsForAll(ApplicationDbContext context, List<int> patientIds)
     {
+        var medicalRecordDates = new Dictionary<int, DateTime>();
         var medicalRecords = new List<MedicalRecord>();
         var familyHistories = new[] { "Sin antecedentes familiares relevantes", "Diabetes en familia", "Hipertensión familiar", "Alergias hereditarias", "Asma en familia", "Ninguno reportado" };
         var notes = new[] { "Paciente en buen estado general", "Desarrollo normal para su edad", "Requiere seguimiento", "Paciente colaborador", "Control periódico recomendado" };
@@ -455,7 +458,14 @@ public static class DatabaseSeeder
 
         await context.MedicalRecords.AddRangeAsync(medicalRecords);
         await context.SaveChangesAsync();
+        foreach (var mr in medicalRecords)
+        {
+            medicalRecordDates[mr.Id] = mr.CreatedAt.Value;
+        }
+
         Console.WriteLine($"✓ Seeded {medicalRecords.Count} medical records");
+        return medicalRecordDates;
+
     }
 
     private static async Task SeedContactsForAll(ApplicationDbContext context, List<int> patientIds)
@@ -543,15 +553,24 @@ public static class DatabaseSeeder
         Console.WriteLine($"✓ Seeded {phones.Count} phones");
     }
 
-    private static async Task SeedPatientExamsForAll(ApplicationDbContext context, List<int> patientIds)
+
+
+    private static async Task SeedPatientExamsForAll(ApplicationDbContext context, Dictionary<int, DateTime> medicalRecordDates)
     {
         var patientExams = new List<PatientExam>();
         var resultTexts = new[] { "Resultados normales", "Valores dentro del rango esperado", "Se requiere seguimiento", "Resultados satisfactorios", "Análisis completo sin anomalías" };
 
-        foreach (var patientId in patientIds)
+        // Get medical records with their patient IDs
+        var medicalRecords = await context.MedicalRecords
+            .Select(mr => new { mr.Id, mr.PatientId })
+            .ToListAsync();
+
+        foreach (var mr in medicalRecords)
         {
-            // Cada paciente tiene 2-5 exámenes
-            var examCount = Random.Next(2, 6);
+            var baseDate = medicalRecordDates[mr.Id];
+
+            // Cada medical record tiene 1-3 exámenes en la misma fecha
+            var examCount = Random.Next(1, 4);
             var assignedExams = new HashSet<int>();
 
             for (int i = 0; i < examCount; i++)
@@ -559,13 +578,18 @@ public static class DatabaseSeeder
                 var examId = Random.Next(1, 16);
                 if (assignedExams.Add(examId))
                 {
+                    // Same date as medical record, but different time
+                    var examDateTime = baseDate.Date
+                        .AddHours(Random.Next(8, 18))
+                        .AddMinutes(Random.Next(0, 60));
+
                     patientExams.Add(new PatientExam
                     {
-                        PatientId = patientId,
+                        PatientId = mr.PatientId,
                         ExamId = examId,
                         ResultText = resultTexts[Random.Next(resultTexts.Length)],
-                        ResultFilePath = $"/exams/patient_{patientId}_exam_{examId}.pdf",
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 180))
+                        ResultFilePath = $"/exams/patient_{mr.PatientId}_exam_{examId}.pdf",
+                        CreatedAt = examDateTime
                     });
                 }
             }
@@ -663,6 +687,8 @@ public static class DatabaseSeeder
         Console.WriteLine($"  → {sharedInsurances} insurances are shared by multiple patients");
     }
 
+
+
     private static async Task SeedPatientVaccinesForAll(ApplicationDbContext context, List<int> patientIds)
     {
         var patientVaccines = new List<PatientVaccine>();
@@ -700,7 +726,7 @@ public static class DatabaseSeeder
         Console.WriteLine($"✓ Seeded {patientVaccines.Count} patient vaccines");
     }
 
-    private static async Task SeedAppointmentsForAll(ApplicationDbContext context, List<int> patientIds)
+    private static async Task SeedAppointmentsForAll(ApplicationDbContext context, Dictionary<int, DateTime> medicalRecordDates)
     {
         var appointments = new List<Appointment>();
         var diagnoses = new List<Diagnosis>();
@@ -714,34 +740,47 @@ public static class DatabaseSeeder
         var durations = new[] { "5 días", "7 días", "10 días", "14 días", "3 días", "21 días" };
         var observations = new[] { "Tomar con alimentos", "Tomar después de las comidas", "No tomar con lácteos", "Tomar con abundante agua", "Evitar exposición al sol", "Completar el tratamiento" };
 
-        var today = DateTime.Today;
         int appointmentId = 1;
         int diagnosisId = 1;
         int treatmentId = 1;
         int recipeId = 1;
 
-        foreach (var patientId in patientIds)
-        {
-            // Cada paciente tiene 2-6 citas históricas
-            var historicalAppointmentCount = Random.Next(2, 7);
+        // Get medical records with their patient IDs
+        var medicalRecords = await context.MedicalRecords
+            .Select(mr => new { mr.Id, mr.PatientId })
+            .ToListAsync();
 
-            for (int i = 0; i < historicalAppointmentCount; i++)
+        foreach (var mr in medicalRecords)
+        {
+            var baseDate = medicalRecordDates[mr.Id];
+
+            // Each medical record has 1-2 appointments on the same date
+            var appointmentCount = Random.Next(1, 3);
+
+            for (int i = 0; i < appointmentCount; i++)
             {
-                var daysAgo = Random.Next(30, 365);
                 var hour = Random.Next(8, 18);
-                var minute = Random.Next(0, 60);
+                var minute = Random.Next(0, 4) * 15; // Intervalos de 15 min
                 var doctorId = Random.Next(1, 11); // 10 doctores disponibles
-                var status = statuses[Random.Next(statuses.Length)];
+
+                // 80% probability of completed status for alignment
+                var status = Random.Next(100) < 80
+                    ? AppointmentStatus.Completado
+                    : statuses[Random.Next(statuses.Length)];
+
+                var appointmentDateTime = baseDate.Date
+                    .AddHours(hour)
+                    .AddMinutes(minute);
 
                 var appointment = new Appointment
                 {
                     Id = appointmentId,
-                    PatientId = patientId,
+                    PatientId = mr.PatientId,
                     DoctorId = doctorId,
-                    AppointmentDate = today.AddDays(-daysAgo).AddHours(hour).AddMinutes(minute),
+                    AppointmentDate = appointmentDateTime,
                     Reason = reasons[Random.Next(reasons.Length)],
                     Status = status,
-                    CreatedAt = DateTime.UtcNow.AddDays(-daysAgo - 5)
+                    CreatedAt = baseDate.AddHours(-Random.Next(1, 24)) // Created shortly before
                 };
                 appointments.Add(appointment);
 
@@ -753,8 +792,8 @@ public static class DatabaseSeeder
                         Id = diagnosisId,
                         AppointmentId = appointmentId,
                         Description = diagnosisDescriptions[Random.Next(diagnosisDescriptions.Length)],
-                        DiagnosisDate = appointment.AppointmentDate.AddMinutes(30),
-                        CreatedAt = appointment.AppointmentDate
+                        DiagnosisDate = appointmentDateTime.AddMinutes(30),
+                        CreatedAt = appointmentDateTime.AddMinutes(30)
                     });
 
                     // 70% de probabilidad de tener tratamiento
@@ -763,6 +802,8 @@ public static class DatabaseSeeder
                         var medicineCount = Random.Next(1, 3);
                         for (int m = 0; m < medicineCount; m++)
                         {
+                            var treatmentDateTime = appointmentDateTime.AddMinutes(45);
+
                             var treatment = new Treatment
                             {
                                 Id = treatmentId,
@@ -773,17 +814,17 @@ public static class DatabaseSeeder
                                 Frequency = frequencies[Random.Next(frequencies.Length)],
                                 Observaciones = observations[Random.Next(observations.Length)],
                                 Status = Random.Next(100) < 60 ? "Terminado" : "No Terminado",
-                                CreatedAt = appointment.AppointmentDate
+                                CreatedAt = treatmentDateTime
                             };
                             treatments.Add(treatment);
 
-                            // Cada tratamiento tiene una receta
+                            // Cada tratamiento tiene una receta con la misma fecha
                             recipes.Add(new Recipe
                             {
                                 Id = recipeId,
                                 TreatmentId = treatmentId,
                                 Prescription = $"Administrar {treatment.Dosis} {treatment.Frequency} durante {treatment.Duration}. {treatment.Observaciones}",
-                                CreatedAt = appointment.AppointmentDate
+                                CreatedAt = treatmentDateTime
                             });
 
                             recipeId++;
@@ -795,33 +836,6 @@ public static class DatabaseSeeder
                 }
 
                 appointmentId++;
-            }
-
-            // 50% de pacientes tienen citas futuras/hoy
-            if (Random.Next(100) < 50)
-            {
-                var futureAppointmentCount = Random.Next(1, 3);
-                for (int i = 0; i < futureAppointmentCount; i++)
-                {
-                    var daysAhead = Random.Next(0, 30);
-                    var hour = Random.Next(8, 18);
-                    var minute = Random.Next(0, 4) * 15; // Intervalos de 15 min
-                    var doctorId = Random.Next(1, 11);
-                    var futureStatuses = new[] { AppointmentStatus.Confirmado, AppointmentStatus.Pendiente, AppointmentStatus.Espera };
-
-                    appointments.Add(new Appointment
-                    {
-                        Id = appointmentId,
-                        PatientId = patientId,
-                        DoctorId = doctorId,
-                        AppointmentDate = today.AddDays(daysAhead).AddHours(hour).AddMinutes(minute),
-                        Reason = reasons[Random.Next(reasons.Length)],
-                        Status = futureStatuses[Random.Next(futureStatuses.Length)],
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Next(1, 7))
-                    });
-
-                    appointmentId++;
-                }
             }
         }
 
@@ -842,7 +856,7 @@ public static class DatabaseSeeder
         Console.WriteLine($"✓ Seeded {recipes.Count} recipes");
 
         // Resetear las secuencias de autoincremento después del seeding
-        await ResetSequences(context);
+
     }
 
     /// <summary>
@@ -891,5 +905,64 @@ public static class DatabaseSeeder
         }
 
         Console.WriteLine("✓ Database sequences reset completed");
+    }
+
+    private static async Task SeedPatientDocumentsForAll(ApplicationDbContext context, Dictionary<int, DateTime> medicalRecordDates)
+    {
+        var patientDocuments = new List<PatientDocument>();
+        var documentTypes = Enum.GetValues<FileType>();
+        var descriptions = new[]
+        {
+        "Resultado de examen de laboratorio",
+        "Receta médica",
+        "Informe de consulta",
+        "Resultado de estudios",
+        "Documento de seguimiento",
+        "Historia clínica",
+        "Informe radiológico",
+        "Certificado médico"
+    };
+
+        // Get medical records with their patient IDs
+        var medicalRecords = await context.MedicalRecords
+            .Select(mr => new { mr.Id, mr.PatientId })
+            .ToListAsync();
+
+        foreach (var mr in medicalRecords)
+        {
+            var baseDate = medicalRecordDates[mr.Id];
+
+            // Each medical record has 1-3 documents on the same date
+            var documentCount = Random.Next(1, 4);
+
+            for (int i = 0; i < documentCount; i++)
+            {
+                var fileType = documentTypes[Random.Next(documentTypes.Length)];
+
+                // Same date as medical record, but different time
+                var uploadDateTime = baseDate.Date
+                    .AddHours(Random.Next(8, 18))
+                    .AddMinutes(Random.Next(0, 60));
+
+                patientDocuments.Add(new PatientDocument
+                {
+                    PatientId = mr.PatientId,
+                    MedicalRecordId = mr.Id, // IMPORTANT: Link directly to medical record
+                    Type = fileType,
+                    Description = descriptions[Random.Next(descriptions.Length)],
+                    FileUrl = $"https://storage.clinica.com/documents/patient_{mr.PatientId}/doc_{Guid.NewGuid()}.pdf",
+                    UploadedBy = Random.Next(1, 11), // Random doctor/user
+                    UploadedAt = uploadDateTime,
+                    Size = Random.Next(50000, 5000000), // 50KB - 5MB
+                    ContentType = "application/pdf"
+                });
+            }
+        }
+
+        await context.PatientDocuments.AddRangeAsync(patientDocuments);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"✓ Seeded {patientDocuments.Count} patient documents");
+
+        await ResetSequences(context);
     }
 }

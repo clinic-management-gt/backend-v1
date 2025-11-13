@@ -196,11 +196,38 @@ public class MedicalRecordsController : ControllerBase
                 return NotFound($"Medical record with ID {id} not found.");
             }
 
-            // Obtener tratamientos asociados con citas del mismo paciente
+            // Convertir la fecha del registro médico a DateOnly para comparación
+            var medicalRecordDate = DateOnly.FromDateTime(medicalRecord.CreatedAt.Value);
+
+            // Obtener exámenes del paciente filtrados por fecha
+            var exams = await _context.PatientExams
+                .Include(pe => pe.Exam)
+                .Where(pe => pe.PatientId == medicalRecord.PatientId
+                    && pe.CreatedAt.HasValue
+                    && DateOnly.FromDateTime(pe.CreatedAt.Value) == medicalRecordDate)
+                .OrderByDescending(pe => pe.CreatedAt)
+                .Select(pe => new
+                {
+                    Id = pe.Id,
+                    ExamId = pe.ExamId,
+                    ResultText = pe.ResultText,
+                    ResultFilePath = pe.ResultFilePath,
+                    CreatedAt = pe.CreatedAt,
+                    Exam = new
+                    {
+                        Name = pe.Exam.Name,
+                        Description = pe.Exam.Description
+                    }
+                })
+                .ToListAsync();
+
+            // Obtener tratamientos asociados filtrados por fecha
             var treatments = await _context.Treatments
                 .Include(t => t.Appointment)
                 .Include(t => t.Medicine)
-                .Where(t => t.Appointment.PatientId == medicalRecord.PatientId)
+                .Where(t => t.Appointment.PatientId == medicalRecord.PatientId
+                    && t.CreatedAt.HasValue
+                    && DateOnly.FromDateTime(t.CreatedAt.Value) == medicalRecordDate)
                 .OrderByDescending(t => t.CreatedAt)
                 .Select(t => new
                 {
@@ -226,31 +253,13 @@ public class MedicalRecordsController : ControllerBase
                 })
                 .ToListAsync();
 
-            // Obtener exámenes del paciente
-            var exams = await _context.PatientExams
-                .Include(pe => pe.Exam)
-                .Where(pe => pe.PatientId == medicalRecord.PatientId)
-                .OrderByDescending(pe => pe.CreatedAt)
-                .Select(pe => new
-                {
-                    Id = pe.Id,
-                    ExamId = pe.ExamId,
-                    ResultText = pe.ResultText,
-                    ResultFilePath = pe.ResultFilePath,
-                    CreatedAt = pe.CreatedAt,
-                    Exam = new
-                    {
-                        Name = pe.Exam.Name,
-                        Description = pe.Exam.Description
-                    }
-                })
-                .ToListAsync();
-
-            // Obtener recetas relacionadas con tratamientos del paciente
+            // Obtener recetas filtradas por fecha
             var recipes = await _context.Recipes
                 .Include(r => r.Treatment)
                     .ThenInclude(t => t.Appointment)
-                .Where(r => r.Treatment.Appointment.PatientId == medicalRecord.PatientId)
+                .Where(r => r.Treatment.Appointment.PatientId == medicalRecord.PatientId
+                    && r.CreatedAt.HasValue
+                    && DateOnly.FromDateTime(r.CreatedAt.Value) == medicalRecordDate)
                 .OrderByDescending(r => r.CreatedAt)
                 .Select(r => new
                 {
@@ -261,17 +270,48 @@ public class MedicalRecordsController : ControllerBase
                 })
                 .ToListAsync();
 
+            // Obtener documentos del paciente
+            // Filtrar por MedicalRecordId o por fecha si MedicalRecordId es null
+            var patientDocuments = await _context.PatientDocuments
+                .Where(pd => pd.PatientId == medicalRecord.PatientId
+                    && (pd.MedicalRecordId == id
+                        || (pd.MedicalRecordId == null
+                            && DateOnly.FromDateTime(pd.UploadedAt) == medicalRecordDate)))
+                .OrderByDescending(pd => pd.UploadedAt)
+                .Select(pd => new
+                {
+                    Id = pd.Id,
+                    Type = pd.Type.ToString(),
+                    Description = pd.Description,
+                    FileUrl = pd.FileUrl,
+                    UploadedAt = pd.UploadedAt
+                })
+                .ToListAsync();
+
+            // Transformar documentos a diccionario con estructura solicitada
+            var documents = patientDocuments.ToDictionary(
+                doc => doc.Id,
+                doc => new
+                {
+                    type = doc.Type,
+                    description = doc.Description ?? string.Empty,
+                    file_url = doc.FileUrl
+                }
+            );
+
             var detailedResponse = new
             {
                 MedicalRecord = medicalRecord,
                 Treatments = treatments,
                 Exams = exams,
                 Recipes = recipes,
+                Documents = documents,
                 Summary = new
                 {
                     TotalTreatments = treatments.Count,
                     TotalExams = exams.Count,
-                    TotalRecipes = recipes.Count
+                    TotalRecipes = recipes.Count,
+                    TotalDocuments = documents.Count
                 }
             };
 
