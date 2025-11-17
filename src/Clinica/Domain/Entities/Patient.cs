@@ -34,6 +34,8 @@ public partial class Patient
 
     public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } = new List<MedicalRecord>();
 
+    public virtual ICollection<GrowthMeasurement> GrowthMeasurements { get; set; } = new List<GrowthMeasurement>();
+
     public virtual ICollection<PatientAlergy> PatientAlergies { get; set; } = new List<PatientAlergy>();
 
     public virtual ICollection<PatientChronicDisease> PatientChronicDiseases { get; set; } = new List<PatientChronicDisease>();

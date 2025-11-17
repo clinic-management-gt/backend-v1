@@ -131,6 +131,9 @@ public partial class ApplicationDbContext : DbContext
     /// <summary>Tabla de teléfonos de contactos de pacientes pendientes.</summary>
     public virtual DbSet<PendingPatientPhone> PendingPatientPhones { get; set; }
 
+    /// <summary>Tabla de mediciones de crecimiento.</summary>
+    public virtual DbSet<GrowthMeasurement> GrowthMeasurements { get; set; }
+
     /// <summary>
     /// Configura la conexión a la base de datos si no está configurada.
     /// </summary>
@@ -154,6 +157,7 @@ public partial class ApplicationDbContext : DbContext
             .HasPostgresEnum("log_action_enum", new[] { "INSERT", "UPDATE", "DELETE" })
             .HasPostgresEnum("treatment_status_enum", new[] { "Terminado", "No Terminado" })
             .HasPostgresEnum("file_type_enum", new[] { "receta", "hoja_de_informacion", "examen", "laboratorio", "radiografia", "resultado_de_laboratorio", "consentimiento", "otro" })
+            .HasPostgresEnum("measurement_type_enum", new[] { "Weight", "Height", "HeadCircumference", "BodyMassIndex" })
             .HasPostgresExtension("pgcrypto")
             .HasPostgresExtension("unaccent");
 
@@ -955,6 +959,40 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnName("created_at");
         });
 
+        modelBuilder.Entity<GrowthMeasurement>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("growth_measurements_pkey");
+            entity.ToTable("growth_measurements");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PatientId).HasColumnName("patient_id");
+            entity.Property(e => e.MedicalRecordId).HasColumnName("medical_record_id");
+            entity.Property(e => e.MeasurementType)
+                .HasColumnName("measurement_type")
+                .HasColumnType("measurement_type_enum");
+            entity.Property(e => e.Value)
+                .HasPrecision(6, 2)
+                .HasColumnName("value");
+            entity.Property(e => e.MeasuredAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("measured_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+
+            entity.HasOne(e => e.Patient)
+                .WithMany(p => p.GrowthMeasurements)
+                .HasForeignKey(e => e.PatientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("growth_measurements_patient_id_fkey");
+
+            entity.HasOne(e => e.MedicalRecord)
+                .WithMany()
+                .HasForeignKey(e => e.MedicalRecordId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("growth_measurements_medical_record_id_fkey");
+        });
         modelBuilder.ApplyUtcDateTimeConverter();
 
         OnModelCreatingPartial(modelBuilder);
